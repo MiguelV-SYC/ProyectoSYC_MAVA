@@ -36,8 +36,8 @@
               "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Application\\SGDS.Application.csproj": {
                 "projectPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Application\\SGDS.Application.csproj"
               },
-              "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastucture.csproj": {
-                "projectPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastucture.csproj"
+              "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj"
               }
             }
           }
@@ -1038,12 +1038,12 @@
         }
       }
     },
-    "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastucture.csproj": {
+    "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastucture.csproj",
-        "projectName": "SGDS.Infrastucture",
-        "projectPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastucture.csproj",
+        "projectUniqueName": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj",
+        "projectName": "SGDS.Infrastructure",
+        "projectPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\m.villamizar\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
@@ -1089,6 +1089,22 @@
         "net10.0": {
           "framework": "net10.0",
           "targetAlias": "net10.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[10.0.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.10, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[10.0.3, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

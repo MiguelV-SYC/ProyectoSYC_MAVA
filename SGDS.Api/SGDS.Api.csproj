@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SGDS.Application\SGDS.Application.csproj" />
-    <ProjectReference Include="..\SGDS.Infrastructure\SGDS.Infrastucture.csproj" />
+    <ProjectReference Include="..\SGDS.Infrastructure\SGDS.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

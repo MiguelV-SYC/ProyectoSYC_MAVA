@@ -2,5 +2,5 @@
   <Project Path="SGDS.Api/SGDS.Api.csproj" />
   <Project Path="SGDS.Application/SGDS.Application.csproj" />
   <Project Path="SGDS.Domain/SGDS.Domain.csproj" />
-  <Project Path="SGDS.Infrastructure/SGDS.Infrastucture.csproj" />
+  <Project Path="SGDS.Infrastructure/SGDS.Infrastructure.csproj" />
 </Solution>
