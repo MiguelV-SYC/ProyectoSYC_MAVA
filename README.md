@@ -70,69 +70,39 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### Backend
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=cs,dotnet,asp.net core web api,entity framework core"/>
-</p>
-* **C#**
-* **ASP.NET Core**
-* **ASP.NET Core Web API**
-* **Entity Framework Core**
+
 
 ### Frontend
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=react, ts"/>
-</p>
-
-* **React**
-* **TypeScript**
-* **Material UI**
 
 > El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
 
 ### Base de datos
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=postgres"/>
-</p>
+|                                                                                                       |                                                                                                               |                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/entityframeworkcore/entityframeworkcore-original.svg" width="50"/> |
+| **C#**                                                                                                | **ASP.NET Core**                                                                                              | **Entity Framework Core**                                                                                                       |
 
-* **PostgreSQL**
 
 ### Seguridad
 
-* **JWT (JSON Web Token)**
 
 ### Documentación y pruebas
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=podman"/>
-</p>
-* **Swagger / OpenAPI**
-* **Podman**
+
 
 ### Control de versiones
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=git,github"/>
-</p>
-* **Git**
-* **GitHub**
+
 
 ### Gestión del proyecto
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=azure"/>
-</p>
-* **Azure DevOps**
+*
 
 ### Contenedores
 
-<p align="center">
-<img src= "https://skillicons.dev/icons?i=docker,podman"/>
-</p>
 
-* **Docker** *(previsto dentro del desarrollo, sujeto al alcance y disponibilidad de tiempo)*
-* **Podman**
 
 ### Inteligencia Artificial
 
