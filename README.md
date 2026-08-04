@@ -70,25 +70,47 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### Backend
 
-
-
-### Frontend
-
-
-> El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
-
-### Base de datos
-
 |                                                                                                       |                                                                                                               |                                                                                                                                 |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/entityframeworkcore/entityframeworkcore-original.svg" width="50"/> |
 | **C#**                                                                                                | **ASP.NET Core**                                                                                              | **Entity Framework Core**                                                                                                       |
 
 
-### Seguridad
+### Frontend
+
+|                                                                                                     |                                                                                                               |                                                                                                               |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/> |
+| **React**                                                                                           | **TypeScript**                                                                                                | **Material UI**                                                                                               |
 
 
-### Documentación y pruebas
+> El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
+
+### Base de datos
+
+|                                                                                                               |                |
+| ------------------------------------------------------------------------------------------------------------- | -------------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="50"/> | **PostgreSQL** |
+
+
+
+### DevOps & Herramientas
+
+|                                                                                                 |                                                                                                       |                                                                                                                 |                                                                                                       |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/>  |
+| **Git**                                                                                         | **GitHub**                                                                                            | **Azure DevOps**                                                                                                | **Docker**                                                                                            | **Podman**                                                                                            |
+
+
+
+
+### API & Testing
+
+|                                                                                                         |                                                                                                         |         |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/> | 🔐      |
+| **Swagger**                                                                                             | **Postman**                                                                                             | **JWT** |
+
 
 
 
