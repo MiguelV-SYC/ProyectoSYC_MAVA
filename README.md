@@ -271,31 +271,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
 
 ```text
-SIGES/
-│
-├── Controllers/
-│
-├── Services/
-│
-├── Models/
-│
-├── Data/
-│
-├── DTOs/
-│
-├── Repositories/
-│
-├── Middlewares/
-│
-├── Migrations/
-│
-├── Properties/
-│
-├── Program.cs
-├── appsettings.json
-├── appsettings.Development.json
-│
-└── README.md
+
 ```
 
 > Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
@@ -318,7 +294,7 @@ Antes de ejecutar el proyecto se requiere tener instalado:
 ## Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone <https://github.com/MiguelV-SYC/ProyectoSYC_MAVA.git>
 ```
 
 Ingresar al proyecto:
@@ -380,39 +356,6 @@ Se consideran:
 * Pruebas de endpoints mediante Postman.
 
 La estrategia de pruebas será definida conforme avance el desarrollo del backend.
-
----
-
-# 🌿 Control de versiones
-
-El proyecto utiliza **Git** como sistema de control de versiones y **GitHub** como repositorio.
-
-Se busca mantener una estrategia de trabajo organizada mediante ramas y commits descriptivos.
-
-Ejemplo:
-
-```text
-main
- │
- ├── develop
- │     │
- │     ├── feature/authentication
- │     ├── feature/users
- │     ├── feature/requests
- │     └── feature/documents
- │
- └── release
-```
-
-Ejemplos de commits:
-
-```text
-feat: create user entity
-feat: add request controller
-fix: validate request status
-docs: update API documentation
-refactor: improve request service
-```
 
 ---
 
@@ -484,7 +427,7 @@ Documentación y presentación
 
 # 🎓 Contexto académico y profesional
 
-SIGES se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
+SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
 
 El proyecto busca servir como ejercicio práctico para:
 
