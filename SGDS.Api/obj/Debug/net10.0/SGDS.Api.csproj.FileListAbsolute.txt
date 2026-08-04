@@ -44,3 +44,7 @@ C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\obj\Debug\net10.0\S
 C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\obj\Debug\net10.0\SGDS.Api.genruntimeconfig.cache
 C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\obj\Debug\net10.0\ref\SGDS.Api.dll
 C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\bin\Debug\net10.0\EFCore.NamingConventions.dll
+C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA\SGDS.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
