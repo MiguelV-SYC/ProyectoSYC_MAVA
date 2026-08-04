@@ -6,6 +6,7 @@
 <p align="justify">
 Proyecto práctico desarrollado como parte de la ruta de aprendizaje U-Casual de SYC, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
 </p>
+
 ---
 
 ## <div align="center">📑 Tabla de Contenido</div>
@@ -26,7 +27,8 @@ Proyecto práctico desarrollado como parte de la ruta de aprendizaje U-Casual de
 <a name="descripción"></a>
 ## <div align="center">📌 Descripción</div>
 
-**SGDS (Sistema de Gestión de Solicitudes)** es un proyecto práctico de aprendizaje cuyo propósito es desarrollar un sistema web orientado a la gestión integral de solicitudes, expedientes y flujos de aprobación.
+<p align="justify">
+SGDS (Sistema de Gestión de Solicitudes) es un proyecto práctico de aprendizaje cuyo propósito es desarrollar un sistema web orientado a la gestión integral de solicitudes, expedientes y flujos de aprobación.
 
 El proyecto surge a partir del análisis de diferentes soluciones y procesos observados durante la etapa de inducción a los proyectos y servicios de SYC, identificando elementos comunes como:
 
@@ -41,6 +43,7 @@ El proyecto surge a partir del análisis de diferentes soluciones y procesos obs
 * Seguridad de la información.
 
 A partir de estos elementos se plantea una solución modular y configurable que permita representar procesos administrativos de diferentes características, con una arquitectura preparada para evolucionar hacia una solución reutilizable.
+</p>
 
 
 <p align="center">
@@ -51,6 +54,7 @@ A partir de estos elementos se plantea una solución modular y configurable que 
 <a name="propósito"></a>
 ## <div align="center">🎯 Propósito</div>
 
+<p align="justify">
 El propósito principal es aplicar de manera práctica los conocimientos adquiridos durante la ruta de aprendizaje de la **U-Casual**, junto con los conocimientos adquiridos en la Universidad, acercando el proceso formativo a un escenario de desarrollo de software empresarial.
 
 El proyecto busca especialmente:
@@ -60,6 +64,8 @@ El proyecto busca especialmente:
 * Comprender el desarrollo de una solución desde su diseño hasta su implementación.
 * Fortalecer las competencias necesarias para la incorporación posterior a una célula de trabajo.
 * Experimentar con una arquitectura modular.
+</p>
+
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -113,7 +119,9 @@ El proyecto busca especialmente:
   </tr>
 </table>
 
+<p align="justify">
 >El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
+</p>
 
 ---
 
@@ -190,6 +198,7 @@ El proyecto busca especialmente:
 
 ### Inteligencia Artificial
 
+<p align="justify">
 Se contempla como componente adicional la incorporación de funcionalidades de Inteligencia Artificial orientadas a:
 
 * Análisis documental.
@@ -200,6 +209,7 @@ Se contempla como componente adicional la incorporación de funcionalidades de I
 * Asistencia conversacional.
 
 La implementación de estas funcionalidades dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
+</p>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -266,9 +276,11 @@ Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NE
 <a name="arquitectura"></a>
 ## <div align="center">🏗️ Arquitectura</div>
 
-El proyecto será desarrollado utilizando una **arquitectura en capas**, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
+<p align="justify">
+El proyecto será desarrollado utilizando una <strong>arquitectura en capas</strong>, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
 
 La estructura propuesta contempla:
+</p>
 
 
 <div align="center"> 
@@ -276,8 +288,9 @@ La estructura propuesta contempla:
 </div>
 
 
-
+<p align="justify">
 * La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
+</p>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -287,13 +300,17 @@ La estructura propuesta contempla:
 <a name="estructura-del-proyecto"></a>
 # <div align="center">📁 Estructura del proyecto</div>
 
+<p align="justify">
 La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
+</p>
 
 ```text
 
 ```
 
+<p align="justify">
 > Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
+</p>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -483,7 +500,8 @@ La documentación contempla progresivamente:
 <a name="contexto-académico-y-profesional"></a>
 # <div align="center">🎓 Contexto Académico y Profesional </div>
 
-SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
+<p align="justify">
+SGDS se desarrolla como parte de la ruta de aprendizaje <strong>U-Casual de SYC</strong>, dentro del proceso de formación previo a la asignación a una célula de trabajo.
 
 El proyecto busca servir como ejercicio práctico para:
 
@@ -494,6 +512,7 @@ El proyecto busca servir como ejercicio práctico para:
 * Facilitar la transición hacia un proyecto real dentro de la compañía.
 
 El diferencial del proyecto no se encuentra en competir con las soluciones existentes de SYC, sino en utilizar el ejercicio como un espacio de aprendizaje práctico orientado a desarrollar una solución con tecnologías, arquitectura y prácticas cercanas a un entorno empresarial.
+</p>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -503,12 +522,20 @@ El diferencial del proyecto no se encuentra en competir con las soluciones exist
 <a name="autoría-y-licenciamiento"></a>
 # 📄 Autoría y Licenciamiento
 
-**Miguel Angel Villamizar Ardila**
-Estudiante de Ingeniería de Sistemas
-Universidad Cooperativa de Colombia — Bucaramanga
+<p align="center">
+        <strong>Miguel Angel Villamizar Ardila</strong>
+</p>
+<p align="center">
+        Estudiante de Ingeniería de Sistemas
+</p>
+<p align="center">
+        Universidad Cooperativa de Colombia — Bucaramanga
+</p>
 
+<p align="justify">
 * Proyecto desarrollado durante la práctica profesional en **SYC**.
 * Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
+</p>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
