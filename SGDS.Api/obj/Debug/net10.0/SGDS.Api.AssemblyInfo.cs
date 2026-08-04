@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SGDS.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e2272961efd114bcfe4b74959bdd630689172c64")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c5dab7931ce5b50b52609a5fe670924479d4556b")]
 [assembly: System.Reflection.AssemblyProductAttribute("SGDS.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SGDS.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

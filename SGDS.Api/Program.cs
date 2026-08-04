@@ -8,8 +8,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<SgdsDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SgdsConnection")));
-
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SgdsConnection"))
+           .UseSnakeCaseNamingConvention());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
