@@ -1,17 +1,28 @@
 # <div align="center"> Sistema de Gestión de Solicitudes  </div>
-# <div align="center"> SGDS </div>
+# <div align="center"> 
+<img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="60" />
+</div>
         
 
 > Proyecto práctico desarrollado como parte de la ruta de aprendizaje **U-Casual de SYC**, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
 ---
 
-## Tabla de Contenido 
-- [Descripción] (#-descripción)
-- [Propósito] (#-propósito)
+## <div align="center">📑 Tabla de Contenido</div>
+
+- [Descripción](#descripción)
+- [Propósito](#propósito)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Instalación y Ejecución](#instalación-y-ejecución)
+- [Arquitectura](#arquitectura)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Estado Actual del Proyecto](#estado-actual-del-proyecto)
+- [Roadmap](#roadmap)
+- [Documentación](#documentación)
+- [Contexto Académico](#contexto-académico)
 
 ---
 
-## 📌 Descripción
+## <div align="center">📌 Descripción</div>
 
 **SGDS (Sistema de Gestión de Solicitudes)** es un proyecto práctico de aprendizaje cuyo propósito es desarrollar un sistema web orientado a la gestión integral de solicitudes, expedientes y flujos de aprobación.
 
@@ -32,7 +43,7 @@ A partir de estos elementos se plantea una solución modular y configurable que 
 
 ---
 
-## 🎯 Propósito
+## <div align="center">🎯 Propósito</div>
 
 El propósito principal es aplicar de manera práctica los conocimientos adquiridos durante la ruta de aprendizaje de la **U-Casual**, junto con los conocimientos adquiridos en la Universidad, acercando el proceso formativo a un escenario de desarrollo de software empresarial.
 
@@ -43,79 +54,55 @@ El proyecto busca especialmente:
 * Comprender el desarrollo de una solución desde su diseño hasta su implementación.
 * Fortalecer las competencias necesarias para la incorporación posterior a una célula de trabajo.
 * Experimentar con una arquitectura modular.
-
 ---
 
-## 🏗️ Arquitectura
-
-El proyecto será desarrollado utilizando una **arquitectura en capas**, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
-
-La estructura propuesta contempla:
-
-```text
-┌─────────────────────────────────────┐
-│          Capa de Presentación       │
-│        ASP.NET Core Web API         │
-├─────────────────────────────────────┤
-│           Capa de Negocio           │
-│      Servicios / Reglas de negocio  │
-├─────────────────────────────────────┤
-│       Capa de Acceso a Datos        │
-│     Entity Framework Core / ORM     │
-├─────────────────────────────────────┤
-│          Base de Datos              │
-│             PostgreSQL              │
-└─────────────────────────────────────┘
-```
-
-La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
-
----
-
-## 🛠️ Stack tecnológico
+## <div align="center">🏗️🛠️ Stack-Tec</div>
 
 ### Backend
 
+<div align="center">
 |                                                                                                       |                                                                                                               |                                                                                                                                 |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/entityframeworkcore/entityframeworkcore-original.svg" width="50"/> |
 | **C#**                                                                                                | **ASP.NET Core**                                                                                              | **Entity Framework Core**                                                                                                       |
-
+</div>
 
 ### Frontend
 
+<div align="center">
 |                                                                                                     |                                                                                                               |                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/> |
 | **React**                                                                                           | **TypeScript**                                                                                                | **Material UI**                                                                                               |
-
+</div>
 
 > El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
 
 ### Base de datos
-
+<div align="center">
 |                                                                                                               |                |
 | ------------------------------------------------------------------------------------------------------------- | -------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="50"/> | **PostgreSQL** |
 
-
+</div>
 
 ### DevOps & Herramientas
 
+<div align="center">
 | | | | | |
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/> |
 | **Git** | **GitHub** | **Azure DevOps** | **Docker** | **Podman** |
-
+</div>
 
 ### API & Testing
-
+<div align="center">
 |                                                                                                         |                                                                                                         |         |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/> | 🔐      |
 | **Swagger**                                                                                             | **Postman**                                                                                             | **JWT** |
 
-
+</div>
 
 ### Inteligencia Artificial
 
@@ -132,157 +119,7 @@ La implementación de estas funcionalidades dependerá del avance del proyecto, 
 
 ---
 
-# 📦 Módulos funcionales
-
-El sistema contempla inicialmente los siguientes módulos:
-
-### 🔐 Autenticación
-
-* Inicio de sesión.
-* Roles.
-* Permisos.
-* Recuperación de contraseña.
-
-### 👥 Gestión de usuarios
-
-* Crear usuarios.
-* Editar usuarios.
-* Activar / inactivar usuarios.
-* Asignación de roles.
-
-### 👤 Gestión de ciudadanos
-
-* Registro.
-* Consulta.
-* Actualización.
-* Historial.
-
-### 🏢 Gestión de empresas
-
-* Registro.
-* Consulta.
-* Actualización.
-
-### 📄 Gestión de solicitudes
-
-* Crear solicitud.
-* Modificar solicitud.
-* Adjuntar documentos.
-* Consultar estado.
-
-### 🗂️ Gestión documental
-
-* Expedientes.
-* Archivos PDF.
-* Evidencias.
-* Observaciones.
-
-### 🔄 Workflow
-
-El sistema contempla estados configurables para representar el ciclo de vida de una solicitud.
-
-Ejemplo:
-
-```text
-RADICADA
-    ↓
-EN REVISIÓN
-    ↓
-PENDIENTE
-    ↓
-REQUIERE INFORMACIÓN
-    ↓
-EN REVISIÓN
-    ↓
-APROBADA / RECHAZADA
-    ↓
-FINALIZADA
-```
-
-### 📝 Auditoría
-
-Se contempla el registro de:
-
-* Usuario.
-* Fecha.
-* Acción.
-* Módulo.
-* Dirección IP.
-* Historial de cambios.
-
-### 📊 Dashboard
-
-Indicadores orientados al seguimiento de la operación:
-
-* Solicitudes por estado.
-* Tiempo promedio de atención.
-* Solicitudes creadas.
-* Solicitudes finalizadas.
-* Productividad.
-
-### 📑 Reportes
-
-* Exportación a Excel.
-* Exportación a PDF.
-* Estadísticas.
-
----
-
-# 🚧 Estado actual del proyecto
-
-El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
-
-### Backend
-
-| Componente              | Estado           |
-| ----------------------- | ---------------- |
-| Definición del proyecto | ✅ Completado    |
-| Diseño inicial          | ✅ Completado    |
-| ASP.NET Core            | ✅ Completado  |
-| API REST                | 🟡 En desarrollo |
-| Arquitectura en capas   | 🟡 En desarrollo |
-| Entidades / modelos     | ✅ Completado    |
-| Entity Framework Core   | ✅ Completado  |
-| PostgreSQL              | ✅ Completado    |
-| JWT                     | ⏳ Pendiente      |
-| Swagger                 | 🟡 En desarrollo     |
-| Pruebas                 | ⏳ Pendiente      |
-
-### Frontend
-
-| Componente          | Estado      |
-| ------------------- | ----------- |
-| React               | ⏳ Pendiente |
-| TypeScript          | ⏳ Pendiente |
-| Material UI         | ⏳ Pendiente |
-| Integración con API | ⏳ Pendiente |
-
-### Componentes complementarios
-
-| Componente              | Estado              |
-| ----------------------- | ------------------- |
-| Azure DevOps            | 🟡 En planificación |
-| Docker / Podman         | ⏳ Pendiente         |
-| Inteligencia Artificial | ⏳ Por evaluar       |
-| Documentación técnica   | 🟡 En desarrollo    |
-
-> Los estados del proyecto se actualizarán conforme avance la implementación.
-
----
-
-# 📁 Estructura del proyecto
-
-La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
-
-```text
-
-```
-
-> Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
-
----
-
-# 🚀 Instalación y ejecución
+# <div align="center">🚀 Instalación y Ejecución</div>
 
 ## Requisitos previos
 
@@ -304,7 +141,7 @@ git clone <https://github.com/MiguelV-SYC/ProyectoSYC_MAVA.git>
 Ingresar al proyecto:
 
 ```bash
-cd SIGES
+cd C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA
 ```
 
 ---
@@ -334,9 +171,94 @@ dotnet run
 Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NET Core en la consola.
 
 ---
+## <div align="center">🏗️ Arquitectura</div>
 
-# 📚 Documentación de la API
+El proyecto será desarrollado utilizando una **arquitectura en capas**, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
 
+La estructura propuesta contempla:
+
+
+<div align="center"> 
+<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="100" />
+</div>
+
+
+
+* La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
+
+---
+
+
+# <div align="center">📁 Estructura del proyecto</div>
+
+La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
+
+```text
+
+```
+
+> Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
+
+
+---
+
+# <div align="center">🚧 Estado Actual del Proyecto</div>
+
+El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
+
+### Backend
+<div align="center">
+| Componente              | Estado           |
+| ----------------------- | ---------------- |
+| Definición del proyecto | ✅ Completado    |
+| Diseño inicial          | ✅ Completado    |
+| ASP.NET Core            | ✅ Completado  |
+| API REST                | 🟡 En desarrollo |
+| Arquitectura en capas   | 🟡 En desarrollo |
+| Entidades / modelos     | ✅ Completado    |
+| Entity Framework Core   | ✅ Completado  |
+| PostgreSQL              | ✅ Completado    |
+| JWT                     | ⏳ Pendiente      |
+| Swagger                 | 🟡 En desarrollo     |
+| Pruebas                 | ⏳ Pendiente      |
+</div>
+
+### Frontend
+<div align="center">
+| Componente          | Estado      |
+| ------------------- | ----------- |
+| React               | ⏳ Pendiente |
+| TypeScript          | ⏳ Pendiente |
+| Material UI         | ⏳ Pendiente |
+| Integración con API | ⏳ Pendiente |
+</div>
+
+### Componentes complementarios
+<div align="center">
+| Componente              | Estado              |
+| ----------------------- | ------------------- |
+| Azure DevOps            | 🟡 En planificación |
+| Docker / Podman         | ⏳ Pendiente         |
+| Inteligencia Artificial | ⏳ Por evaluar       |
+| Documentación técnica   | 🟡 En desarrollo    |
+</div>
+
+> Los estados del proyecto se actualizarán conforme avance la implementación.
+
+---
+
+# <div align="center">🗺️ Roadmap</div>
+
+<div align="center"> 
+<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="100" />
+</div>
+
+---
+
+
+# <div align="center">📚 Documentación </div>
+
+## API
 La API será documentada mediante **Swagger / OpenAPI**.
 
 Una vez habilitado Swagger, podrá utilizarse para:
@@ -349,36 +271,7 @@ Una vez habilitado Swagger, podrá utilizarse para:
 
 ---
 
-# 🧪 Pruebas
-
-El proyecto contempla la implementación progresiva de pruebas para validar el comportamiento de los componentes desarrollados.
-
-Se consideran:
-
-* Pruebas unitarias.
-* Pruebas de integración.
-* Pruebas de endpoints mediante Postman.
-
-La estrategia de pruebas será definida conforme avance el desarrollo del backend.
-
----
-
-# 📋 Gestión del proyecto
-
-La planificación y seguimiento del proyecto se realizará mediante **Azure DevOps**, utilizando elementos como:
-
-* Backlog.
-* Historias de usuario.
-* Tareas.
-* Sprints.
-* Seguimiento del avance.
-* Registro de incidencias.
-
-El objetivo es aproximar el desarrollo a una dinámica de trabajo colaborativa y organizada.
-
----
-
-# 📐 Documentación del proyecto
+## Proyecto
 
 La documentación contempla progresivamente:
 
@@ -396,40 +289,7 @@ La documentación contempla progresivamente:
 
 ---
 
-# 🗺️ Roadmap
-
-```text
-FASE 1
-Definición y arquitectura
-        ↓
-FASE 2
-Backend / API REST
-        ↓
-FASE 3
-Base de datos
-        ↓
-FASE 4
-Autenticación y autorización
-        ↓
-FASE 5
-Frontend
-        ↓
-FASE 6
-Integración
-        ↓
-FASE 7
-Pruebas y calidad
-        ↓
-FASE 8
-IA / funcionalidades adicionales
-        ↓
-FASE 9
-Documentación y presentación
-```
-
----
-
-# 🎓 Contexto académico y profesional
+# <div align="center">🎓 Contexto Académico y Profesional </div>
 
 SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
 
@@ -445,17 +305,12 @@ El diferencial del proyecto no se encuentra en competir con las soluciones exist
 
 ---
 
-# 📄 Licencia
-
-Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
-
----
-
-## 👨‍💻 Autor
+# 📄 Autoría y Licenciamiento
 
 **Miguel Angel Villamizar Ardila**
-
 Estudiante de Ingeniería de Sistemas
 Universidad Cooperativa de Colombia — Bucaramanga
 
-Proyecto desarrollado durante la práctica profesional en **SYC**.
+* Proyecto desarrollado durante la práctica profesional en **SYC**.
+* Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
+---
