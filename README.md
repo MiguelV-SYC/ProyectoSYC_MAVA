@@ -110,20 +110,6 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 | **Git**                                                                                         | **GitHub**                                                                                            | **Azure DevOps**                                                                                                | **Docker**                                                                                            | **Podman**                                                                                            |
 
 
-
-
-### Control de versiones
-
-
-
-### Gestión del proyecto
-
-*
-
-### Contenedores
-
-
-
 ### Inteligencia Artificial
 
 Se contempla como componente adicional la incorporación de funcionalidades de Inteligencia Artificial orientadas a:
