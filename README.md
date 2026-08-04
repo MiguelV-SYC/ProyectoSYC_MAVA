@@ -22,7 +22,7 @@
 - [Autoría y Licenciamiento](#autoría-y-licenciamiento)
 
 ---
-
+<a name="descripción"></a>
 ## <div align="center">📌 Descripción</div>
 
 **SGDS (Sistema de Gestión de Solicitudes)** es un proyecto práctico de aprendizaje cuyo propósito es desarrollar un sistema web orientado a la gestión integral de solicitudes, expedientes y flujos de aprobación.
@@ -43,7 +43,7 @@ A partir de estos elementos se plantea una solución modular y configurable que 
 
 
 ---
-
+<a name="propósito"></a>
 ## <div align="center">🎯 Propósito</div>
 
 El propósito principal es aplicar de manera práctica los conocimientos adquiridos durante la ruta de aprendizaje de la **U-Casual**, junto con los conocimientos adquiridos en la Universidad, acercando el proceso formativo a un escenario de desarrollo de software empresarial.
@@ -56,7 +56,7 @@ El proyecto busca especialmente:
 * Fortalecer las competencias necesarias para la incorporación posterior a una célula de trabajo.
 * Experimentar con una arquitectura modular.
 ---
-
+<a name="stack-tec"></a>
 ## <div align="center">🏗️🛠️ Stack-Tec</div>
 
 ### Backend
@@ -192,7 +192,7 @@ Se contempla como componente adicional la incorporación de funcionalidades de I
 La implementación de estas funcionalidades dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
 
 ---
-
+<a name="instalación y ejecución"></a>
 # <div align="center">🚀 Instalación y Ejecución</div>
 
 ## Requisitos previos
@@ -245,6 +245,7 @@ dotnet run
 Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NET Core en la consola.
 
 ---
+<a name="arquitectura"></a>
 ## <div align="center">🏗️ Arquitectura</div>
 
 El proyecto será desarrollado utilizando una **arquitectura en capas**, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
@@ -261,8 +262,7 @@ La estructura propuesta contempla:
 * La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
 
 ---
-
-
+<a name="estructura del proyecto"></a>
 # <div align="center">📁 Estructura del proyecto</div>
 
 La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
@@ -275,7 +275,7 @@ La estructura inicial del backend está orientada a mantener una separación cla
 
 
 ---
-
+<a name="estado actual del proyecto"></a>
 # <div align="center">🚧 Estado Actual del Proyecto</div>
 
 El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
@@ -402,7 +402,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 > Los estados del proyecto se actualizarán conforme avance la implementación.
 
 ---
-
+<a name="roadmap"></a>
 # <div align="center">🗺️ Roadmap</div>
 
 <div align="center"> 
@@ -410,8 +410,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 </div>
 
 ---
-
-
+<a name="documentación"></a>
 # <div align="center">📚 Documentación </div>
 
 ## API
@@ -444,7 +443,7 @@ La documentación contempla progresivamente:
 * Manual de usuario.
 
 ---
-
+<a name="contexto académico y profesional"></a>
 # <div align="center">🎓 Contexto Académico y Profesional </div>
 
 SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
@@ -460,7 +459,7 @@ El proyecto busca servir como ejercicio práctico para:
 El diferencial del proyecto no se encuentra en competir con las soluciones existentes de SYC, sino en utilizar el ejercicio como un espacio de aprendizaje práctico orientado a desarrollar una solución con tecnologías, arquitectura y prácticas cercanas a un entorno empresarial.
 
 ---
-
+<a name="autoría y licenciamiento"></a>
 # 📄 Autoría y Licenciamiento
 
 **Miguel Angel Villamizar Ardila**
