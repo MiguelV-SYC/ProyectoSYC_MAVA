@@ -1,6 +1,6 @@
 # <div align="center"> Sistema de Gestión de Solicitudes  </div>
 <div align="center"> 
-<img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="300" />
+<img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="200" />
 </div>
         
 
@@ -62,7 +62,7 @@ El proyecto busca especialmente:
 ### Backend
 
 <table align="center">
-  <tr>
+<tr>
     <td align="center">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/>
     </td>
@@ -82,38 +82,93 @@ El proyecto busca especialmente:
 
 ### Frontend
 
-|                                                                                                     |                                                                                                               |                                                                                                               |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/> |
-| **React**                                                                                           | **TypeScript**                                                                                                | **Material UI**                                                                                               |
+<table align="center">
+<tr>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>React</strong></td>
+    <td align="center"><strong>TypeScript</strong></td>
+    <td align="center"><strong>Material UI</strong></td>
+  </tr>
+</table>
 
-> El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
+
+
+>El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
 
 ### Base de datos
 
-|                                                                                                               |                |
-| ------------------------------------------------------------------------------------------------------------- | -------------- |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="50"/> | **PostgreSQL** |
-
-
+<table align="center">
+<tr>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="50"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>React</strong></td>
+  </tr>
+</table>
 
 ### DevOps & Herramientas
 
+<table align="center">
+<tr>
+    <td align="center">
+     <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/>
+    </td>
+    
 
-| | | | | |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/> |
-| **Git** | **GitHub** | **Azure DevOps** | **Docker** | **Podman** |
-
+  </tr>
+  <tr>
+    <td align="center"><strong>Git</strong></td>
+    <td align="center"><strong>GitHub</strong></td>
+    <td align="center"><strong>Azure DevOps</strong></td>
+    <td align="center"><strong>Docker</strong></td>
+    <td align="center"><strong>Podman</strong></td>
+  </tr>
+</table>
 
 ### API & Testing
 
-|                                                                                                         |                                                                                                         |         |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/> | 🔐      |
-| **Swagger**                                                                                             | **Postman**                                                                                             | **JWT** |
-
-
+<table align="center">
+<tr>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      🔐
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Swagger</strong></td>
+    <td align="center"><strong>Postman</strong></td>
+    <td align="center"><strong>JWT</strong></td>
+  </tr>
+</table>
 
 ### Inteligencia Artificial
 
@@ -190,7 +245,7 @@ La estructura propuesta contempla:
 
 
 <div align="center"> 
-<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="1000" />
+<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="700" />
 </div>
 
 
@@ -261,7 +316,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 # <div align="center">🗺️ Roadmap</div>
 
 <div align="center"> 
-<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="1000" />
+<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="600" />
 </div>
 
 ---
