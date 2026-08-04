@@ -80,6 +80,8 @@ El proyecto busca especialmente:
   </tr>
 </table>
 
+---
+
 ### Frontend
 
 <table align="center">
@@ -101,9 +103,9 @@ El proyecto busca especialmente:
   </tr>
 </table>
 
-
-
 >El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
+
+---
 
 ### Base de datos
 
@@ -114,9 +116,11 @@ El proyecto busca especialmente:
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>React</strong></td>
+    <td align="center"><strong>PostgreSQL</strong></td>
   </tr>
 </table>
+
+---
 
 ### DevOps & Herramientas
 
@@ -149,6 +153,8 @@ El proyecto busca especialmente:
   </tr>
 </table>
 
+---
+
 ### API & Testing
 
 <table align="center">
@@ -169,6 +175,8 @@ El proyecto busca especialmente:
     <td align="center"><strong>JWT</strong></td>
   </tr>
 </table>
+
+---
 
 ### Inteligencia Artificial
 
@@ -245,7 +253,7 @@ La estructura propuesta contempla:
 
 
 <div align="center"> 
-<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="700" />
+<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="600" />
 </div>
 
 
@@ -274,40 +282,122 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 
 ### Backend
 
-| Componente              | Estado           |
-| :-----------------------: | :----------------: |
-| Definición del proyecto | ✅ Completado    |
-| Diseño inicial          | ✅ Completado    |
-| ASP.NET Core            | ✅ Completado  |
-| API REST                | 🟡 En desarrollo |
-| Arquitectura en capas   | 🟡 En desarrollo |
-| Entidades / modelos     | ✅ Completado    |
-| Entity Framework Core   | ✅ Completado  |
-| PostgreSQL              | ✅ Completado    |
-| JWT                     | ⏳ Pendiente      |
-| Swagger                 | 🟡 En desarrollo     |
-| Pruebas                 | ⏳ Pendiente      |
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Componente</th>
+      <th align="center">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">Definición del proyecto</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">Diseño inicial</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">ASP.NET Core</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">API REST</td>
+      <td align="center">🟡 En desarrollo</td>
+    </tr>
+    <tr>
+      <td align="center">Arquitectura en capas</td>
+      <td align="center">🟡 En desarrollo</td>
+    </tr>
+    <tr>
+      <td align="center">Entidades / modelos</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">Entity Framework Core</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">PostgreSQL</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">JWT</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+    <tr>
+      <td align="center">Swagger</td>
+      <td align="center">🟡 En desarrollo</td>
+    </tr>
+    <tr>
+      <td align="center">Pruebas</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+  </tbody>
+</table>
 
+---
 
 ### Frontend
 
-| Componente          | Estado      |
-| :-------------------: | :-----------: |
-| React               | ⏳ Pendiente |
-| TypeScript          | ⏳ Pendiente |
-| Material UI         | ⏳ Pendiente |
-| Integración con API | ⏳ Pendiente |
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Componente</th>
+      <th align="center">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">React</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+    <tr>
+      <td align="center">TypeScript</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+    <tr>
+      <td align="center">Material UI</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+    <tr>
+      <td align="center">Integración con API</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+  </tbody>
+</table>
 
+---
 
 ### Componentes complementarios
 
-| Componente              | Estado              |
-| :-----------------------: | :-------------------: |
-| Azure DevOps            | 🟡 En planificación |
-| Docker / Podman         | ⏳ Pendiente         |
-| Inteligencia Artificial | ⏳ Por evaluar       |
-| Documentación técnica   | 🟡 En desarrollo    |
-
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Componente</th>
+      <th align="center">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">Azure DevOps</td>
+      <td align="center">🟡 En planificación</td>
+    </tr>
+    <tr>
+      <td align="center">Docker / Podman</td>
+      <td align="center">⏳ Pendiente</td>
+    </tr>
+    <tr>
+      <td align="center">Inteligencia Artificial</td>
+      <td align="center">⏳ Por evaluar</td>
+    </tr>
+    <tr>
+      <td align="center">Documentación técnica</td>
+      <td align="center">🟡 En planificación</td>
+    </tr>
+  </tbody>
+</table>
 
 > Los estados del proyecto se actualizarán conforme avance la implementación.
 
@@ -316,7 +406,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 # <div align="center">🗺️ Roadmap</div>
 
 <div align="center"> 
-<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="600" />
+<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="400" />
 </div>
 
 ---
