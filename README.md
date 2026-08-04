@@ -42,6 +42,10 @@ El proyecto surge a partir del análisis de diferentes soluciones y procesos obs
 A partir de estos elementos se plantea una solución modular y configurable que permita representar procesos administrativos de diferentes características, con una arquitectura preparada para evolucionar hacia una solución reutilizable.
 
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="propósito"></a>
 ## <div align="center">🎯 Propósito</div>
@@ -55,6 +59,11 @@ El proyecto busca especialmente:
 * Comprender el desarrollo de una solución desde su diseño hasta su implementación.
 * Fortalecer las competencias necesarias para la incorporación posterior a una célula de trabajo.
 * Experimentar con una arquitectura modular.
+
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="stack-tec"></a>
 ## <div align="center">🏗️🛠️ Stack-Tec</div>
@@ -191,6 +200,10 @@ Se contempla como componente adicional la incorporación de funcionalidades de I
 
 La implementación de estas funcionalidades dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="instalación-y-ejecución"></a>
 # <div align="center">🚀 Instalación y Ejecución</div>
@@ -244,6 +257,10 @@ dotnet run
 
 Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NET Core en la consola.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="arquitectura"></a>
 ## <div align="center">🏗️ Arquitectura</div>
@@ -261,6 +278,10 @@ La estructura propuesta contempla:
 
 * La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="estructura-del-proyecto"></a>
 # <div align="center">📁 Estructura del proyecto</div>
@@ -273,6 +294,9 @@ La estructura inicial del backend está orientada a mantener una separación cla
 
 > Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
 
 ---
 <a name="estado-actual-del-proyecto"></a>
@@ -401,6 +425,10 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 
 > Los estados del proyecto se actualizarán conforme avance la implementación.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="roadmap"></a>
 # <div align="center">🗺️ Roadmap</div>
@@ -408,6 +436,10 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 <div align="center"> 
 <img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="400" />
 </div>
+
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
 
 ---
 <a name="documentación"></a>
@@ -424,11 +456,6 @@ Una vez habilitado Swagger, podrá utilizarse para:
 * Validar respuestas.
 * Facilitar el consumo de la API durante el desarrollo del frontend.
 
-<p align="center">
-  <a href="#tabla-contenido">
-    <kbd>⬆️ Volver a la Tabla de Contenido</kbd>
-  </a>
-</p>
 ---
 
 ## Proyecto
@@ -447,6 +474,10 @@ La documentación contempla progresivamente:
 * Manual técnico.
 * Manual de usuario.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="contexto-académico-y-profesional"></a>
 # <div align="center">🎓 Contexto Académico y Profesional </div>
@@ -463,6 +494,10 @@ El proyecto busca servir como ejercicio práctico para:
 
 El diferencial del proyecto no se encuentra en competir con las soluciones existentes de SYC, sino en utilizar el ejercicio como un espacio de aprendizaje práctico orientado a desarrollar una solución con tecnologías, arquitectura y prácticas cercanas a un entorno empresarial.
 
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
 <a name="autoría-y-licenciamiento"></a>
 # 📄 Autoría y Licenciamiento
@@ -473,4 +508,9 @@ Universidad Cooperativa de Colombia — Bucaramanga
 
 * Proyecto desarrollado durante la práctica profesional en **SYC**.
 * Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
+
+<p align="center">
+  <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
+</p>
+
 ---
