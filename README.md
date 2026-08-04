@@ -1,4 +1,5 @@
-# SIGES — Sistema Inteligente de Gestión de Solicitudes
+# Sistema de Gestión de Solicitudes
+#               SGDS
 
 > Proyecto práctico desarrollado como parte de la ruta de aprendizaje **U-Casual de SYC**, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
 
@@ -69,6 +70,9 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### Backend
 
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=c#,asp.net core,asp.net core web api,entity framework core"/>
+</p>
 * **C#**
 * **ASP.NET Core**
 * **ASP.NET Core Web API**
