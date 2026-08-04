@@ -31,6 +31,7 @@ Proyecto práctico desarrollado como parte de la ruta de aprendizaje U-Casual de
 SGDS (Sistema de Gestión de Solicitudes) es un proyecto práctico de aprendizaje cuyo propósito es desarrollar un sistema web orientado a la gestión integral de solicitudes, expedientes y flujos de aprobación.
 
 El proyecto surge a partir del análisis de diferentes soluciones y procesos observados durante la etapa de inducción a los proyectos y servicios de SYC, identificando elementos comunes como:
+</p>
 
 * Gestión de usuarios.
 * Gestión documental.
@@ -42,9 +43,9 @@ El proyecto surge a partir del análisis de diferentes soluciones y procesos obs
 * Trazabilidad.
 * Seguridad de la información.
 
+<p align="justify">
 A partir de estos elementos se plantea una solución modular y configurable que permita representar procesos administrativos de diferentes características, con una arquitectura preparada para evolucionar hacia una solución reutilizable.
 </p>
-
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -524,16 +525,12 @@ El diferencial del proyecto no se encuentra en competir con las soluciones exist
 
 <p align="center">
         <strong>Miguel Angel Villamizar Ardila</strong>
-</p>
-<p align="center">
-        Estudiante de Ingeniería de Sistemas
-</p>
-<p align="center">
-        Universidad Cooperativa de Colombia — Bucaramanga
+                Estudiante de Ingeniería de Sistemas
+                Universidad Cooperativa de Colombia — Bucaramanga
 </p>
 
 <p align="justify">
-* Proyecto desarrollado durante la práctica profesional en **SYC**.
+* Proyecto desarrollado durante la práctica profesional en SYC.
 * Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
 </p>
 
