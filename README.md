@@ -1,6 +1,6 @@
 # <div align="center"> Sistema de Gestión de Solicitudes  </div>
-# <div align="center"> 
-<img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="60" />
+<div align="center"> 
+<img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="300" />
 </div>
         
 
@@ -11,14 +11,15 @@
 
 - [Descripción](#descripción)
 - [Propósito](#propósito)
-- [Stack Tecnológico](#stack-tecnológico)
+- [Stack-Tec](#stack-tec)
 - [Instalación y Ejecución](#instalación-y-ejecución)
 - [Arquitectura](#arquitectura)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Estado Actual del Proyecto](#estado-actual-del-proyecto)
-- [Roadmap](#roadmap)
+- [RoadMap](#roadmap)
 - [Documentación](#documentación)
-- [Contexto Académico](#contexto-académico)
+- [Contexto Académico y Profesional](#contexto-académico-y-profesional)
+- [Autoría y Licenciamiento](#autoría-y-licenciamiento)
 
 ---
 
@@ -60,49 +61,59 @@ El proyecto busca especialmente:
 
 ### Backend
 
-<div align="center">
-|                                                                                                       |                                                                                                               |                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/entityframeworkcore/entityframeworkcore-original.svg" width="50"/> |
-| **C#**                                                                                                | **ASP.NET Core**                                                                                              | **Entity Framework Core**                                                                                                       |
-</div>
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/entityframeworkcore/entityframeworkcore-original.svg" width="50"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>C#</strong></td>
+    <td align="center"><strong>ASP.NET Core</strong></td>
+    <td align="center"><strong>Entity Framework Core</strong></td>
+  </tr>
+</table>
 
 ### Frontend
 
-<div align="center">
 |                                                                                                     |                                                                                                               |                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/> |
 | **React**                                                                                           | **TypeScript**                                                                                                | **Material UI**                                                                                               |
-</div>
 
 > El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
 
 ### Base de datos
-<div align="center">
+
 |                                                                                                               |                |
 | ------------------------------------------------------------------------------------------------------------- | -------------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="50"/> | **PostgreSQL** |
 
-</div>
+
 
 ### DevOps & Herramientas
 
-<div align="center">
+
 | | | | | |
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/> |
 | **Git** | **GitHub** | **Azure DevOps** | **Docker** | **Podman** |
-</div>
+
 
 ### API & Testing
-<div align="center">
+
 |                                                                                                         |                                                                                                         |         |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/> | 🔐      |
 | **Swagger**                                                                                             | **Postman**                                                                                             | **JWT** |
 
-</div>
+
 
 ### Inteligencia Artificial
 
@@ -179,7 +190,7 @@ La estructura propuesta contempla:
 
 
 <div align="center"> 
-<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="100" />
+<img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="1000" />
 </div>
 
 
@@ -207,9 +218,9 @@ La estructura inicial del backend está orientada a mantener una separación cla
 El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 
 ### Backend
-<div align="center">
+
 | Componente              | Estado           |
-| ----------------------- | ---------------- |
+| :-----------------------: | :----------------: |
 | Definición del proyecto | ✅ Completado    |
 | Diseño inicial          | ✅ Completado    |
 | ASP.NET Core            | ✅ Completado  |
@@ -221,27 +232,27 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 | JWT                     | ⏳ Pendiente      |
 | Swagger                 | 🟡 En desarrollo     |
 | Pruebas                 | ⏳ Pendiente      |
-</div>
+
 
 ### Frontend
-<div align="center">
+
 | Componente          | Estado      |
-| ------------------- | ----------- |
+| :-------------------: | :-----------: |
 | React               | ⏳ Pendiente |
 | TypeScript          | ⏳ Pendiente |
 | Material UI         | ⏳ Pendiente |
 | Integración con API | ⏳ Pendiente |
-</div>
+
 
 ### Componentes complementarios
-<div align="center">
+
 | Componente              | Estado              |
-| ----------------------- | ------------------- |
+| :-----------------------: | :-------------------: |
 | Azure DevOps            | 🟡 En planificación |
 | Docker / Podman         | ⏳ Pendiente         |
 | Inteligencia Artificial | ⏳ Por evaluar       |
 | Documentación técnica   | 🟡 En desarrollo    |
-</div>
+
 
 > Los estados del proyecto se actualizarán conforme avance la implementación.
 
@@ -250,7 +261,7 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 # <div align="center">🗺️ Roadmap</div>
 
 <div align="center"> 
-<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="100" />
+<img src="./Assets/Readme/RoadMap.png" alt="RoadMap" width="1000" />
 </div>
 
 ---
