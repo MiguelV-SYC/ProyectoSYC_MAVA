@@ -424,6 +424,11 @@ Una vez habilitado Swagger, podrá utilizarse para:
 * Validar respuestas.
 * Facilitar el consumo de la API durante el desarrollo del frontend.
 
+<p align="center">
+  <a href="#tabla-contenido">
+    <kbd>⬆️ Volver a la Tabla de Contenido</kbd>
+  </a>
+</p>
 ---
 
 ## Proyecto
@@ -443,7 +448,7 @@ La documentación contempla progresivamente:
 * Manual de usuario.
 
 ---
-<a name="contexto académico-y-profesional"></a>
+<a name="contexto-académico-y-profesional"></a>
 # <div align="center">🎓 Contexto Académico y Profesional </div>
 
 SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
