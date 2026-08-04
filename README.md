@@ -1,5 +1,7 @@
-# Sistema de Gestión de Solicitudes
-#               SGDS
+#<p align="center"> Sistema de Gestión de Solicitudes  </p>
+#        <p align="center">
+                SGDS
+        </p>
 
 > Proyecto práctico desarrollado como parte de la ruta de aprendizaje **U-Casual de SYC**, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
 
@@ -104,10 +106,11 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### API & Testing
 
-|                                                                                                 |                                                                                                       |                                                                                                                 |                                                                                                       |                                                                                                       |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azuredevops/azuredevops-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/podman/podman-original.svg" width="50"/> |
-| **Git**                                                                                         | **GitHub**                                                                                            | **Azure DevOps**                                                                                                | **Docker**                                                                                            | **Podman**                                                                                            |
+|                                                                                                         |                                                                                                         |         |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg" width="50"/> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/> | 🔐      |
+| **Swagger**                                                                                             | **Postman**                                                                                             | **JWT** |
+
 
 
 ### Inteligencia Artificial
