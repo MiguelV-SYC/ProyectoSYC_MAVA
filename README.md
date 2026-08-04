@@ -1,9 +1,13 @@
-#<p align="center"> Sistema de Gestión de Solicitudes  </p>
-#        <p align="center">
-                SGDS
-        </p>
+# <div align="center"> Sistema de Gestión de Solicitudes  </div>
+# <div align="center"> SGDS </div>
+        
 
 > Proyecto práctico desarrollado como parte de la ruta de aprendizaje **U-Casual de SYC**, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
+---
+
+## Tabla de Contenido 
+- [Descripción] (#-descripción)
+- [Propósito] (#-propósito)
 
 ---
 
