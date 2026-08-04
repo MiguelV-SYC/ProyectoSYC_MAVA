@@ -524,15 +524,17 @@ El diferencial del proyecto no se encuentra en competir con las soluciones exist
 # 📄 Autoría y Licenciamiento
 
 <p align="center">
-        <strong>Miguel Angel Villamizar Ardila</strong>
-                Estudiante de Ingeniería de Sistemas
-                Universidad Cooperativa de Colombia — Bucaramanga
+  <strong>Miguel Angel Villamizar Ardila</strong><br>
+  Estudiante de Ingeniería de Sistemas<br>
+  Universidad Cooperativa de Colombia — Bucaramanga
 </p>
 
-<p align="justify">
-* Proyecto desarrollado durante la práctica profesional en SYC.
-* Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.
-</p>
+<div align="justify">
+        <ul>
+                <li>Proyecto desarrollado durante la práctica profesional en SYC.</li>
+                <li>Proyecto desarrollado con fines académicos y de formación profesional dentro del contexto de la ruta de aprendizaje U-Casual.</li>
+        <ul>
+</div>
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
