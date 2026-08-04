@@ -192,7 +192,7 @@ Se contempla como componente adicional la incorporación de funcionalidades de I
 La implementación de estas funcionalidades dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
 
 ---
-<a name="instalación y ejecución"></a>
+<a name="instalación-y-ejecución"></a>
 # <div align="center">🚀 Instalación y Ejecución</div>
 
 ## Requisitos previos
@@ -262,7 +262,7 @@ La estructura propuesta contempla:
 * La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
 
 ---
-<a name="estructura del proyecto"></a>
+<a name="estructura-del-proyecto"></a>
 # <div align="center">📁 Estructura del proyecto</div>
 
 La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
@@ -275,7 +275,7 @@ La estructura inicial del backend está orientada a mantener una separación cla
 
 
 ---
-<a name="estado actual del proyecto"></a>
+<a name="estado-actual-del-proyecto"></a>
 # <div align="center">🚧 Estado Actual del Proyecto</div>
 
 El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
@@ -443,7 +443,7 @@ La documentación contempla progresivamente:
 * Manual de usuario.
 
 ---
-<a name="contexto académico y profesional"></a>
+<a name="contexto académico-y-profesional"></a>
 # <div align="center">🎓 Contexto Académico y Profesional </div>
 
 SGDS se desarrolla como parte de la ruta de aprendizaje **U-Casual de SYC**, dentro del proceso de formación previo a la asignación a una célula de trabajo.
@@ -459,7 +459,7 @@ El proyecto busca servir como ejercicio práctico para:
 El diferencial del proyecto no se encuentra en competir con las soluciones existentes de SYC, sino en utilizar el ejercicio como un espacio de aprendizaje práctico orientado a desarrollar una solución con tecnologías, arquitectura y prácticas cercanas a un entorno empresarial.
 
 ---
-<a name="autoría y licenciamiento"></a>
+<a name="autoría-y-licenciamiento"></a>
 # 📄 Autoría y Licenciamiento
 
 **Miguel Angel Villamizar Ardila**
