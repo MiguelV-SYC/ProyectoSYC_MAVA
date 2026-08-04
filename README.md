@@ -3,8 +3,9 @@
 <img src="./Assets/Readme/LogoSGDS.png" alt="LogoSGDS" width="200" />
 </div>
         
-
-> Proyecto práctico desarrollado como parte de la ruta de aprendizaje **U-Casual de SYC**, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
+<p align="justify">
+Proyecto práctico desarrollado como parte de la ruta de aprendizaje U-Casual de SYC, orientado a la aplicación de conocimientos técnicos, implementación del StackTec de la organización, de manera que se pueda replicar un sistema web con arquitectura modular y configurable, semejante a los proyectos en PCC de SYC.
+</p>
 ---
 
 ## <div align="center">📑 Tabla de Contenido</div>
