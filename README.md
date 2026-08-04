@@ -71,7 +71,7 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 ### Backend
 
 <p align="center">
-<img src= "https://skillicons.dev/icons?i=c#,asp.net core,asp.net core web api,entity framework core"/>
+<img src= "https://skillicons.dev/icons?i=cs,dotnet,asp.net core web api,entity framework core"/>
 </p>
 * **C#**
 * **ASP.NET Core**
@@ -79,6 +79,10 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 * **Entity Framework Core**
 
 ### Frontend
+
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=react, ts"/>
+</p>
 
 * **React**
 * **TypeScript**
@@ -88,6 +92,10 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### Base de datos
 
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=postgres"/>
+</p>
+
 * **PostgreSQL**
 
 ### Seguridad
@@ -96,19 +104,32 @@ La arquitectura podrá evolucionar durante el desarrollo conforme se definan los
 
 ### Documentación y pruebas
 
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=podman"/>
+</p>
 * **Swagger / OpenAPI**
 * **Podman**
 
 ### Control de versiones
 
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=git,github"/>
+</p>
 * **Git**
 * **GitHub**
 
 ### Gestión del proyecto
 
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=azure"/>
+</p>
 * **Azure DevOps**
 
 ### Contenedores
+
+<p align="center">
+<img src= "https://skillicons.dev/icons?i=docker,podman"/>
+</p>
 
 * **Docker** *(previsto dentro del desarrollo, sujeto al alcance y disponibilidad de tiempo)*
 * **Podman**
