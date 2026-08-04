@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SGDS.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dd6a1ad010770bb37c7c6f6dc38dec9082256286")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+33ed9a0d1e5cc531adcea8e9d929b6fa5c098154")]
 [assembly: System.Reflection.AssemblyProductAttribute("SGDS.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SGDS.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
