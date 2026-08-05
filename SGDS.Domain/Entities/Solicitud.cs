@@ -3,7 +3,7 @@ namespace SGDS.Domain.Entities;
 public class Solicitud
 {
     public int Id { get; set; }
-    public int CiudadanoId { get; set; }
+    public int? CiudadanoId { get; set; }
     public Ciudadano? Ciudadano { get; set; }
     public int? EmpresaId { get; set; }
     public Empresa? Empresa { get; set; }
