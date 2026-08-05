@@ -347,11 +347,11 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
     </tr>
     <tr>
       <td align="center">API REST</td>
-      <td align="center">🟡 En desarrollo</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
       <td align="center">Arquitectura en capas</td>
-      <td align="center">🟡 En desarrollo</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
       <td align="center">Entidades / modelos</td>
@@ -367,15 +367,15 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
     </tr>
     <tr>
       <td align="center">JWT</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
       <td align="center">Swagger</td>
-      <td align="center">🟡 En desarrollo</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
       <td align="center">Pruebas</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">✅ Completado</td>
     </tr>
   </tbody>
 </table>
