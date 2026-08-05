@@ -10,7 +10,6 @@
         "dependencies": {
           "BCrypt.Net-Next": "4.2.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.10",
-          "Microsoft.AspNetCore.OpenApi": "10.0.10",
           "Microsoft.EntityFrameworkCore": "10.0.4",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
           "SGDS.Application": "1.0.0",
@@ -47,17 +46,6 @@
         },
         "runtime": {
           "lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
-            "assemblyVersion": "10.0.10.0",
-            "fileVersion": "10.0.1026.32716"
-          }
-        }
-      },
-      "Microsoft.AspNetCore.OpenApi/10.0.10": {
-        "dependencies": {
-          "Microsoft.OpenApi": "2.7.5"
-        },
-        "runtime": {
-          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
             "assemblyVersion": "10.0.10.0",
             "fileVersion": "10.0.1026.32716"
           }
@@ -305,13 +293,6 @@
       "sha512": "sha512-VAcqS42zb9WJd9DjPdkVTS5YrQENmNzPNJuRu8VAW7x3TEWUipc4d4hHzVJdFB0h/KLdr4XcXZzRHcUOKVanMQ==",
       "path": "microsoft.aspnetcore.authentication.jwtbearer/10.0.10",
       "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.10.0.10.nupkg.sha512"
-    },
-    "Microsoft.AspNetCore.OpenApi/10.0.10": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-d4Atx9IHq7JgX0F/h7Db+m9zAUzC+cKdI9k+OWnnyQIOUQtfvjIEuhvbjPigVMkAmPUgCbJ8Yp6M9ghUqHtJSQ==",
-      "path": "microsoft.aspnetcore.openapi/10.0.10",
-      "hashPath": "microsoft.aspnetcore.openapi.10.0.10.nupkg.sha512"
     },
     "Microsoft.Bcl.Cryptography/10.0.2": {
       "type": "package",

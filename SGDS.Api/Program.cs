@@ -2,13 +2,31 @@ using Microsoft.EntityFrameworkCore;
 using SGDS.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingresa el token JWT así: Bearer {tu token}"
+    });
+
+    options.AddSecurityRequirement(document => new()
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 
 builder.Services.AddDbContext<SgdsDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("SgdsConnection"))
@@ -41,10 +59,10 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
     app.UseSwaggerUI (options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "SGDS API v1");   
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "SGDS API v1");   
     });
 }
 

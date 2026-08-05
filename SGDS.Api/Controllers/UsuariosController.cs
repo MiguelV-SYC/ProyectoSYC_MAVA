@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SGDS.Application.DTOs;
@@ -8,6 +9,7 @@ namespace SGDS.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UsuariosController : ControllerBase
 {
     private readonly SgdsDbContext _context;
