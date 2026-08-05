@@ -1,12 +1,17 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SGDS.Domain.Entities;
+using System.Security.Claims;
 
 namespace SGDS.Infrastructure.Data;
 
 public class SgdsDbContext : DbContext
 {
+    private readonly IHttpContextAccessor? _httpContextAccessor;
+
     public SgdsDbContext(DbContextOptions<SgdsDbContext> options) : base(options)
     {
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public DbSet<Usuario> Usuarios => Set<Usuario>();
