@@ -71,29 +71,36 @@ private void RegistrarAuditoria()
 
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Rol> Roles => Set<Rol>();
-    public DbSet<UsuarioRol> UsuarioRoles => Set<UsuarioRol>();
     public DbSet<Ciudadano> Ciudadanos => Set<Ciudadano>();
     public DbSet<Empresa> Empresas => Set<Empresa>();
     public DbSet<Solicitud> Solicitudes => Set<Solicitud>();
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<HistorialEstado> HistorialEstados => Set<HistorialEstado>();
     public DbSet<Auditoria> Auditorias => Set<Auditoria>();
+    public DbSet<Proyecto> Proyectos => Set<Proyecto>();
+    public DbSet<TipoSolicitud> TipoSolicitudes => Set<TipoSolicitud>();
+    public DbSet<UsuarioProyecto> UsuarioProyectos => Set<UsuarioProyecto>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Solicitud>()
+            .Property(s => s.DatosAdicionales)
+            .HasColumnType("jsonb");
 
-        modelBuilder.Entity<UsuarioRol>()
-            .HasKey(ur => new { ur.UsuarioId, ur.RolId });
+        modelBuilder.Entity<UsuarioProyecto>()
+            .HasKey(up => new { up.UsuarioId, up.ProyectoId });
 
         // Mapeo de nombres de tabla a snake_case (igual que en pgAdmin)
         modelBuilder.Entity<Usuario>().ToTable("usuarios");
         modelBuilder.Entity<Rol>().ToTable("roles");
-        modelBuilder.Entity<UsuarioRol>().ToTable("usuario_roles");
         modelBuilder.Entity<Ciudadano>().ToTable("ciudadanos");
         modelBuilder.Entity<Empresa>().ToTable("empresas");
         modelBuilder.Entity<Solicitud>().ToTable("solicitudes");
         modelBuilder.Entity<Documento>().ToTable("documentos");
         modelBuilder.Entity<HistorialEstado>().ToTable("historial_estados");
         modelBuilder.Entity<Auditoria>().ToTable("auditoria");
+        modelBuilder.Entity<Proyecto>().ToTable("proyectos");
+        modelBuilder.Entity<TipoSolicitud>().ToTable("tipo_solicitudes");
+        modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
     }
 }
