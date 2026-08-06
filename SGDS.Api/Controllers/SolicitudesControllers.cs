@@ -20,59 +20,82 @@ public class SolicitudesController : ControllerBase
     }
 
     // GET: api/Solicitudes
-    [HttpGet]
-    public async Task<IActionResult> GetSolicitudes()
-    {
-        var solicitudes = await _context.Solicitudes
-            .Include(s => s.Ciudadano)
-            .Include(s => s.Empresa)
-            .Include(s => s.UsuarioAsignado)
-            .Select(s => new SolicitudResponseDto
-            {
-                Id = s.Id,
-                CiudadanoId = s.CiudadanoId,
-                CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
-                EmpresaId = s.EmpresaId,
-                EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
-                UsuarioAsignadoId = s.UsuarioAsignadoId,
-                UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
-                Estado = s.Estado,
-                FechaCreacion = s.FechaCreacion,
-                FechaCierre = s.FechaCierre
-            })
-            .ToListAsync();
+[HttpGet]
+public async Task<IActionResult> GetSolicitudes()
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosClaims = User.FindAll("proyecto").Select(c => c.Value.Split(':')[0]).ToList();
+    var proyectosPermitidos = proyectosClaims.Select(int.Parse).ToList();
 
-        return Ok(solicitudes);
+    var query = _context.Solicitudes
+        .Include(s => s.Ciudadano)
+        .Include(s => s.Empresa)
+        .Include(s => s.UsuarioAsignado)
+        .AsQueryable();
+
+    if (!esAdminSyc)
+    {
+        query = query.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
     }
 
-    // GET: api/Solicitudes/5
-    [HttpGet("{id}")]
+    var solicitudes = await query
+        .Select(s => new SolicitudResponseDto
+        {
+            Id = s.Id,
+            CiudadanoId = s.CiudadanoId,
+            CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
+            EmpresaId = s.EmpresaId,
+            EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
+            UsuarioAsignadoId = s.UsuarioAsignadoId,
+            UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
+            Estado = s.Estado,
+            FechaCreacion = s.FechaCreacion,
+            FechaCierre = s.FechaCierre
+        })
+        .ToListAsync();
+
+    return Ok(solicitudes);
+}
+
+// GET: api/Solicitudes/
+[HttpGet("{id}")]
     public async Task<IActionResult> GetSolicitud(int id)
     {
-        var solicitud = await _context.Solicitudes
-            .Include(s => s.Ciudadano)
-            .Include(s => s.Empresa)
-            .Include(s => s.UsuarioAsignado)
-            .FirstOrDefaultAsync(s => s.Id == id);
+         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
 
-        if (solicitud == null)
-            return NotFound();
+    var solicitud = await _context.Solicitudes
+        .Include(s => s.Ciudadano)
+        .Include(s => s.Empresa)
+        .Include(s => s.UsuarioAsignado)
+        .FirstOrDefaultAsync(s => s.Id == id);
 
-        var dto = new SolicitudResponseDto
-        {
-            Id = solicitud.Id,
-            CiudadanoId = solicitud.CiudadanoId,
-            CiudadanoNombre = solicitud.Ciudadano?.NombreCompleto,
-            EmpresaId = solicitud.EmpresaId,
-            EmpresaNombre = solicitud.Empresa?.RazonSocial,
-            UsuarioAsignadoId = solicitud.UsuarioAsignadoId,
-            UsuarioAsignadoNombre = solicitud.UsuarioAsignado?.NombreCompleto,
-            Estado = solicitud.Estado,
-            FechaCreacion = solicitud.FechaCreacion,
-            FechaCierre = solicitud.FechaCierre
-        };
+    if (solicitud == null)
+        return NotFound();
 
-        return Ok(dto);
+    if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+    {
+        return NotFound();
+    }
+
+    var dto = new SolicitudResponseDto
+    {
+        Id = solicitud.Id,
+        CiudadanoId = solicitud.CiudadanoId,
+        CiudadanoNombre = solicitud.Ciudadano?.NombreCompleto,
+        EmpresaId = solicitud.EmpresaId,
+        EmpresaNombre = solicitud.Empresa?.RazonSocial,
+        UsuarioAsignadoId = solicitud.UsuarioAsignadoId,
+        UsuarioAsignadoNombre = solicitud.UsuarioAsignado?.NombreCompleto,
+        Estado = solicitud.Estado,
+        FechaCreacion = solicitud.FechaCreacion,
+        FechaCierre = solicitud.FechaCierre
+    };
+
+    return Ok(dto);
+
     }
 
     // POST: api/Solicitudes
