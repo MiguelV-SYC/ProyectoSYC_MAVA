@@ -21,24 +21,35 @@ public class CiudadanosController : ControllerBase
 
     // GET: api/Ciudadanos
     [HttpGet]
-    public async Task<IActionResult> GetCiudadanos()
+public async Task<IActionResult> GetCiudadanos()
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    var query = _context.Ciudadanos.AsQueryable();
+
+    if (!esAdminSyc)
     {
-        var ciudadanos = await _context.Ciudadanos
-            .Select(c => new CiudadanoResponseDto
-            {
-                Id = c.Id,
-                TipoDocumento = c.TipoDocumento,
-                NumeroDocumento = c.NumeroDocumento,
-                NombreCompleto = c.NombreCompleto,
-                Telefono = c.Telefono,
-                Email = c.Email
-            })
-            .ToListAsync();
-
-        return Ok(ciudadanos);
+        query = query.Where(c => c.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)));
     }
-    
 
+    var ciudadanos = await query
+        .Select(c => new CiudadanoResponseDto
+        {
+            Id = c.Id,
+            TipoDocumento = c.TipoDocumento,
+            NumeroDocumento = c.NumeroDocumento,
+            NombreCompleto = c.NombreCompleto,
+            Telefono = c.Telefono,
+            Email = c.Email
+        })
+        .ToListAsync();
+
+    return Ok(ciudadanos);
+}
+    
     // GET: api/Ciudadanos/5
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCiudadano(int id)

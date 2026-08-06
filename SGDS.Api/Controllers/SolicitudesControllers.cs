@@ -111,6 +111,8 @@ public async Task<IActionResult> GetSolicitudes()
         {
             CiudadanoId = dto.CiudadanoId,
             EmpresaId = dto.EmpresaId,
+            ProyectoId = dto.ProyectoId,
+            TipoSolicitudId = dto.TipoSolicitudId,
             Estado = "Radicada",
             FechaCreacion = DateTime.UtcNow
         };

@@ -21,20 +21,31 @@ public class EmpresasController : ControllerBase
 
     // GET: api/Empresas
     [HttpGet]
-    public async Task<IActionResult> GetEmpresas()
-    {
-        var empresas = await _context.Empresas
-            .Select(e => new EmpresaResponseDto
-            {
-                Id = e.Id,
-                Nit = e.Nit,
-                RazonSocial = e.RazonSocial
-            })
-            .ToListAsync();
+public async Task<IActionResult> GetEmpresas()
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
 
-        return Ok(empresas);
+    var query = _context.Empresas.AsQueryable();
+
+    if (!esAdminSyc)
+    {
+        query = query.Where(e => e.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)));
     }
-    
+
+    var empresas = await query
+        .Select(e => new EmpresaResponseDto
+        {
+            Id = e.Id,
+            Nit = e.Nit,
+            RazonSocial = e.RazonSocial
+        })
+        .ToListAsync();
+
+    return Ok(empresas);
+}
 
     // GET: api/Empresas/5
     [HttpGet("{id}")]
