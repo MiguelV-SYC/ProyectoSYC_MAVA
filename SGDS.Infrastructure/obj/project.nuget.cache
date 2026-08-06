@@ -1,11 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "UTTn/zIAsdI=",
+  "dgSpecHash": "Kg4mjrhOLtI=",
   "success": true,
   "projectFilePath": "C:\\Users\\m.villamizar\\PROYECTO_SYC\\ProyectoSYC_MAVA\\SGDS.Infrastructure\\SGDS.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\m.villamizar\\.nuget\\packages\\efcore.namingconventions\\10.0.1\\efcore.namingconventions.10.0.1.nupkg.sha512",
     "C:\\Users\\m.villamizar\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\m.villamizar\\.nuget\\packages\\microsoft.aspnetcore.http.abstractions\\2.3.11\\microsoft.aspnetcore.http.abstractions.2.3.11.nupkg.sha512",
+    "C:\\Users\\m.villamizar\\.nuget\\packages\\microsoft.aspnetcore.http.features\\2.3.10\\microsoft.aspnetcore.http.features.2.3.10.nupkg.sha512",
     "C:\\Users\\m.villamizar\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
     "C:\\Users\\m.villamizar\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",
     "C:\\Users\\m.villamizar\\.nuget\\packages\\microsoft.codeanalysis.common\\5.0.0\\microsoft.codeanalysis.common.5.0.0.nupkg.sha512",
