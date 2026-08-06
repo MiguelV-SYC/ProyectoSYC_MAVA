@@ -80,6 +80,7 @@ private void RegistrarAuditoria()
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
     public DbSet<TipoSolicitud> TipoSolicitudes => Set<TipoSolicitud>();
     public DbSet<UsuarioProyecto> UsuarioProyectos => Set<UsuarioProyecto>();
+    public DbSet<TipoSolicitud> TiposSolicitud => Set<TipoSolicitud>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

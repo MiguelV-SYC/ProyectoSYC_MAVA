@@ -52,25 +52,37 @@ public async Task<IActionResult> GetCiudadanos()
     
     // GET: api/Ciudadanos/5
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetCiudadano(int id)
+public async Task<IActionResult> GetCiudadano(int id)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    var ciudadano = await _context.Ciudadanos
+        .Include(c => c.Solicitudes)
+        .FirstOrDefaultAsync(c => c.Id == id);
+
+    if (ciudadano == null)
+        return NotFound();
+
+    if (!esAdminSyc && !ciudadano.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)))
     {
-        var ciudadano = await _context.Ciudadanos.FindAsync(id);
-
-        if (ciudadano == null)
-            return NotFound();
-
-        var dto = new CiudadanoResponseDto
-        {
-            Id = ciudadano.Id,
-            TipoDocumento = ciudadano.TipoDocumento,
-            NumeroDocumento = ciudadano.NumeroDocumento,
-            NombreCompleto = ciudadano.NombreCompleto,
-            Telefono = ciudadano.Telefono,
-            Email = ciudadano.Email
-        };
-
-        return Ok(dto);
+        return NotFound();
     }
+
+    var dto = new CiudadanoResponseDto
+    {
+        Id = ciudadano.Id,
+        TipoDocumento = ciudadano.TipoDocumento,
+        NumeroDocumento = ciudadano.NumeroDocumento,
+        NombreCompleto = ciudadano.NombreCompleto,
+        Telefono = ciudadano.Telefono,
+        Email = ciudadano.Email
+    };
+
+    return Ok(dto);
+}
 
     // POST: api/Ciudadanos
     [HttpPost]

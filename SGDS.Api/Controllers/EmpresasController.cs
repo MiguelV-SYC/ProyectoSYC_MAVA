@@ -49,22 +49,34 @@ public async Task<IActionResult> GetEmpresas()
 
     // GET: api/Empresas/5
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetEmpresa(int id)
+public async Task<IActionResult> GetEmpresa(int id)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    var empresa = await _context.Empresas
+        .Include(e => e.Solicitudes)
+        .FirstOrDefaultAsync(e => e.Id == id);
+
+    if (empresa == null)
+        return NotFound();
+
+    if (!esAdminSyc && !empresa.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)))
     {
-        var empresa = await _context.Empresas.FindAsync(id);
-
-        if (empresa == null)
-            return NotFound();
-
-        var dto = new EmpresaResponseDto
-        {
-            Id = empresa.Id,
-            Nit = empresa.Nit,
-            RazonSocial = empresa.RazonSocial
-        };
-
-        return Ok(dto);
+        return NotFound();
     }
+
+    var dto = new EmpresaResponseDto
+    {
+        Id = empresa.Id,
+        Nit = empresa.Nit,
+        RazonSocial = empresa.RazonSocial
+    };
+
+    return Ok(dto);
+}
 
     // POST: api/Empresas
     [HttpPost]
