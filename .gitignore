@@ -1,0 +1,10 @@
+# Excluir carpetas de compilación de C#/.NET
+**/bin/
+**/obj/
+
+# Excluir configuraciones locales del editor VS Code
+.vscode/
+
+# Excluir archivos de usuario de Visual Studio
+*.user
+*.suo
