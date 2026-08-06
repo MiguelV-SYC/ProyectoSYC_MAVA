@@ -9,7 +9,7 @@ public class Usuario
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
-    public ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();
+    public ICollection<UsuarioProyecto> UsuarioProyectos { get; set; } = new List<UsuarioProyecto>();
     public ICollection<Solicitud> SolicitudesAsignadas { get; set; } = new List<Solicitud>();
 }
 

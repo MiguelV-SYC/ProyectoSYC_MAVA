@@ -13,6 +13,14 @@ public class Solicitud
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime? FechaCierre { get; set; }
 
+//acá agregamos las nuevas entidades con relación al ajuste del proyecto
+    public int? ProyectoId { get; set; }
+    public Proyecto? Proyecto { get; set; }
+    public int? TipoSolicitudId { get; set; }
+    public TipoSolicitud? TipoSolicitud { get; set; }
+    public string? DatosAdicionales { get; set; }
+// fin
+
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();
     public ICollection<HistorialEstado> HistorialEstados { get; set; } = new List<HistorialEstado>();
 }

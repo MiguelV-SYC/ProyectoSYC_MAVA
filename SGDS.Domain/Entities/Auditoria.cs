@@ -9,4 +9,6 @@ public class Auditoria
     public string? Modulo { get; set; }
     public DateTime FechaHora { get; set; } = DateTime.UtcNow;
     public string? DireccionIp { get; set; }
+    public int? ProyectoId { get; set; }
+    public Proyecto? Proyecto { get; set; }
 }
