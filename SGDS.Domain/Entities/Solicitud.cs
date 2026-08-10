@@ -19,6 +19,9 @@ public class Solicitud
     public int? TipoSolicitudId { get; set; }
     public TipoSolicitud? TipoSolicitud { get; set; }
     public string? DatosAdicionales { get; set; }
+
+    public int? VehiculoId { get; set; }
+    public Vehiculo? Vehiculo { get; set;}
 // fin
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();

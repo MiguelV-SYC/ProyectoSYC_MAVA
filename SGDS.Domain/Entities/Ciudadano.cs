@@ -10,4 +10,5 @@ public class Ciudadano
     public string? Email { get; set; }
 
     public ICollection<Solicitud> Solicitudes { get; set; } = new List<Solicitud>();
+    public ICollection<Vehiculo> Vehiculos { get; set; } = new List<Vehiculo>();
 }

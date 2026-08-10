@@ -6,4 +6,5 @@ public class Empresa
     public string RazonSocial { get; set; } = string.Empty;
 
     public ICollection<Solicitud> Solicitudes { get; set; } = new List<Solicitud>();
+    public ICollection<Vehiculo> Vehiculos { get; set; } = new List<Vehiculo>();
 }
