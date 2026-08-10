@@ -20,6 +20,7 @@ public class CrearSolicitudDto
     public int? EmpresaId { get; set; }
     public int? ProyectoId { get; set; }
     public int? TipoSolicitudId { get; set; }
+    public int? VehiculoId { get; set; }
 }
 
 public class CambiarEstadoDto

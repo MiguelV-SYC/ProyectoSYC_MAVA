@@ -113,6 +113,7 @@ public async Task<IActionResult> GetSolicitudes()
             EmpresaId = dto.EmpresaId,
             ProyectoId = dto.ProyectoId,
             TipoSolicitudId = dto.TipoSolicitudId,
+            VehiculoId = dto.VehiculoId,
             Estado = "Radicada",
             FechaCreacion = DateTime.UtcNow
         };
