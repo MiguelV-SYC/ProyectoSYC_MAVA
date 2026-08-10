@@ -102,7 +102,7 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<HistorialEstado>().ToTable("historial_estados");
         modelBuilder.Entity<Auditoria>().ToTable("auditoria");
         modelBuilder.Entity<Proyecto>().ToTable("proyectos");
-        modelBuilder.Entity<TipoSolicitud>().ToTable("tipo_solicitudes");
+        modelBuilder.Entity<TipoSolicitud>().ToTable("tipo_solicitud");
         modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
 
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
