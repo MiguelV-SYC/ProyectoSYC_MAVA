@@ -1,13 +1,34 @@
+import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import logoSgds from '../assets/logo-sgds.png';
 
 export default function LoginPage() {
+  const { login, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Correo o contraseña incorrectos.');
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper p-6">
-      <div className="w-full max-w-[920px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+      <div className="w-full max-w-[1280px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
         {/* Panel izquierdo — marca */}
         <div className="relative flex flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
-          {/* Grid de fondo */}
           <div
             className="absolute inset-0"
             style={{
@@ -18,7 +39,6 @@ export default function LoginPage() {
               WebkitMaskImage: 'radial-gradient(circle at 50% 40%, black, transparent 68%)',
             }}
           />
-          {/* Líneas de circuito radiales */}
           <div
             className="absolute inset-0"
             style={{
@@ -27,7 +47,6 @@ export default function LoginPage() {
             }}
           />
 
-          {/* Anillo con logo */}
           <div className="relative z-10 w-[190px] h-[190px] mb-[30px]">
             <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/[0.18] animate-[spin_40s_linear_infinite]">
               <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] top-[-4px] left-1/2 -translate-x-1/2" />
@@ -53,10 +72,10 @@ export default function LoginPage() {
         {/* Panel derecho — formulario */}
         <div className="bg-white px-11 pt-11 pb-10 flex flex-col items-center">
           <div className="flex items-center gap-[9px] mb-[18px]">
-            <div className="w-[34px] h-[34px] flex items-center justify-center">
+            <div className="w-[100px] h-[100px] flex items-center justify-center">
               <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
             </div>
-            <div className="font-display font-bold text-[15px] text-ink-900">SGDS</div>
+            <div className="font-display font-bold text-[30px] text-ink-900">SGDS</div>
           </div>
 
           <div className="relative w-full h-px bg-line mb-[26px]">
@@ -65,7 +84,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <form className="w-full max-w-[320px]">
+          <form className="w-full max-w-[320px]" onSubmit={handleSubmit}>
             <div className="mb-[18px]">
               <label className="block text-[12.5px] font-semibold text-ink-900 mb-[7px]">
                 Correo electrónico
@@ -77,6 +96,9 @@ export default function LoginPage() {
                 <input
                   type="email"
                   placeholder="usuario@syc.com.co"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="w-full py-3 pr-3.5 pl-10 border-[1.5px] border-line rounded-[10px] text-[13.5px] text-ink-900 outline-none transition-colors focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(47,111,237,0.12)] placeholder:text-ink-400"
                 />
               </div>
@@ -94,6 +116,9 @@ export default function LoginPage() {
                 <input
                   type="password"
                   placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full py-3 pr-3.5 pl-10 border-[1.5px] border-line rounded-[10px] text-[13.5px] text-ink-900 outline-none transition-colors focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(47,111,237,0.12)] placeholder:text-ink-400"
                 />
               </div>
@@ -101,18 +126,27 @@ export default function LoginPage() {
 
             <div className="flex justify-end -mt-1.5 mb-[22px]">
               <a href="#" className="text-[12.5px] text-blue-600 font-medium hover:underline">
-                ¿Olvidaste tu contraseña?
+                <br />¿Olvidaste tu contraseña?
               </a>
             </div>
 
+            {error && (
+              <div className="mb-4 text-[12.5px] text-red-600 bg-red-50 border border-red-200 rounded-[10px] px-3 py-2">
+                {error}
+              </div>
+            )}
+
             <button
-              type="button"
-              className="w-full py-[13px] rounded-[10px] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(47,111,237,0.55)] bg-[linear-gradient(145deg,var(--color-blue-500),var(--color-blue-600))]"
+              type="submit"
+              disabled={loading}
+              className="w-full py-[13px] rounded-[10px] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(47,111,237,0.55)] bg-[linear-gradient(145deg,var(--color-blue-500),var(--color-blue-600))] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Iniciar sesión
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="white" strokeWidth="2">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              {loading ? 'Ingresando...' : 'Iniciar sesión'}
+              {!loading && (
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="white" strokeWidth="2">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              )}
             </button>
           </form>
 

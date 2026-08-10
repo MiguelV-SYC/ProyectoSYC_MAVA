@@ -24,3 +24,10 @@ body {
   margin: 0;
   font-family: var(--font-body);
 }
+
+@keyframes c-travel {
+  to { stroke-dashoffset: -700; }
+}
+@keyframes logo-spin {
+  to { transform: rotate(360deg); }
+}

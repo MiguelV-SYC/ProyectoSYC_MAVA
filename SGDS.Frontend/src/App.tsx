@@ -1,7 +1,21 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import DashboardAdminPage from './pages/DashboardAdminPage';
 
 function App() {
-  return <LoginPage />;
+  const { user } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/dashboard"
+        element={user ? <DashboardAdminPage /> : <Navigate to="/login" replace />}
+      />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+    </Routes>
+  );
 }
 
 export default App;
