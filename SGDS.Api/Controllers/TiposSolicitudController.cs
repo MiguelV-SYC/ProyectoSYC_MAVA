@@ -23,7 +23,7 @@ public class TiposSolicitudController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetTiposSolicitud()
     {
-        var tiposSolicitud = await _context.TiposSolicitud
+        var tiposSolicitud = await _context.TiposSolicitudes
             .Select(t => new TipoSolicitudResponseDto
             {
                 Id = t.Id,
@@ -51,7 +51,7 @@ public class TiposSolicitudController : ControllerBase
             Activo = true
         };
 
-        _context.TiposSolicitud.Add(nuevoTipoSolicitud);
+        _context.TiposSolicitudes.Add(nuevoTipoSolicitud);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetTiposSolicitud), new { id = nuevoTipoSolicitud.Id }, nuevoTipoSolicitud);
@@ -65,7 +65,7 @@ public class TiposSolicitudController : ControllerBase
         if (!esAdminSyc)
             return Forbid();
 
-        var tipoSolicitud = await _context.TiposSolicitud.FindAsync(id);
+        var tipoSolicitud = await _context.TiposSolicitudes.FindAsync(id);
         if (tipoSolicitud == null)
             return NotFound();
 

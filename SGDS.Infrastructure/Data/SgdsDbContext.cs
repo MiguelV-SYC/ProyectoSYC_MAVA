@@ -78,9 +78,8 @@ private void RegistrarAuditoria()
     public DbSet<HistorialEstado> HistorialEstados => Set<HistorialEstado>();
     public DbSet<Auditoria> Auditorias => Set<Auditoria>();
     public DbSet<Proyecto> Proyectos => Set<Proyecto>();
-    public DbSet<TipoSolicitud> TipoSolicitudes => Set<TipoSolicitud>();
+    public DbSet<TipoSolicitud> TiposSolicitudes => Set<TipoSolicitud>();
     public DbSet<UsuarioProyecto> UsuarioProyectos => Set<UsuarioProyecto>();
-    public DbSet<TipoSolicitud> TiposSolicitud => Set<TipoSolicitud>();
     public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -88,6 +87,8 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<Solicitud>()
             .Property(s => s.DatosAdicionales)
             .HasColumnType("jsonb");
+
+        modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
@@ -102,9 +103,10 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<HistorialEstado>().ToTable("historial_estados");
         modelBuilder.Entity<Auditoria>().ToTable("auditoria");
         modelBuilder.Entity<Proyecto>().ToTable("proyectos");
-        modelBuilder.Entity<TipoSolicitud>().ToTable("tipo_solicitud");
+        modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
         modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
 
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
+
     }
 }
