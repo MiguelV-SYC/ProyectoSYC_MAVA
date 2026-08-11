@@ -19,11 +19,18 @@ public class TiposSolicitudController : ControllerBase
         _context = context;
     }
 
-    // GET: api/TiposSolicitud (cualquier usuario autenticado puede ver la lista)
+    // GET: api/TiposSolicitud?proyectoId=3
     [HttpGet]
-    public async Task<IActionResult> GetTiposSolicitud()
+    public async Task<IActionResult> GetTiposSolicitud([FromQuery] int? proyectoId)
     {
-        var tiposSolicitud = await _context.TiposSolicitudes
+        var query = _context.TiposSolicitudes.AsQueryable();
+
+        if (proyectoId.HasValue)
+        {
+            query = query.Where(t => t.ProyectoId == proyectoId.Value);
+        }
+
+        var tiposSolicitud = await query
             .Select(t => new TipoSolicitudResponseDto
             {
                 Id = t.Id,
@@ -55,6 +62,26 @@ public class TiposSolicitudController : ControllerBase
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetTiposSolicitud), new { id = nuevoTipoSolicitud.Id }, nuevoTipoSolicitud);
+    }
+
+    // PUT: api/TiposSolicitud/5 (editar, solo Admin SYC)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> ActualizarTipoSolicitud(int id, CrearTipoSolicitudDto dto)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
+        var tipoSolicitud = await _context.TiposSolicitudes.FindAsync(id);
+        if (tipoSolicitud == null)
+            return NotFound();
+
+        tipoSolicitud.Nombre = dto.Nombre;
+        tipoSolicitud.ProyectoId = dto.ProyectoId;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
     // DELETE: api/TiposSolicitud/5 (inactivar, solo Admin SYC)

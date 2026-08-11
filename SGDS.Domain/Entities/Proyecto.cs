@@ -9,9 +9,12 @@ public class Proyecto
 
 
     public ICollection<TipoSolicitud> TiposSolicitud { get; set; } = new List<TipoSolicitud>();
-    public ICollection<UsuarioProyecto> UsuariosProyectos { get; set; } = new List<UsuarioProyecto>();
+    public ICollection<UsuarioProyecto> UsuarioProyectos { get; set; } = new List<UsuarioProyecto>();
     public ICollection<Solicitud> Solicitudes { get; set; } = new List<Solicitud>();
     public ICollection<SolicitudAccesoProyecto> SolicitudesAcceso { get; set; } = new List<SolicitudAccesoProyecto>();
+
+    public string? Descripcion { get; set; }
+    public string? EstadoPersonalizado { get; set; }
 
 }
 
