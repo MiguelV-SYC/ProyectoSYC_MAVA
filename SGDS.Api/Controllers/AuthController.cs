@@ -24,65 +24,88 @@ public class AuthController : ControllerBase
     }
 
    [HttpPost("login")]
-public async Task<IActionResult> Login(LoginDto dto)
-{
-    var usuario = await _context.Usuarios
-        .Include(u => u.UsuarioProyectos)
-            .ThenInclude(up => up.Proyecto)
-        .Include(u => u.UsuarioProyectos)
-            .ThenInclude(up => up.Rol)
-        .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Activo);
-
-    if (usuario == null || !BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash))
+    public async Task<IActionResult> Login(LoginDto dto)
     {
-        return Unauthorized(new { mensaje = "Email o contraseña incorrectos" });
+        var usuario = await _context.Usuarios
+            .Include(u => u.UsuarioProyectos)
+                .ThenInclude(up => up.Proyecto)
+            .Include(u => u.UsuarioProyectos)
+                .ThenInclude(up => up.Rol)
+            .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Activo);
+
+        if (usuario == null || !BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash))
+        {
+            return Unauthorized(new { mensaje = "Email o contraseña incorrectos" });
+        }
+
+        var token = GenerarToken(usuario);
+
+        var respuesta = new LoginResponseDto
+        {
+            Token = token,
+            Email = usuario.Email,
+            NombreCompleto = usuario.NombreCompleto
+        };
+
+        return Ok(respuesta);
     }
 
-    var token = GenerarToken(usuario);
-
-    var respuesta = new LoginResponseDto
+    private string GenerarToken(Usuario usuario)
     {
-        Token = token,
-        Email = usuario.Email,
-        NombreCompleto = usuario.NombreCompleto
-    };
+        var jwtKey = _configuration["Jwt:Key"]!;
+        var jwtIssuer = _configuration["Jwt:Issuer"];
+        var jwtAudience = _configuration["Jwt:Audience"];
+        var expiresInMinutes = double.Parse(_configuration["Jwt:ExpiresInMinutes"]!);
 
-    return Ok(respuesta);
-}
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
+            new Claim("nombreCompleto", usuario.NombreCompleto)
+        };
 
-private string GenerarToken(Usuario usuario)
-{
-    var jwtKey = _configuration["Jwt:Key"]!;
-    var jwtIssuer = _configuration["Jwt:Issuer"];
-    var jwtAudience = _configuration["Jwt:Audience"];
-    var expiresInMinutes = double.Parse(_configuration["Jwt:ExpiresInMinutes"]!);
+        var esAdminSyc = usuario.UsuarioProyectos.Any(up => up.Rol.Nombre == "Administrador SYC");
+        claims.Add(new Claim("esAdminSyc", esAdminSyc.ToString()));
 
-    var claims = new List<Claim>
-    {
-        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
-        new Claim("nombreCompleto", usuario.NombreCompleto)
-    };
+        foreach (var up in usuario.UsuarioProyectos)
+        {
+            claims.Add(new Claim("proyecto", $"{up.ProyectoId}:{up.Rol.Nombre}"));
+        }
 
-    var esAdminSyc = usuario.UsuarioProyectos.Any(up => up.Rol.Nombre == "Administrador SYC");
-    claims.Add(new Claim("esAdminSyc", esAdminSyc.ToString()));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var credenciales = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-    foreach (var up in usuario.UsuarioProyectos)
-    {
-        claims.Add(new Claim("proyecto", $"{up.ProyectoId}:{up.Rol.Nombre}"));
+        var token = new JwtSecurityToken(
+            issuer: jwtIssuer,
+            audience: jwtAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
+            signingCredentials: credenciales
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-    var credenciales = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+[HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterDto dto)
+    {
+        var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
+        if (existeEmail)
+        {
+            return BadRequest(new { mensaje = "Ya existe una cuenta con este correo" });
+        }
 
-    var token = new JwtSecurityToken(
-        issuer: jwtIssuer,
-        audience: jwtAudience,
-        claims: claims,
-        expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
-        signingCredentials: credenciales
-    );
+        var nuevoUsuario = new Usuario
+        {
+            NombreCompleto = dto.NombreCompleto,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Activo = false
+        };
 
-    return new JwtSecurityTokenHandler().WriteToken(token);
-}
+        _context.Usuarios.Add(nuevoUsuario);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { mensaje = "Solicitud registrada. Un administrador debe aprobar tu acceso antes de que puedas iniciar sesión." });
+    }
 }
