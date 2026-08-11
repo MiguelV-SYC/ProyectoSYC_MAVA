@@ -12,5 +12,7 @@ public class Proyecto
     public ICollection<UsuarioProyecto> UsuariosProyectos { get; set; } = new List<UsuarioProyecto>();
     public ICollection<Solicitud> Solicitudes { get; set; } = new List<Solicitud>();
 
+    public ICollection<SolicitudAccesoProyecto> SolicitudesAcceso { get; set; } = new List<SolicitudAccesoProyecto>();
+
 }
 
