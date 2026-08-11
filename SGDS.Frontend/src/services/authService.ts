@@ -68,7 +68,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     id: decoded.sub,
     email: data.email,
     nombreCompleto: data.nombreCompleto,
-    esAdminSyc: decoded.esAdminSyc === 'true',
+    esAdminSyc: decoded.esAdminSyc === 'True',
     proyectos: parseProyectoClaim(decoded.proyecto),
     token: data.token,
   };

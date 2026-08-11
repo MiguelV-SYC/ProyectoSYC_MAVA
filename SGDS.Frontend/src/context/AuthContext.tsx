@@ -13,13 +13,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const STORAGE_KEY = 'sgds_auth_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => { 
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setUser(JSON.parse(saved));
-  }, []);
+    return saved ? JSON.parse(saved) : null;
+});
+  const [loading, setLoading] = useState(false);
 
   async function login(email: string, password: string) {
     setLoading(true);

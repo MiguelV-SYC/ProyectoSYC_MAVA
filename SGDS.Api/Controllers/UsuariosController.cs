@@ -82,7 +82,31 @@ public class UsuariosController : ControllerBase
 
         _context.Usuarios.Add(nuevoUsuario);
         await _context.SaveChangesAsync();
+//--formulario de creación de usuario en modulo admin
+        if (dto.Proyectos != null && dto.Proyectos.Count > 0)
+        {
+            foreach (var asignacion in dto.Proyectos)
+            {
+                
+            
+                var proyectoExiste = await _context.Proyectos.AnyAsync(p => p.Id == asignacion.ProyectoId && p.Activo);
+                var rolExiste = await _context.Roles.AnyAsync(r => r.Id == asignacion.RolId);
 
+                if ( !proyectoExiste || !rolExiste)
+                {
+                    return BadRequest(new { mensaje = $"Proyecto o Rol inválido (ProyectoId={asignacion.ProyectoId}, RolId={asignacion.RolId})" });
+                }
+
+                _context.UsuarioProyectos.Add(new UsuarioProyecto
+                {
+                    UsuarioId = nuevoUsuario.Id,
+                    ProyectoId = asignacion.ProyectoId,
+                    RolId = asignacion.RolId
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
+//--
         var respuesta = new UsuarioResponseDto
         {
             Id = nuevoUsuario.Id,
@@ -105,6 +129,49 @@ public class UsuariosController : ControllerBase
 
         usuario.NombreCompleto = dto.NombreCompleto;
         usuario.Email = dto.Email;
+        usuario.Activo = dto.Activo;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpPut("{id}/proyectos")]
+    public async Task<IActionResult> ActualizarProyectosUsuario(int id, ActualizarProyectosUsuarioDto dto)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
+        var usuario = await _context.Usuarios
+            .Include(u => u.UsuarioProyectos)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (usuario == null)
+            return NotFound();
+
+        foreach (var asignacion in dto.Proyectos)
+        {
+            var proyectoExiste = await _context.Proyectos.AnyAsync(p => p.Id == asignacion.ProyectoId && p.Activo);
+            var rolExiste = await _context.Roles.AnyAsync(r => r.Id == asignacion.RolId);
+
+            if (!proyectoExiste || !rolExiste)
+            {
+                return BadRequest(new { mensaje = $"Proyecto o Rol inválido (ProyectoId={asignacion.ProyectoId}, RolId={asignacion.RolId})" });
+            }
+        }
+
+        _context.UsuarioProyectos.RemoveRange(usuario.UsuarioProyectos);
+
+        foreach (var asignacion in dto.Proyectos)
+        {
+            _context.UsuarioProyectos.Add(new UsuarioProyecto
+            {
+                UsuarioId = id,
+                ProyectoId = asignacion.ProyectoId,
+                RolId = asignacion.RolId
+            });
+        }
 
         await _context.SaveChangesAsync();
 

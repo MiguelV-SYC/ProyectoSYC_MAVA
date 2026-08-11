@@ -1,16 +1,19 @@
 import { useAuth } from '../../context/AuthContext';
 import logoSgds from '../../assets/logo-sgds.png';
+import { Link } from 'react-router-dom';
 
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  to: string;
 }
 
-function NavItem({ icon, label, active }: NavItemProps) {
+function NavItem({ icon, label, active, to }: NavItemProps) {
   return (
     
-     <a href="#"
+    <Link
+      to={to}
       className={`relative z-10 flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-[13.5px] font-medium border-l-2 transition-colors ${
         active
           ? 'bg-white/10 text-white border-blue-400 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
@@ -21,7 +24,7 @@ function NavItem({ icon, label, active }: NavItemProps) {
         {icon}
       </span>
       {label}
-    </a>
+    </Link>
   );
 }
 
@@ -114,38 +117,51 @@ export default function Sidebar({ active }: { active: string }) {
       {/* Navegación */}
       <nav className="relative z-10 flex flex-col gap-0.5 flex-1">
         <NavItem
-          active={active === 'inicio'}
-          label="Inicio"
+          active={active === 'inicio'} 
+          label="Inicio" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
         />
+
         <NavItem
           active={active === 'solicitudes'}
-          label="Solicitudes"
+          label="Solicitudes" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
         />
+
         <NavItem
           active={active === 'ciudadanos'}
-          label="Ciudadanos"
+          label="Ciudadanos" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
         />
+
         <NavItem
           active={active === 'empresas'}
-          label="Empresas"
+          label="Empresas" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
         />
+
         <NavItem
           active={active === 'documentos'}
-          label="Documentos"
+          label="Documentos" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
         />
+
         <NavItem
           active={active === 'workflow'}
-          label="Workflow"
+          label="Workflow" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8 6h5a3 3 0 013 3v6" /></svg>}
         />
+
         <NavItem
           active={active === 'reportes'}
-          label="Reportes"
+          label="Reportes" 
+          to="/dashboard" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
         />
 
@@ -154,17 +170,22 @@ export default function Sidebar({ active }: { active: string }) {
             <NavSectionLabel>Administración</NavSectionLabel>
             <NavItem
               active={active === 'usuarios'}
-              label="Usuarios"
+              label="Usuarios" 
+              to="/usuarios" 
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><path d="M16 9h5M18.5 6.5v5" /></svg>}
             />
+
             <NavItem
               active={active === 'auditoria'}
-              label="Auditoría"
+              label="Auditoría" 
+              to="/auditoria" 
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>}
             />
+
             <NavItem
               active={active === 'proyectos'}
-              label="Proyectos"
+              label="Proyectos" 
+              to="/proyectos" 
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /></svg>}
             />
           </>
