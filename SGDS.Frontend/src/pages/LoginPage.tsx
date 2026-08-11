@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoSgds from '../assets/logo-sgds.png';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
@@ -151,7 +152,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-[22px] pt-[18px] border-t border-line text-center text-[12.5px] text-ink-600 w-full max-w-[320px]">
-            ¿Nuevo en SGDS? <a href="#" className="text-blue-600 font-semibold hover:underline">Solicita acceso</a> — un administrador revisará tu solicitud y te asignará proyecto y rol.
+            ¿Nuevo en SGDS? <Link to="/solicita-acceso" className="text-blue-600 font-semibold hover:underline">Solicita acceso</Link> — un administrador...
           </div>
         </div>
       </div>

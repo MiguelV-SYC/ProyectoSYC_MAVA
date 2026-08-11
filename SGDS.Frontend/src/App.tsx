@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import DashboardAdminPage from './pages/DashboardAdminPage';
+import SolicitaAccesoPage from './pages/SolicitaAccesoPage';
 
 function App() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ function App() {
         element={user ? <DashboardAdminPage /> : <Navigate to="/login" replace />}
       />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+      <Route path="/solicita-acceso" element={<SolicitaAccesoPage/>} />
     </Routes>
   );
 }

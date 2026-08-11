@@ -9,6 +9,26 @@ export interface LoginResponseDto {
   nombreCompleto: string;
 }
 
+export interface SolicitarAccesoDto {
+  nombreCompleto: string; 
+  email: string; 
+  documentoIdentidad: string;
+  telefono?: string; 
+  proyectosSolicitados: number[];
+  rolSolicitado: string;
+  motivo?: string; 
+}
+
+interface MensajeResponse {
+  mensaje: string;
+}
+
+export async function solicitarAcceso(dto: SolicitarAccesoDto): Promise<string> {
+  const { data } =await axios.post<MensajeResponse>(`${API_URL}/Auth/solicitar-acceso, dto`);
+  return data.mensaje
+  
+}
+
 interface JwtClaims {
   sub: string;
   email: string;
