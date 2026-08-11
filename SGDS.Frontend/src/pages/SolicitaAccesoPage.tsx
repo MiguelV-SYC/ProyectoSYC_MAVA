@@ -116,9 +116,9 @@ export default function SolicitaAccesoPage() {
 
           <div className="relative z-10 flex flex-col gap-3">
             {[
-              'Completas este formulario',
+              'Completa este formulario',
               'Un administrador revisa y aprueba',
-              'Recibes tus credenciales por correo',
+              'Recibe tus credenciales por correo',
             ].map((texto, i) => (
               <div key={texto} className="flex items-center gap-2.5">
                 <div className="w-[22px] h-[22px] rounded-full bg-white/10 border border-white/25 flex items-center justify-center text-[10.5px] font-bold shrink-0">
@@ -151,7 +151,7 @@ export default function SolicitaAccesoPage() {
                 <label className="block text-xs font-semibold text-ink-900 mb-1.5">Nombre completo</label>
                 <input
                   type="text"
-                  placeholder="Laura Martínez Gómez"
+                  placeholder="Nombre y Apellidos"
                   value={nombreCompleto}
                   onChange={(e) => setNombreCompleto(e.target.value)}
                   required
@@ -175,7 +175,7 @@ export default function SolicitaAccesoPage() {
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Documento de identidad</label>
                   <input
                     type="text"
-                    placeholder="CC 1098765432"
+                    placeholder="CC"
                     value={documento}
                     onChange={(e) => setDocumento(e.target.value)}
                     required
@@ -272,7 +272,7 @@ export default function SolicitaAccesoPage() {
 
           {!exito && (
             <div className="text-center text-[12.5px] text-ink-600 mt-[18px]">
-              ¿Ya tienes cuenta? <Link to="/login" className="text-blue-600 font-semibold hover:underline">Inicia sesión</Link>
+              ¿Ya tienes una cuenta? <Link to="/login" className="text-blue-600 font-semibold hover:underline">Inicia sesión</Link>
             </div>
           )}
         </div>

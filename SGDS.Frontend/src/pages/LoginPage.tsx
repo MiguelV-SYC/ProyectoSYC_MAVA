@@ -152,7 +152,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-[22px] pt-[18px] border-t border-line text-center text-[12.5px] text-ink-600 w-full max-w-[320px]">
-            ¿Nuevo en SGDS? <Link to="/solicita-acceso" className="text-blue-600 font-semibold hover:underline">Solicita acceso</Link> — un administrador...
+            ¿Nuevo en SGDS? <Link to="/solicita-acceso" className="text-blue-600 font-semibold hover:underline"><br/>Solicita acceso</Link> 
           </div>
         </div>
       </div>
