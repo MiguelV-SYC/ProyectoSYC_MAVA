@@ -86,26 +86,43 @@ public class AuthController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-[HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+[HttpPost("solicitar-acceso")]
+public async Task<IActionResult> SolicitarAcceso(SolicitarAccesoDto dto)
+{
+    if (dto.ProyectosSolicitados == null || dto.ProyectosSolicitados.Count == 0)
     {
-        var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
-        if (existeEmail)
-        {
-            return BadRequest(new { mensaje = "Ya existe una cuenta con este correo" });
-        }
-
-        var nuevoUsuario = new Usuario
-        {
-            NombreCompleto = dto.NombreCompleto,
-            Email = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Activo = false
-        };
-
-        _context.Usuarios.Add(nuevoUsuario);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { mensaje = "Solicitud registrada. Un administrador debe aprobar tu acceso antes de que puedas iniciar sesión." });
+        return BadRequest(new { mensaje = "Debe seleccionar al menos un proyecto" });
     }
+
+    var proyectosValidos = await _context.Proyectos
+        .Where(p => dto.ProyectosSolicitados.Contains(p.Id) && p.Activo)
+        .Select(p => p.Id)
+        .ToListAsync();
+
+    if (proyectosValidos.Count != dto.ProyectosSolicitados.Count)
+    {
+        return BadRequest(new { mensaje = "Uno o más proyectos seleccionados no son válidos" });
+    }
+
+    var nuevaSolicitud = new SolicitudAcceso
+    {
+        NombreCompleto = dto.NombreCompleto,
+        Email = dto.Email,
+        DocumentoIdentidad = dto.DocumentoIdentidad,
+        Telefono = dto.Telefono,
+        RolSolicitado = dto.RolSolicitado,
+        Motivo = dto.Motivo,
+        Estado = "Pendiente"
+    };
+
+    foreach (var proyectoId in proyectosValidos)
+    {
+        nuevaSolicitud.ProyectosSolicitados.Add(new SolicitudAccesoProyecto { ProyectoId = proyectoId });
+    }
+
+    _context.SolicitudesAcceso.Add(nuevaSolicitud);
+    await _context.SaveChangesAsync();
+
+    return Ok(new { mensaje = "Solicitud registrada. Un administrador la revisará y te contactará por correo." });
+}
 }

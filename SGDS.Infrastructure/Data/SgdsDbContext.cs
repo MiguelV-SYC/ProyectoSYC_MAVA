@@ -81,6 +81,9 @@ private void RegistrarAuditoria()
     public DbSet<TipoSolicitud> TiposSolicitudes => Set<TipoSolicitud>();
     public DbSet<UsuarioProyecto> UsuarioProyectos => Set<UsuarioProyecto>();
     public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
+    public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
+    public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +95,9 @@ private void RegistrarAuditoria()
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
+
+        modelBuilder.Entity<SolicitudAccesoProyecto>()
+            .HasKey(sap => new { sap.SolicitudAccesoId, sap.ProyectoId});
 
         // Mapeo de nombres de tabla a snake_case (igual que en pgAdmin)
         modelBuilder.Entity<Usuario>().ToTable("usuarios");
@@ -105,8 +111,8 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<Proyecto>().ToTable("proyectos");
         modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
         modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
-
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
+
 
     }
 }

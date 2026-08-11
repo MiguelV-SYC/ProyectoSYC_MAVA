@@ -21,9 +21,11 @@ public class ProyectosController : ControllerBase
 
     // GET: api/Proyectos (cualquier usuario autenticado puede ver la lista)
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProyectos()
     {
         var proyectos = await _context.Proyectos
+            .Where(p => p.Activo)
             .Select(p => new ProyectoResponseDto
             {
                 Id = p.Id,
