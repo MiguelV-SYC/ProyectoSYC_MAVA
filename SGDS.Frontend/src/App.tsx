@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import DashboardAdminPage from './pages/DashboardAdminPage';
 import SolicitaAccesoPage from './pages/SolicitaAccesoPage';
+import RecuperarPasswordPage from './pages/RecuperarPasswordPage';
 
 function App() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ function App() {
       />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       <Route path="/solicita-acceso" element={<SolicitaAccesoPage/>} />
+      <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
     </Routes>
   );
 }

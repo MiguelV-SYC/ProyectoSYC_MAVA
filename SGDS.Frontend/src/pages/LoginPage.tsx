@@ -126,9 +126,9 @@ export default function LoginPage() {
             </div>
 
             <div className="flex justify-end -mt-1.5 mb-[22px]">
-              <a href="#" className="text-[12.5px] text-blue-600 font-medium hover:underline">
+              <Link to="/recuperar-password" className="text-[12.5px] text-blue-600 font-medium hover:underline">
                 <br />¿Olvidaste tu contraseña?
-              </a>
+              </Link>
             </div>
 
             {error && (

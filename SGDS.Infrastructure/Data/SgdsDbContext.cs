@@ -112,6 +112,8 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
         modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
+        modelBuilder.Entity<SolicitudAcceso>().ToTable("solicitud_acceso");
+        modelBuilder.Entity<SolicitudAccesoProyecto>().ToTable("solicitud_acceso_proyecto");
 
 
     }

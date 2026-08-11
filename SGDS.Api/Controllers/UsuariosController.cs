@@ -24,16 +24,28 @@ public class UsuariosController : ControllerBase
     public async Task<IActionResult> GetUsuarios()
     {
         var usuarios = await _context.Usuarios
-            .Select(u => new UsuarioResponseDto
+            .Include(u => u.UsuarioProyectos)
+                .ThenInclude(up => up.Proyecto)
+            .Include(u => u.UsuarioProyectos)
+                .ThenInclude(up => up.Rol)
+            .ToListAsync();
+
+        var resultado = usuarios.Select(u => new UsuarioResponseDto
             {
                 Id = u.Id,
                 NombreCompleto = u.NombreCompleto,
                 Email = u.Email,
-                Activo = u.Activo
-            })
-            .ToListAsync();
+                Activo = u.Activo,
+                EsAdminSyc = u.UsuarioProyectos.Any(up => up.Rol.Nombre == "Administrador SYC"),
+                Proyectos = u.UsuarioProyectos.Select(up => new ProyectoRolDto
+                {
+                    ProyectoId = up.ProyectoId,
+                    ProyectoNombre = up.Proyecto.Nombre,
+                    RolNombre = up.Rol.Nombre
+                }).ToList()
+            }).ToList();
 
-        return Ok(usuarios);
+        return Ok(resultado);
     }
 
     // GET: api/Usuarios/5

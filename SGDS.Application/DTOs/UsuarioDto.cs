@@ -1,11 +1,19 @@
 namespace SGDS.Application.DTOs;
 
+public class ProyectoRolDto
+{
+    public int ProyectoId { get; set; }
+    public string ProyectoNombre { get; set; } = string.Empty;
+    public string RolNombre { get; set; } = string.Empty;
+}
     public class UsuarioResponseDto
 {
     public int Id { get; set; }
     public string NombreCompleto { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public bool Activo { get; set; }
+    public bool EsAdminSyc { get; set; }
+    public List<ProyectoRolDto> Proyectos { get; set; } = new();
 }
 
 public class CrearUsuarioDto
