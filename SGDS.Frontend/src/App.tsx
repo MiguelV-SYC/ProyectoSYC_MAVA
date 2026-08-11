@@ -5,6 +5,7 @@ import DashboardAdminPage from './pages/DashboardAdminPage';
 import SolicitaAccesoPage from './pages/SolicitaAccesoPage';
 import RecuperarPasswordPage from './pages/RecuperarPasswordPage';
 import GestionUsuariosPage from './pages/GestionUsuariosPage';
+import AprobacionUsuariosPage from './pages/AprobacionUsuarioPage';
 
 function App() {
   const { user } = useAuth();
@@ -22,6 +23,10 @@ function App() {
       <Route 
         path="/usuarios"
         element={user?.esAdminSyc ? <GestionUsuariosPage /> : <Navigate to="/dashboard" replace />}
+      />
+      <Route
+        path="/usuarios/aprobacion"
+        element={user?.esAdminSyc ? <AprobacionUsuariosPage /> : <Navigate to="/dashboard" replace />}
       />
     </Routes>
   );

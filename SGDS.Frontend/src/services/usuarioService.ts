@@ -60,6 +60,36 @@ export interface SolicitudAccesoResponseDto {
     proyectosSolicitados: string[];
 }
 
+export interface AprobarSolicitudDto {
+    rolId: number;
+}
+
+export interface AprobarSolicitudResponseDto {
+    usuarioId: number;
+    email: string; 
+    password: string; 
+}
+
+export interface RechazarSolicitudDto {
+    motivo?: string | null; 
+}
+
+export async function aprobarSolicitud(
+    id: number, 
+    dto: AprobarSolicitudDto
+): Promise<AprobarSolicitudResponseDto> {
+    const { data } = await axios.post<AprobarSolicitudResponseDto>(
+        `${API_URL}/SolicitudesAcceso/${id}/aprobar`,
+        dto,
+        { headers: authHeader() }
+    );
+    return data;
+}
+
+export async function rechazarSolicitud(id: number, dto: RechazarSolicitudDto): Promise<void> {
+    await axios.post(`${API_URL}/SolicitudesAcceso/${id}/rechazar`, dto, { headers: authHeader() });
+}
+
 function authHeader() {
     const saved = localStorage.getItem('sgds_auth_user');
     const token = saved ? JSON.parse(saved).token : null;

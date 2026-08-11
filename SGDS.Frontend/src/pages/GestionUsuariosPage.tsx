@@ -11,6 +11,7 @@ import {
 } from '../services/usuarioService';
 import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
 import { getRoles, type RolDto } from '../services/rolService';
+import { useNavigate } from 'react-router-dom';
 
 interface FilaUsuario {
   key: string;
@@ -125,6 +126,7 @@ export default function GestionUsuariosPage() {
   const filasPagina = filasFiltradas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
   const inicio = filasFiltradas.length === 0 ? 0 : (pagina - 1) * POR_PAGINA + 1;
   const fin = Math.min(pagina * POR_PAGINA, filasFiltradas.length);
+  const navigate = useNavigate();
 
   function abrirCrear() {
     setUsuarioEditando(null);
@@ -229,15 +231,12 @@ export default function GestionUsuariosPage() {
             <p className="text-[12.5px] text-[#7a5111] flex-1">
               <b className="font-bold">{solicitudes.length} solicitudes de acceso</b> están esperando tu aprobación.
             </p>
-            <button
-              onClick={() => {
-                setEstadoFiltro('Pendiente');
-                setPagina(1);
-              }}
+           <button
+              onClick={() => navigate('/usuarios/aprobacion')}
               className="text-xs font-bold text-[#96631a] underline"
             >
               Revisar ahora →
-            </button>
+          </button>
           </div>
         )}
 

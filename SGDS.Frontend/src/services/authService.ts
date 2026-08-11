@@ -24,8 +24,8 @@ interface MensajeResponse {
 }
 
 export async function solicitarAcceso(dto: SolicitarAccesoDto): Promise<string> {
-  const { data } =await axios.post<MensajeResponse>(`${API_URL}/Auth/solicitar-acceso, dto`);
-  return data.mensaje
+  const { data } =await axios.post<MensajeResponse>(`${API_URL}/Auth/solicitar-acceso`, dto );
+  return data.mensaje;
   
 }
 
