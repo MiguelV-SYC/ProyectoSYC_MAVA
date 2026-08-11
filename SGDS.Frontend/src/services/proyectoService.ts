@@ -1,15 +1,56 @@
-import axios from "axios";
+import axios from 'axios';
 
 const API_URL = 'http://localhost:5158/api';
 
 export interface ProyectoResponseDto {
-    id: number; 
-    nombre: string; 
-    codigo: string; 
-    activo: boolean; 
+  id: number;
+  nombre: string;
+  codigo: string;
+  descripcion: string;
+  activo: boolean;
+  estadoPersonalizado: string | null;
+  totalTiposSolicitud: number;
+  totalOperadores: number;
+}
+
+export interface CrearProyectoDto {
+  nombre: string;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface ActualizarProyectoDto {
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  estadoPersonalizado: string | null;
+}
+
+function authHeader() {
+  const saved = localStorage.getItem('sgds_auth_user');
+  const token = saved ? JSON.parse(saved).token : null;
+  return { Authorization: `Bearer ${token}` };
 }
 
 export async function getProyectosActivos(): Promise<ProyectoResponseDto[]> {
-    const { data } = await axios.get<ProyectoResponseDto[]>(`${API_URL}/Proyectos`);
-    return data;
+  const { data } = await axios.get<ProyectoResponseDto[]>(`${API_URL}/Proyectos`);
+  return data;
+}
+
+export async function getProyectosAdmin(): Promise<ProyectoResponseDto[]> {
+  const { data } = await axios.get<ProyectoResponseDto[]>(`${API_URL}/Proyectos`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function crearProyecto(dto: CrearProyectoDto): Promise<ProyectoResponseDto> {
+  const { data } = await axios.post<ProyectoResponseDto>(`${API_URL}/Proyectos`, dto, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function actualizarProyecto(id: number, dto: ActualizarProyectoDto): Promise<void> {
+  await axios.put(`${API_URL}/Proyectos/${id}`, dto, { headers: authHeader() });
 }

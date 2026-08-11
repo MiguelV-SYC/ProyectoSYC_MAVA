@@ -6,6 +6,7 @@ import SolicitaAccesoPage from './pages/SolicitaAccesoPage';
 import RecuperarPasswordPage from './pages/RecuperarPasswordPage';
 import GestionUsuariosPage from './pages/GestionUsuariosPage';
 import AprobacionUsuariosPage from './pages/AprobacionUsuarioPage';
+import GestionProyectosPage from './pages/GestionProyectosPage';
 
 function App() {
   const { user } = useAuth();
@@ -17,10 +18,9 @@ function App() {
         path="/dashboard"
         element={user ? <DashboardAdminPage /> : <Navigate to="/login" replace />}
       />
-      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       <Route path="/solicita-acceso" element={<SolicitaAccesoPage/>} />
       <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
-      <Route 
+      <Route
         path="/usuarios"
         element={user?.esAdminSyc ? <GestionUsuariosPage /> : <Navigate to="/dashboard" replace />}
       />
@@ -28,6 +28,11 @@ function App() {
         path="/usuarios/aprobacion"
         element={user?.esAdminSyc ? <AprobacionUsuariosPage /> : <Navigate to="/dashboard" replace />}
       />
+      <Route
+        path="/proyectos"
+        element={user?.esAdminSyc ? <GestionProyectosPage/> : <Navigate to="/dashboard" replace />}
+      />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );
 }
