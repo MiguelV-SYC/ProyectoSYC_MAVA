@@ -24,3 +24,20 @@ public class SolicitudAccesoResponseDto
     public DateTime FechaSolicitud { get; set; }
     public List<string> ProyectosSolicitados { get; set; } = new();
 }
+
+public class AprobarSolicitudAccesoDto
+{
+    public int RolId { get; set; }
+}
+
+public class RechazarSolicitudAccesoDto
+{
+    public string? Motivo { get; set; }
+}
+
+public class AprobarSolicitudAccesoResponseDto
+{
+    public int UsuarioId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string PasswordTemporal { get; set; } = string.Empty;
+}
