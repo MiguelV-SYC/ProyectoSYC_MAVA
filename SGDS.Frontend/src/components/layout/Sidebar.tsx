@@ -133,7 +133,7 @@ export default function Sidebar({ active }: { active: string }) {
         <NavItem
           active={active === 'ciudadanos'}
           label="Ciudadanos" 
-          to="/dashboard" 
+          to="/ciudadanos" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
         />
 
