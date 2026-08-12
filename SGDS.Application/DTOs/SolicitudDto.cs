@@ -10,6 +10,8 @@ public class SolicitudResponseDto
     public int? UsuarioAsignadoId { get; set; }
     public string? UsuarioAsignadoNombre { get; set; }
     public string Estado { get; set; } = string.Empty;
+    public string Numero { get; set; } = string.Empty;
+    public string? TipoSolicitudNombre { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaCierre { get; set; }
 }

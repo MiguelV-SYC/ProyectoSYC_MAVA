@@ -9,6 +9,7 @@ import AprobacionUsuariosPage from './pages/AprobacionUsuarioPage';
 import GestionProyectosPage from './pages/GestionProyectosPage';
 import CiudadanosListPage from './pages/CiudadanosListPage';
 import OperadorHomePage from './pages/OperadorHomePage';
+import FichaCiudadanoPage from './pages/FichaCiudadanoPage';
 
 function App() {
   const { user } = useAuth();
@@ -30,8 +31,15 @@ function App() {
         }
       />
 
-      <Route path="/solicita-acceso" element={<SolicitaAccesoPage />} />
-      <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
+      <Route 
+        path="/solicita-acceso" 
+        element={<SolicitaAccesoPage />} 
+        />
+
+      <Route 
+        path="/recuperar-password" 
+        element={<RecuperarPasswordPage />} 
+        />
 
       <Route
         path="/usuarios"
@@ -48,9 +56,21 @@ function App() {
         element={user?.esAdminSyc ? <GestionProyectosPage /> : <Navigate to="/dashboard" replace />}
       />
 
-      <Route path="/ciudadanos" element={user ? <CiudadanosListPage /> : <Navigate to="/login" replace />} />
+      <Route 
+        path="/ciudadanos" 
+        element={user ? <CiudadanosListPage /> : <Navigate to="/login" replace />} 
+      />
 
-      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+      <Route 
+        path="*" 
+        element={<Navigate to={user ? '/dashboard' : '/login'} replace />} 
+      />
+
+      <Route
+        path="/ciudadanos/:id"
+        element={user ? <FichaCiudadanoPage /> : <Navigate to="/login" replace />}
+      />
+
     </Routes>
   );
 }

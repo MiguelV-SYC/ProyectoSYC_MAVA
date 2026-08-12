@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { interpolate } from 'recharts';
+import type { StackId } from 'recharts/types/util/ChartUtils';
 
 const API_URL =  'http://localhost:5158/api';
 
@@ -36,6 +37,33 @@ export async function getCiudadanos(params:{
     const { data } = await axios.get<PagedResult<CiudadanoResponseDto>>(`${API_URL}/Ciudadanos`, {
         params,
         headers:authHeader(),
+    });
+    return data;
+}
+
+export interface ProyectoActividadDto {
+    proyectoId: number; 
+    proyectoNombre: string;
+    primeraActividad: string; 
+    totalSolicitudes: number; 
+}
+
+export interface CiudadanoDetalleResponseDto {
+    id: number; 
+    tipoDocumento: string; 
+    numeroDocumento: string; 
+    nombreCompleto: string; 
+    telefono?: string; 
+    email?: string; 
+    ciudad?: string; 
+    direccion?: string; 
+    fechaRegistro: string; 
+    proyectosConActividad: ProyectoActividadDto[];
+}
+
+export async function getCiudadanoDetalle(id: number): Promise<CiudadanoDetalleResponseDto> {
+    const { data } = await axios.get<CiudadanoDetalleResponseDto>(`${API_URL}/Ciudadanos/${id}`, {
+        headers: authHeader(),
     });
     return data;
 }

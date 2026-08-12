@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -87,36 +88,56 @@ public async Task<IActionResult> GetCiudadanos([FromQuery] string? buscar, [From
     // GET: api/Ciudadanos/5
     [HttpGet("{id}")]
 public async Task<IActionResult> GetCiudadano(int id)
-{
-    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-    var proyectosPermitidos = User.FindAll("proyecto")
-        .Select(c => int.Parse(c.Value.Split(':')[0]))
-        .ToList();
-
-    var ciudadano = await _context.Ciudadanos
-        .Include(c => c.Solicitudes)
-        .FirstOrDefaultAsync(c => c.Id == id);
-
-    if (ciudadano == null)
-        return NotFound();
-
-    if (!esAdminSyc && !ciudadano.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)))
     {
-        return NotFound();
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var ciudadano = await _context.Ciudadanos
+            .Include(c => c.Solicitudes)
+                .ThenInclude(s => s.Proyecto)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (ciudadano == null)
+            return NotFound();
+
+        var solicitudesVisibles = esAdminSyc
+            ? ciudadano.Solicitudes.Where(s => s.ProyectoId != null)
+            : ciudadano.Solicitudes.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
+
+        if (!esAdminSyc && !solicitudesVisibles.Any())
+        {
+            return NotFound();
+        }
+
+        var proyectosConActividad = solicitudesVisibles
+            .GroupBy(s => new { s.ProyectoId, s.Proyecto!.Nombre})
+            .Select(g => new ProyectoActividadDto
+            {
+                ProyectoId = g.Key.ProyectoId!.Value,
+                ProyectoNombre = g.Key.Nombre,
+                PrimeraActividad = g.Min(s => s.FechaCreacion),
+                TotalSolicitudes = g.Count()
+            })
+            .ToList();
+
+        var dto = new CiudadanoDetalleResponseDto
+        {
+            Id = ciudadano.Id,
+            TipoDocumento = ciudadano.TipoDocumento,
+            NumeroDocumento = ciudadano.NumeroDocumento,
+            NombreCompleto = ciudadano.NombreCompleto,
+            Telefono = ciudadano.Telefono,
+            Email = ciudadano.Email,
+            Ciudad = ciudadano.Ciudad,
+            Direccion = ciudadano.Direccion,
+            FechaRegistro = ciudadano.FechaRegistro,
+            ProyectosConActividad = proyectosConActividad
+        };
+        
+        return Ok(dto);
     }
-
-    var dto = new CiudadanoResponseDto
-    {
-        Id = ciudadano.Id,
-        TipoDocumento = ciudadano.TipoDocumento,
-        NumeroDocumento = ciudadano.NumeroDocumento,
-        NombreCompleto = ciudadano.NombreCompleto,
-        Telefono = ciudadano.Telefono,
-        Email = ciudadano.Email
-    };
-
-    return Ok(dto);
-}
 
     // POST: api/Ciudadanos
     [HttpPost]

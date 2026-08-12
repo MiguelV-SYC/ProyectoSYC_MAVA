@@ -21,7 +21,7 @@ public class SolicitudesController : ControllerBase
 
     // GET: api/Solicitudes
 [HttpGet]
-public async Task<IActionResult> GetSolicitudes()
+public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
 {
     var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
     var proyectosClaims = User.FindAll("proyecto").Select(c => c.Value.Split(':')[0]).ToList();
@@ -31,6 +31,8 @@ public async Task<IActionResult> GetSolicitudes()
         .Include(s => s.Ciudadano)
         .Include(s => s.Empresa)
         .Include(s => s.UsuarioAsignado)
+        .Include(s => s.Proyecto)
+        .Include(s => s.TipoSolicitud)
         .AsQueryable();
 
     if (!esAdminSyc)
@@ -38,16 +40,23 @@ public async Task<IActionResult> GetSolicitudes()
         query = query.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
     }
 
+    if (ciudadanoId.HasValue)
+        {
+            query = query.Where(s => s.CiudadanoId == ciudadanoId.Value);
+        }
+
     var solicitudes = await query
         .Select(s => new SolicitudResponseDto
         {
             Id = s.Id,
+            Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
             CiudadanoId = s.CiudadanoId,
             CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
             EmpresaId = s.EmpresaId,
             EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
             UsuarioAsignadoId = s.UsuarioAsignadoId,
             UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
+            TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
             Estado = s.Estado,
             FechaCreacion = s.FechaCreacion,
             FechaCierre = s.FechaCierre
