@@ -1,6 +1,8 @@
 import { useAuth } from '../../context/AuthContext';
 import logoSgds from '../../assets/logo-sgds.png';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getMisConteosPorProyecto, type ConteoProyectoDto } from '../../services/solicitudService';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -38,6 +40,14 @@ function NavSectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function Sidebar({ active }: { active: string }) {
   const { user, logout } = useAuth();
+
+  const [misProyectos, setMisProyectos] = useState<ConteoProyectoDto[]>([]);
+
+useEffect(() => {
+  if (!user?.esAdminSyc) {
+    getMisConteosPorProyecto().then(setMisProyectos).catch(() => setMisProyectos([]));
+  }
+}, [user?.esAdminSyc]);
 
   const nombre = user?.nombreCompleto ?? '';
   const iniciales = nombre
@@ -113,6 +123,30 @@ export default function Sidebar({ active }: { active: string }) {
           </div>
         </div>
       </div>
+      
+      {!user?.esAdminSyc && misProyectos.length > 0 && (
+  <div className="relative z-10 mb-3">
+    <div className="text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pb-2">
+      Mis proyectos
+    </div>
+    <div className="flex flex-col gap-1">
+      {misProyectos.map((p, i) => (
+        <div
+          key={p.proyectoId}
+          className={`flex items-center justify-between px-3 py-2 rounded-[9px] text-[13px] font-medium ${
+            i === 0 ? 'bg-[#0d9488]/20 text-white' : 'text-white/70'
+          }`}
+        >
+          <span>{p.proyectoNombre}</span>
+          <span className="text-[10.5px] font-bold bg-white/15 rounded-full w-5 h-5 flex items-center justify-center">
+            {p.totalAsignadas}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
       {/* Navegación */}
       <nav className="relative z-10 flex flex-col gap-0.5 flex-1">

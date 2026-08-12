@@ -12,6 +12,7 @@ public class Solicitud
     public string Estado { get; set; } = "Radicada";
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime? FechaCierre { get; set; }
+    public DateTime? FechaLimite { get; set;}
 
 //acá agregamos las nuevas entidades con relación al ajuste del proyecto
     public int? ProyectoId { get; set; }

@@ -97,7 +97,171 @@ public async Task<IActionResult> GetSolicitudes()
     return Ok(dto);
 
     }
+//inicio: metodos para el home-operador
+    [HttpGet("mis-conteos-por-proyecto")]
+public async Task<IActionResult> GetMisConteosPorProyecto()
+{
+    var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
 
+    var misProyectos = await _context.UsuarioProyectos
+        .Where(up => up.UsuarioId == usuarioId)
+        .Include(up => up.Proyecto)
+        .Select(up => new { up.ProyectoId, up.Proyecto.Nombre })
+        .Distinct()
+        .ToListAsync();
+
+    var conteos = new List<ConteoProyectoDto>();
+
+    foreach (var proyecto in misProyectos)
+    {
+        var total = await _context.Solicitudes.CountAsync(s =>
+            s.ProyectoId == proyecto.ProyectoId && s.UsuarioAsignadoId == usuarioId && s.FechaCierre == null);
+
+        conteos.Add(new ConteoProyectoDto
+        {
+            ProyectoId = proyecto.ProyectoId,
+            ProyectoNombre = proyecto.Nombre,
+            TotalAsignadas = total
+        });
+    }
+
+    return Ok(conteos);
+}
+
+    [HttpGet("mis-indicadores")]
+    public async Task<IActionResult> GetMisIndicadores()
+    {
+        var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
+        var hoy = DateTime.UtcNow.Date;
+        var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek);
+        var misSolicitudes = _context.Solicitudes.Where(s => s.UsuarioAsignadoId == usuarioId);
+        
+        var indicadores = new IndicadoresOperadorDto
+        {
+            AsignadasAMi = await misSolicitudes.CountAsync(s => s.FechaCierre == null),
+            VenceHoy = await misSolicitudes.CountAsync(s =>
+                s.FechaCierre == null && s.FechaLimite != null && s.FechaLimite.Value.Date == hoy),
+            RequierenMiRespuesta = await misSolicitudes.CountAsync(s =>
+                s.Estado == "Requiere información" || s.Estado == "Pendiente" ),
+            CompletadasEstaSemana = await misSolicitudes.CountAsync(s =>
+                s.FechaCierre != null && s.FechaCierre.Value >= inicioSemana)
+        };
+
+        return Ok(indicadores);
+    }
+
+    [HttpGet("necesitan-atencion")]
+    public async Task<IActionResult> GetNecesitanAtencion([FromQuery] int limite = 5)
+    {
+    var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+    var hoy = DateTime.UtcNow.Date;
+
+    var sinAsignar = await _context.Solicitudes
+        .Include(s => s.Proyecto)
+        .Include(s => s.TipoSolicitud)
+        .Include(s => s.Ciudadano)
+        .Where(s => s.FechaCierre == null && s.UsuarioAsignadoId == null
+            && s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value))
+        .ToListAsync();
+
+    var requierenAccion = await _context.Solicitudes
+        .Include(s => s.Proyecto)
+        .Include(s => s.TipoSolicitud)
+        .Include(s => s.Ciudadano)
+        .Where(s => s.FechaCierre == null && s.UsuarioAsignadoId == usuarioId
+            && (s.Estado == "Requiere información" || s.Estado == "Pendiente"))
+        .ToListAsync();
+
+    var items = new List<SolicitudAtencionDto>();
+    items.AddRange(sinAsignar.Select(s => MapearAtencion(s, hoy, esSinAsignar: true)));
+    items.AddRange(requierenAccion.Select(s => MapearAtencion(s, hoy, esSinAsignar: false)));
+
+    var ordenados = items
+        .OrderBy(i => i.Urgencia == "vence_hoy" ? 0 : i.Urgencia == "vence_manana" ? 1 : 2)
+        .Take(limite)
+        .ToList();
+
+    return Ok(ordenados);
+}
+
+private SolicitudAtencionDto MapearAtencion(Solicitud s, DateTime hoy, bool esSinAsignar)
+{
+    var urgencia = "normal";
+    if (s.FechaLimite.HasValue)
+    {
+        if (s.FechaLimite.Value.Date == hoy) urgencia = "vence_hoy";
+        else if (s.FechaLimite.Value.Date == hoy.AddDays(1)) urgencia = "vence_manana";
+    }
+
+    string estadoDescripcion;
+    if (esSinAsignar)
+    {
+        var dias = (hoy - s.FechaCreacion.Date).Days;
+        estadoDescripcion = dias <= 0 ? "Sin asignar hoy" : $"Sin asignar hace {dias} día{(dias == 1 ? "" : "s")}";
+    }
+    else
+    {
+        estadoDescripcion = s.Estado;
+    }
+
+    return new SolicitudAtencionDto
+    {
+        SolicitudId = s.Id,
+        Numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString(),
+        TipoSolicitud = s.TipoSolicitud?.Nombre,
+        CiudadanoNombre = s.Ciudadano?.NombreCompleto,
+        ProyectoNombre = s.Proyecto?.Nombre ?? string.Empty,
+        EstadoDescripcion = estadoDescripcion,
+        Urgencia = urgencia,
+        AccionSugerida = esSinAsignar ? "tomar_caso" : "revisar"
+    };
+}
+
+    [HttpGet("mi-cola")]
+    public async Task<IActionResult> GetMiCola([FromQuery] int? proyectoId, [FromQuery] string filtro = "todas")
+    {
+        var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
+
+        var query = _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Include(s => s.TipoSolicitud)
+            .Include(s => s.Ciudadano)
+            .Where(s => s.UsuarioAsignadoId == usuarioId)
+            .AsQueryable();
+
+        if (proyectoId.HasValue)
+        {
+            query = query.Where(s => s.ProyectoId == proyectoId.Value);
+        }
+
+        query = filtro switch
+        {
+            "en_revision" => query.Where(s => s.Estado == "En revisión"),
+            "pendientes" => query.Where(s => s.Estado == "Pendiente"),
+            _ => query
+        };
+
+        var solicitudes = await query
+            .OrderByDescending(s => s.FechaCreacion)
+            .ToListAsync();
+
+        var resultado = solicitudes.Select(s => new SolicitudColaDto
+        {
+            SolicitudId = s.Id,
+            Numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString(),
+            TipoSolicitud = s.TipoSolicitud?.Nombre,
+            CiudadanoNombre = s.Ciudadano?.NombreCompleto,
+            CiudadanoDocumento = s.Ciudadano != null ? $"{s.Ciudadano.TipoDocumento} {s.Ciudadano.NumeroDocumento}" : null,
+            Estado = s.Estado,
+            Fecha = s.FechaCreacion
+        }).ToList();
+
+        return Ok(resultado);
+    }
+//Fin metodos get home-operador
     // POST: api/Solicitudes
     [HttpPost]
     public async Task<IActionResult> CrearSolicitud(CrearSolicitudDto dto)
@@ -125,59 +289,55 @@ public async Task<IActionResult> GetSolicitudes()
     }
 
 // PUT: api/Solicitudes/5/cambiar-estado
-[HttpPut("{id}/cambiar-estado")]
-public async Task<IActionResult> CambiarEstado(int id, CambiarEstadoDto dto)
-{
-    var solicitud = await _context.Solicitudes.FindAsync(id);
-
-    if (solicitud == null)
-        return NotFound();
-
-    var estadoAnterior = solicitud.Estado;
-    solicitud.Estado = dto.NuevoEstado;
-
-    if (dto.NuevoEstado == "Cerrada" || dto.NuevoEstado == "Finalizada")
+    [HttpPut("{id}/cambiar-estado")]
+    public async Task<IActionResult> CambiarEstado(int id, CambiarEstadoDto dto)
     {
-        solicitud.FechaCierre = DateTime.UtcNow;
+        var solicitud = await _context.Solicitudes.FindAsync(id);
+
+        if (solicitud == null)
+            return NotFound();
+
+        var estadoAnterior = solicitud.Estado;
+        solicitud.Estado = dto.NuevoEstado;
+
+        if (dto.NuevoEstado == "Cerrada" || dto.NuevoEstado == "Finalizada")
+        {
+            solicitud.FechaCierre = DateTime.UtcNow;
+        }
+
+        var historial = new HistorialEstado
+        {
+            SolicitudId = solicitud.Id,
+            EstadoAnterior = estadoAnterior,
+            EstadoNuevo = dto.NuevoEstado,
+            FechaCambio = DateTime.UtcNow
+        };
+
+        _context.HistorialEstados.Add(historial);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
-    var historial = new HistorialEstado
-    {
-        SolicitudId = solicitud.Id,
-        EstadoAnterior = estadoAnterior,
-        EstadoNuevo = dto.NuevoEstado,
-        FechaCambio = DateTime.UtcNow
-    };
-
-    _context.HistorialEstados.Add(historial);
-    await _context.SaveChangesAsync();
-
-    return NoContent();
-}
-
 // PUT: api/Solicitudes/5/asignar-usuario
-[HttpPut("{id}/asignar-usuario")]
-public async Task<IActionResult> AsignarUsuario(int id, AsignarUsuarioDto dto)
-{
-    var solicitud = await _context.Solicitudes.FindAsync(id);
+    [HttpPut("{id}/asignar-usuario")]
+    public async Task<IActionResult> AsignarUsuario(int id, AsignarUsuarioDto dto)
+    {
+        var solicitud = await _context.Solicitudes.FindAsync(id);
 
-    if (solicitud == null)
-        return NotFound();
+        if (solicitud == null)
+            return NotFound();
 
-    var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.Id == dto.UsuarioId && u.Activo);
+        var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.Id == dto.UsuarioId && u.Activo);
 
-    if (!usuarioExiste)
-        return BadRequest(new { mensaje = "El usuario no existe o no está activo" });
+        if (!usuarioExiste)
+            return BadRequest(new { mensaje = "El usuario no existe o no está activo" });
 
-    solicitud.UsuarioAsignadoId = dto.UsuarioId;
-    await _context.SaveChangesAsync();
+        solicitud.UsuarioAsignadoId = dto.UsuarioId;
+        await _context.SaveChangesAsync();
 
-    return NoContent();
-}
-
-
-
-
+        return NoContent();
+    }
 
 }
 

@@ -32,3 +32,42 @@ public class AsignarUsuarioDto
 {
     public int UsuarioId { get; set; }
 }
+
+public class ConteoProyectoDto
+{
+    public int ProyectoId { get; set; }
+    public string ProyectoNombre { get; set; } = string.Empty;
+    public int TotalAsignadas { get; set; }
+}
+
+public class IndicadoresOperadorDto
+{
+    public int AsignadasAMi { get; set; }
+    public int VenceHoy { get; set; }
+    public int RequierenMiRespuesta { get; set; }
+    public int CompletadasEstaSemana { get; set; }
+}
+
+public class SolicitudAtencionDto
+{
+    public int SolicitudId { get; set; }
+    public string Numero { get; set; } = string.Empty;
+    public string? TipoSolicitud { get; set; }
+    public string? CiudadanoNombre { get; set; }
+    public string ProyectoNombre { get; set; } = string.Empty;
+    public string EstadoDescripcion { get; set; } = string.Empty;
+    public string Urgencia { get; set; } = string.Empty;
+    public string AccionSugerida { get; set; }= string.Empty;
+}
+
+public class SolicitudColaDto
+{
+    public int SolicitudId { get; set; }
+    public string Numero { get; set; } = string.Empty;
+    public string? TipoSolicitud { get; set; }
+    public string? CiudadanoNombre { get; set; }
+    public string? CiudadanoDocumento { get; set; }
+    public string Estado { get; set; } = string.Empty;
+    public DateTime Fecha { get; set; }
+}
+
