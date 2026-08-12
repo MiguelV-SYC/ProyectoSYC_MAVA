@@ -10,6 +10,7 @@ import GestionProyectosPage from './pages/GestionProyectosPage';
 import CiudadanosListPage from './pages/CiudadanosListPage';
 import OperadorHomePage from './pages/OperadorHomePage';
 import FichaCiudadanoPage from './pages/FichaCiudadanoPage';
+import FormularioCiudadanoPage from './pages/FormularioCiudadanoPage';
 
 function App() {
   const { user } = useAuth();
@@ -71,7 +72,18 @@ function App() {
         element={user ? <FichaCiudadanoPage /> : <Navigate to="/login" replace />}
       />
 
+      <Route
+        path="/ciudadanos/nuevo" 
+        element={user ? <FormularioCiudadanoPage /> : <Navigate to="/login" replace />}
+      />
+      
+      <Route
+        path="/ciudadanos/:id/editar" 
+        element={user ? <FormularioCiudadanoPage /> : <Navigate to="/login" replace />}
+      />
+
     </Routes>
+    
   );
 }
 

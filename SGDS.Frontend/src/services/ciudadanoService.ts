@@ -67,3 +67,46 @@ export async function getCiudadanoDetalle(id: number): Promise<CiudadanoDetalleR
     });
     return data;
 }
+
+export interface CrearCiudadanoDto {
+    tipoDocumento: string;
+    numeroDocumento: string; 
+    nombreCompleto: string; 
+    telefono?: string; 
+    email?: string;
+    ciudad?: string; 
+    direccion?: string;
+}
+
+export interface ActualizarCiudadanoDto {
+    nombreCompleto: string; 
+    telefono?: string; 
+    email?: string;
+    ciudad?: string; 
+    direccion?: string;
+}
+
+export interface BusquedaDocumentoResponse {
+    existe: boolean; 
+    ciudadano?: {
+        id: number;
+        nombreCompleto: string;
+        tipoDocumento: string;
+    };
+}
+
+export async function buscarPorDocumento(numero: string): Promise<BusquedaDocumentoResponse> {
+    const { data } = await axios.get<BusquedaDocumentoResponse>(
+        `${API_URL}/Ciudadanos/buscar-por-documento`,
+        { params: { numero }, headers: authHeader() }
+    );
+    return data;
+}
+
+export async function crearCiudadano(dto: CrearCiudadanoDto) {
+    const { data } = await axios.post(`${API_URL}/Ciudadanos`, dto, { headers: authHeader() });
+    return data;
+}
+export async function actualizarCiudadano(id: number, dto: ActualizarCiudadanoDto): Promise<void> {
+  await axios.put(`${API_URL}/Ciudadanos/${id}`, dto, { headers: authHeader() });
+}

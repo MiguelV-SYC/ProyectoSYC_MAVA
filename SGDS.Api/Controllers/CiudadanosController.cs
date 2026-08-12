@@ -85,7 +85,7 @@ public async Task<IActionResult> GetCiudadanos([FromQuery] string? buscar, [From
     return Ok(respuesta);
 }
     
-    // GET: api/Ciudadanos/5
+// GET: api/Ciudadanos/5
     [HttpGet("{id}")]
 public async Task<IActionResult> GetCiudadano(int id)
     {
@@ -139,17 +139,70 @@ public async Task<IActionResult> GetCiudadano(int id)
         return Ok(dto);
     }
 
+    // Inicio - metodo get adicionado por la vista formulario-usuario
+    [HttpGet("buscar-por-documento")]
+    public async Task<IActionResult> BuscarPorDocumento([FromQuery] string numero)
+    {
+        if (string.IsNullOrWhiteSpace(numero))
+        {
+            return Ok(new CiudadanoBusquedaResponseDto { Existe = false});
+        }
+
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var ciudadano = await _context.Ciudadanos
+            .Include(c => c.Solicitudes)
+            .FirstOrDefaultAsync(c => c.NumeroDocumento == numero);
+
+        if (ciudadano == null)
+        {
+            return Ok(new CiudadanoBusquedaResponseDto { Existe = false });
+        }
+        
+        var puedeVerlo = esAdminSyc || ciudadano.Solicitudes.Any(s =>
+            s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
+
+        if (!puedeVerlo)
+        {
+            return Ok(new CiudadanoBusquedaResponseDto { Existe = false });
+        }
+
+        return Ok(new CiudadanoBusquedaResponseDto
+        {
+            Existe = true,
+            Ciudadano = new CiudadanoBusquedaDto
+            {
+                Id = ciudadano.Id,
+                NombreCompleto = ciudadano.NombreCompleto,
+                TipoDocumento = ciudadano.TipoDocumento
+            }
+        });
+    }
+
+    //Fin 
+
     // POST: api/Ciudadanos
     [HttpPost]
     public async Task<IActionResult> CrearCiudadano(CrearCiudadanoDto dto)
     {
+        var documentoYaExiste = await _context.Ciudadanos.AnyAsync(c => c.NumeroDocumento == dto.NumeroDocumento);
+        if (documentoYaExiste)
+        {
+            return Conflict(new { mensaje = "Ya existe un ciudadano registrado con ese número de documento"});
+        }
+
         var nuevoCiudadano = new Ciudadano
         {
             TipoDocumento = dto.TipoDocumento,
             NumeroDocumento = dto.NumeroDocumento,
             NombreCompleto = dto.NombreCompleto,
-            Telefono = dto.Telefono,
-            Email = dto.Email
+            Telefono = dto.Telefono, 
+            Email = dto.Email, 
+            Ciudad = dto.Ciudad,
+            Direccion = dto.Direccion
         };
 
         _context.Ciudadanos.Add(nuevoCiudadano);
@@ -167,10 +220,12 @@ public async Task<IActionResult> GetCiudadano(int id)
 
         return CreatedAtAction(nameof(GetCiudadano), new { id = nuevoCiudadano.Id }, respuesta);
     }
+  
 
     // PUT: api/Ciudadanos/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> ActualizarCiudadano(int id, CrearCiudadanoDto dto)    {
+    public async Task<IActionResult> ActualizarCiudadano(int id, CrearCiudadanoDto dto)
+    {
         var ciudadano = await _context.Ciudadanos.FindAsync(id);
 
         if (ciudadano == null)
@@ -179,6 +234,8 @@ public async Task<IActionResult> GetCiudadano(int id)
         ciudadano.NombreCompleto = dto.NombreCompleto;
         ciudadano.Telefono = dto.Telefono;
         ciudadano.Email = dto.Email;
+        ciudadano.Ciudad = dto.Ciudad;
+        ciudadano.Direccion = dto.Direccion;
 
         await _context.SaveChangesAsync();
 
