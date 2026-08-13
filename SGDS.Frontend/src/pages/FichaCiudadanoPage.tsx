@@ -71,7 +71,7 @@ export default function FichaCiudadanoPage() {
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-[60px] h-[60px] rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-display font-bold text-xl">
+                            <div className="w-[60px] h-[60px] rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-display font-bold text-xl">
                 {iniciales}
               </div>
               <div>
@@ -88,6 +88,24 @@ export default function FichaCiudadanoPage() {
                   {ciudadano.tipoDocumento} {ciudadano.numeroDocumento} · Registrada desde el {formatearFecha(ciudadano.fechaRegistro)}
                 </div>
               </div>
+              <button
+                onClick={() => navigate(`/ciudadanos/${ciudadano.id}/editar`)}
+                className="ml-auto flex items-center gap-1.5 border border-line rounded-[9px] px-4 py-2 text-[12.5px] font-semibold text-ink-600 hover:bg-paper">
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                  <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+                Editar
+              </button>
+              <button
+                onClick={() => navigate(`/solicitudes/nueva?ciudadanoId=${ciudadano.id}`)}
+                className="flex items-center gap-1.5 bg-[#0d9488] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold">
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[13px] h-[13px] stroke-white">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Nueva solicitud
+              </button>
+
+
             </div>
 
             <div className="grid grid-cols-[380px_1fr] gap-5 items-start">

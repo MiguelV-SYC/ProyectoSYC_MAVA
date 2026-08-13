@@ -66,6 +66,7 @@ export default function CiudadanosListPage() {
               Personas naturales registradas — visibles a través de sus solicitudes en tus proyectos asignados
             </p>
           </div>
+   
           <button
             onClick={() => navigate('/ciudadanos/nuevo')}
             className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
@@ -75,6 +76,7 @@ export default function CiudadanosListPage() {
             </svg>
             Nuevo ciudadano
           </button>
+
         </div>
 
         <div className="flex items-center gap-2.5 bg-white border border-line rounded-xl px-3.5 py-3 mb-[18px] flex-wrap">

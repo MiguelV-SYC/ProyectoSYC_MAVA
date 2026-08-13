@@ -106,11 +106,6 @@ public async Task<IActionResult> GetCiudadano(int id)
             ? ciudadano.Solicitudes.Where(s => s.ProyectoId != null)
             : ciudadano.Solicitudes.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
 
-        if (!esAdminSyc && !solicitudesVisibles.Any())
-        {
-            return NotFound();
-        }
-
         var proyectosConActividad = solicitudesVisibles
             .GroupBy(s => new { s.ProyectoId, s.Proyecto!.Nombre})
             .Select(g => new ProyectoActividadDto
