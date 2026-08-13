@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SGDS.Application.DTOs;
 using SGDS.Domain.Entities;
 using SGDS.Infrastructure.Data;
+using SGDS.Application.Interfaces;
 
 namespace SGDS.Api.Controllers;
 
@@ -13,11 +14,13 @@ namespace SGDS.Api.Controllers;
 public class SolicitudesController : ControllerBase
 {
     private readonly SgdsDbContext _context;
+private readonly IAlmacenamientoService _almacenamiento;
 
-    public SolicitudesController(SgdsDbContext context)
-    {
-        _context = context;
-    }
+public SolicitudesController(SgdsDbContext context, IAlmacenamientoService almacenamiento)
+{
+    _context = context;
+    _almacenamiento = almacenamiento;
+}
 
     // GET: api/Solicitudes
 [HttpGet]
@@ -433,6 +436,63 @@ public async Task<IActionResult> GetListadoSolicitudes(
 
         return CreatedAtAction(nameof(GetSolicitud), new { id = nuevaSolicitud.Id }, new { nuevaSolicitud.Id });
     }
+
+//Inicio metodo post para cargue de documentos 
+    [HttpPost("{id}/documentos")]
+public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    var solicitud = await _context.Solicitudes
+        .Include(s => s.Proyecto)
+        .FirstOrDefaultAsync(s => s.Id == id);
+
+    if (solicitud == null)
+        return NotFound();
+
+    if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+    {
+        return NotFound();
+    }
+
+    if (archivo == null || archivo.Length == 0)
+    {
+        return BadRequest(new { mensaje = "Debe adjuntar un archivo" });
+    }
+
+    using var stream = archivo.OpenReadStream();
+    var rutaGuardada = await _almacenamiento.GuardarArchivoAsync(stream, archivo.FileName, $"solicitudes/{id}");
+
+    var nuevoDocumento = new Documento
+    {
+        SolicitudId = id,
+        NombreArchivo = archivo.FileName,
+        RutaArchivo = rutaGuardada,
+        TamanoBytes = archivo.Length,
+        TipoArchivo = archivo.ContentType,
+        FechaCarga = DateTime.UtcNow
+    };
+
+    _context.Documentos.Add(nuevoDocumento);
+    await _context.SaveChangesAsync();
+
+    var respuesta = new DocumentoResponseDto
+    {
+        Id = nuevoDocumento.Id,
+        NombreArchivo = nuevoDocumento.NombreArchivo,
+        SolicitudNumero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString(),
+        Fecha = nuevoDocumento.FechaCarga,
+        TamanoBytes = nuevoDocumento.TamanoBytes,
+        TipoArchivo = nuevoDocumento.TipoArchivo
+    };
+
+    return Ok(respuesta);
+}
+
+// fin
 
 // PUT: api/Solicitudes/5/cambiar-estado
     [HttpPut("{id}/cambiar-estado")]

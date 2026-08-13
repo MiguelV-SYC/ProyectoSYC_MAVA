@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using SGDS.Application.Interfaces;
+using SGDS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -67,6 +69,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+//adición de esta variable para enrutamiento para el almacenamiento de documentos.
+var rutaAlmacenamiento = Path.Combine(builder.Environment.ContentRootPath, "Almacenamiento");
+builder.Services.AddSingleton<IAlmacenamientoService>(new AlmacenamientoLocalService(rutaAlmacenamiento));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -78,6 +84,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "SGDS API v1");   
     });
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

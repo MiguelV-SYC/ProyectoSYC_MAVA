@@ -200,7 +200,7 @@ export default function Sidebar({ active }: { active: string }) {
         <NavItem
           active={active === 'documentos'}
           label="Documentos"
-          to="/dashboard"
+          to={proyectoActivoId ? `/documentos?proyectoId=${proyectoActivoId}` : '/dashboard'}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
         />
 

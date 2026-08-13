@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SGDS.Domain\SGDS.Domain.csproj" />
+    <ProjectReference Include="..\SGDS.Application\SGDS.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

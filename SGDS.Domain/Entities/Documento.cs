@@ -8,4 +8,6 @@ public class Documento
     public string NombreArchivo { get; set; } = string.Empty;
     public string RutaArchivo { get; set; } = string.Empty;
     public DateTime FechaCarga { get; set; } = DateTime.UtcNow;
+    public long? TamanoBytes { get; set; }
+    public string? TipoArchivo { get; set; }
 }
