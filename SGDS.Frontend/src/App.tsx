@@ -17,6 +17,7 @@ import FormularioEmpresaPage from './pages/FormularioEmpresaPage';
 import ListadoSolicitudesPage from './pages/ListadoSolicitudesPage';
 import NuevaSolicitudPage from './pages/NuevaSolicitudPage';
 import DetalleSolicitudPage from './pages/DetalleSolicitudPage';
+import WorkflowKanbanPage from './pages/WorkFlowKanbanPage';
 
 function App() {
   const { user } = useAuth();
@@ -121,6 +122,11 @@ function App() {
       <Route 
         path="/solicitudes/:id" 
         element={user ? <DetalleSolicitudPage/> : <Navigate to="/login" replace />} 
+      />
+
+      <Route
+        path="/workflow"
+        element={user ? <WorkflowKanbanPage /> : <Navigate to="/login" replace />}
       />
 
     </Routes>

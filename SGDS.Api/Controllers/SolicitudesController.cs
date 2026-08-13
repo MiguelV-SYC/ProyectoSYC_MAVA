@@ -127,6 +127,7 @@ public async Task<IActionResult> GetSolicitud(int id)
                 EstadoNuevo = h.EstadoNuevo,
                 FechaCambio = h.FechaCambio,
                 UsuarioNombre = h.Usuario?.NombreCompleto
+                
             }).ToList(),
         Documentos = solicitud.Documentos.Select(d => new DocumentoResponseDto
         {
@@ -367,26 +368,29 @@ public async Task<IActionResult> GetListadoSolicitudes(
     var totalRegistros = await query.CountAsync();
     var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamanoPagina);
 
-    var solicitudes = await query
-        .OrderByDescending(s => s.FechaCreacion)
-        .Skip((pagina - 1) * tamanoPagina)
-        .Take(tamanoPagina)
-        .Select(s => new SolicitudResponseDto
-        {
-            Id = s.Id,
-            Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
-            CiudadanoId = s.CiudadanoId,
-            CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
-            EmpresaId = s.EmpresaId,
-            EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
-            UsuarioAsignadoId = s.UsuarioAsignadoId,
-            UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
-            TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
-            Estado = s.Estado,
-            FechaCreacion = s.FechaCreacion,
-            FechaCierre = s.FechaCierre
-        })
-        .ToListAsync();
+   var solicitudes = await query
+    .OrderByDescending(s => s.FechaCreacion)
+    .Skip((pagina - 1) * tamanoPagina)
+    .Take(tamanoPagina)
+    .Select(s => new SolicitudResponseDto
+    {
+        Id = s.Id,
+        Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
+        CiudadanoId = s.CiudadanoId,
+        CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
+        EmpresaId = s.EmpresaId,
+        EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
+        UsuarioAsignadoId = s.UsuarioAsignadoId,
+        UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
+        TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
+        Estado = s.Estado,
+        FechaCreacion = s.FechaCreacion,
+        FechaCierre = s.FechaCierre,
+        FechaUltimoCambioEstado = s.HistorialEstados.Any()
+            ? s.HistorialEstados.Max(h => h.FechaCambio)
+            : s.FechaCreacion
+    })
+    .ToListAsync();
 
     var respuesta = new ListadoSolicitudesResponseDto
     {

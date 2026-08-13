@@ -100,6 +100,7 @@ export interface SolicitudResponseDto {
   tipoSolicitudNombre?: string;
   fechaCreacion: string;
   fechaCierre?: string;
+  fechaUltimoCambioEstado: string;
 }
 
 export interface ConteoEstadoDto {

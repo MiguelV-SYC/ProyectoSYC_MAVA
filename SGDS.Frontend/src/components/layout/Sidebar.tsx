@@ -1,8 +1,10 @@
 import { useAuth } from '../../context/AuthContext';
 import logoSgds from '../../assets/logo-sgds.png';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMisConteosPorProyecto, type ConteoProyectoDto } from '../../services/solicitudService';
+
+const CLAVE_PROYECTO_ACTIVO = 'sgds_proyecto_activo';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -13,7 +15,6 @@ interface NavItemProps {
 
 function NavItem({ icon, label, active, to }: NavItemProps) {
   return (
-    
     <Link
       to={to}
       className={`relative z-10 flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-[13.5px] font-medium border-l-2 transition-colors ${
@@ -40,14 +41,29 @@ function NavSectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function Sidebar({ active }: { active: string }) {
   const { user, logout } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const [misProyectos, setMisProyectos] = useState<ConteoProyectoDto[]>([]);
 
-useEffect(() => {
-  if (!user?.esAdminSyc) {
-    getMisConteosPorProyecto().then(setMisProyectos).catch(() => setMisProyectos([]));
-  }
-}, [user?.esAdminSyc]);
+  useEffect(() => {
+    if (!user?.esAdminSyc) {
+      getMisConteosPorProyecto().then(setMisProyectos).catch(() => setMisProyectos([]));
+    }
+  }, [user?.esAdminSyc]);
+
+  // Proyecto activo: prioriza el que está en la URL actual (si hay uno);
+  // si no, el último guardado en localStorage; si tampoco, el primero de la lista.
+  const proyectoIdUrl = searchParams.get('proyectoId');
+  useEffect(() => {
+    if (proyectoIdUrl) {
+      localStorage.setItem(CLAVE_PROYECTO_ACTIVO, proyectoIdUrl);
+    }
+  }, [proyectoIdUrl]);
+
+  const proyectoActivoId =
+    proyectoIdUrl ??
+    localStorage.getItem(CLAVE_PROYECTO_ACTIVO) ??
+    (misProyectos[0] ? String(misProyectos[0].proyectoId) : null);
 
   const nombre = user?.nombreCompleto ?? '';
   const iniciales = nombre
@@ -59,9 +75,11 @@ useEffect(() => {
     .toUpperCase();
   const rol = user?.esAdminSyc ? 'Administrador SYC' : 'Operador';
 
+  const rutaSolicitudes = proyectoActivoId ? `/solicitudes?proyectoId=${proyectoActivoId}` : '/dashboard';
+  const rutaWorkflow = proyectoActivoId ? `/workflow?proyectoId=${proyectoActivoId}` : '/dashboard';
+
   return (
     <aside className="w-[260px] shrink-0 relative flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
-      {/* Grid de fondo */}
       <div
         className="absolute inset-0"
         style={{
@@ -73,7 +91,6 @@ useEffect(() => {
         }}
       />
 
-      {/* Circuito animado */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <svg viewBox="0 0 260 900" preserveAspectRatio="none" className="w-full h-full">
           <path
@@ -110,7 +127,6 @@ useEffect(() => {
         </svg>
       </div>
 
-      {/* Marca */}
       <div className="relative z-10 flex items-center gap-3 px-2 pb-[26px]">
         <div className="relative w-[46px] h-[46px] rounded-full flex items-center justify-center">
           <div className="absolute -inset-[5px] rounded-full border-[1.5px] border-dashed border-blue-400/35 animate-[logo-spin_30s_linear_infinite]" />
@@ -123,80 +139,82 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      
+
       {!user?.esAdminSyc && misProyectos.length > 0 && (
-  <div className="relative z-10 mb-3">
-    <div className="text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pb-2">
-      Mis proyectos
-    </div>
-    <div className="flex flex-col gap-1">
-      {misProyectos.map((p, i) => (
-        <Link
-          key={p.proyectoId}
-          to={`/solicitudes?proyectoId=${p.proyectoId}`}
-          className={`flex items-center justify-between px-3 py-2 rounded-[9px] text-[13px] font-medium ${
-            i === 0 ? 'bg-[#0d9488]/20 text-white' : 'text-white/70 hover:bg-white/[0.06]'
-          }`}
-        >
-          <span>{p.proyectoNombre}</span>
-          <span className="text-[10.5px] font-bold bg-white/15 rounded-full w-5 h-5 flex items-center justify-center">
-            {p.totalAsignadas}
-          </span>
-        </Link>
-      ))}
-    </div>
-  </div>
-)}
+        <div className="relative z-10 mb-3">
+          <div className="text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pb-2">
+            Mis proyectos
+          </div>
+          <div className="flex flex-col gap-1">
+            {misProyectos.map((p) => {
+              const esActivo = String(p.proyectoId) === proyectoActivoId;
+              return (
+                <Link
+                  key={p.proyectoId}
+                  to={`/solicitudes?proyectoId=${p.proyectoId}`}
+                  onClick={() => localStorage.setItem(CLAVE_PROYECTO_ACTIVO, String(p.proyectoId))}
+                  className={`flex items-center justify-between px-3 py-2 rounded-[9px] text-[13px] font-medium ${
+                    esActivo ? 'bg-[#0d9488]/20 text-white' : 'text-white/70 hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <span>{p.proyectoNombre}</span>
+                  <span className="text-[10.5px] font-bold bg-white/15 rounded-full w-5 h-5 flex items-center justify-center">
+                    {p.totalAsignadas}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-
-      {/* Navegación */}
       <nav className="relative z-10 flex flex-col gap-0.5 flex-1">
         <NavItem
-          active={active === 'inicio'} 
-          label="Inicio" 
-          to="/dashboard" 
+          active={active === 'inicio'}
+          label="Inicio"
+          to="/dashboard"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
         />
 
         <NavItem
           active={active === 'solicitudes'}
-          label="Solicitudes" 
-          to={misProyectos[0] ? `/solicitudes?proyectoId=${misProyectos[0].proyectoId}` : '/dashboard'} 
+          label="Solicitudes"
+          to={rutaSolicitudes}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
         />
 
         <NavItem
           active={active === 'ciudadanos'}
-          label="Ciudadanos" 
-          to="/ciudadanos" 
+          label="Ciudadanos"
+          to="/ciudadanos"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
         />
 
         <NavItem
           active={active === 'empresas'}
-          label="Empresas" 
-          to="/empresas" 
+          label="Empresas"
+          to="/empresas"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
         />
 
         <NavItem
           active={active === 'documentos'}
-          label="Documentos" 
-          to="/dashboard" 
+          label="Documentos"
+          to="/dashboard"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
         />
 
         <NavItem
           active={active === 'workflow'}
-          label="Workflow" 
-          to="/dashboard" 
+          label="Workflow"
+          to={rutaWorkflow}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8 6h5a3 3 0 013 3v6" /></svg>}
         />
 
         <NavItem
           active={active === 'reportes'}
-          label="Reportes" 
-          to="/dashboard" 
+          label="Reportes"
+          to="/dashboard"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
         />
 
@@ -205,29 +223,26 @@ useEffect(() => {
             <NavSectionLabel>Administración</NavSectionLabel>
             <NavItem
               active={active === 'usuarios'}
-              label="Usuarios" 
-              to="/usuarios" 
+              label="Usuarios"
+              to="/usuarios"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><path d="M16 9h5M18.5 6.5v5" /></svg>}
             />
-
             <NavItem
               active={active === 'auditoria'}
-              label="Auditoría" 
-              to="/auditoria" 
+              label="Auditoría"
+              to="/auditoria"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>}
             />
-
             <NavItem
               active={active === 'proyectos'}
-              label="Proyectos" 
-              to="/proyectos" 
+              label="Proyectos"
+              to="/proyectos"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /></svg>}
             />
           </>
         )}
       </nav>
 
-      {/* Usuario */}
       <div className="relative z-10 flex items-center gap-2.5 px-3 pt-4 mt-2.5 border-t border-white/[0.08]">
         <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center font-bold text-xs text-white bg-[linear-gradient(145deg,var(--color-blue-500),var(--color-blue-600))]">
           {iniciales}
