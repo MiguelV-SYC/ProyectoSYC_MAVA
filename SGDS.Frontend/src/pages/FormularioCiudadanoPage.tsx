@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import {
   buscarPorDocumento,
@@ -19,6 +19,8 @@ const TIPOS_DOCUMENTO = [
 export default function FormularioCiudadanoPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const volverA = searchParams.get('volverA');
   const esEdicion = Boolean(id);
 
   const [tipoDocumento, setTipoDocumento] = useState('CC');
@@ -90,7 +92,13 @@ export default function FormularioCiudadanoPage() {
           ciudad,
           direccion,
         });
-        navigate(`/ciudadanos/${(creado as any).id}`);
+        const nuevoId = (creado as any).id;
+        if (volverA) {
+          const separador = volverA.includes('?') ? '&' : '?';
+          navigate(`${volverA}${separador}ciudadanoId=${nuevoId}`);
+        } else {
+          navigate(`/ciudadanos/${nuevoId}`);
+        }
       }
     } catch (err: any) {
       if (err?.response?.status === 409) {

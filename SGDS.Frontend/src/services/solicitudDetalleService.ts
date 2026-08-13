@@ -24,3 +24,11 @@ export async function getSolicitudesPorCiudadano(ciudadanoId: number): Promise<S
   });
   return data;
 }
+
+export async function getSolicitudesPorEmpresa(empresaId: number): Promise<SolicitudResumenDto[]> {
+  const { data } = await axios.get<SolicitudResumenDto[]>(`${API_URL}/Solicitudes`, {
+    params: { empresaId }, 
+    headers: authHeader(), 
+  });
+  return data; 
+}

@@ -125,11 +125,15 @@ export default function GestionProyectosPage() {
   }
 
   async function handleAgregarTipo() {
-    if (!modalTipos || !nuevoTipoNombre.trim()) return;
+  if (!modalTipos || !nuevoTipoNombre.trim()) return;
+  try {
     const nuevo = await crearTipoSolicitud({ nombre: nuevoTipoNombre.trim(), proyectoId: modalTipos.id });
     setTipos((prev) => [...prev, nuevo]);
     setNuevoTipoNombre('');
+  } catch (err: any) {
+    alert(err?.response?.data?.mensaje ?? 'No se pudo crear el tipo de solicitud.');
   }
+}
 
   function iniciarEdicionTipo(t: TipoSolicitudResponseDto) {
     setTipoEditandoId(t.id);
@@ -137,19 +141,27 @@ export default function GestionProyectosPage() {
   }
 
   async function guardarEdicionTipo() {
-    if (tipoEditandoId === null || !tipoEditandoNombre.trim()) return;
+  if (tipoEditandoId === null || !tipoEditandoNombre.trim()) return;
+  try {
     await actualizarTipoSolicitud(tipoEditandoId, { nombre: tipoEditandoNombre.trim() });
     setTipos((prev) =>
       prev.map((t) => (t.id === tipoEditandoId ? { ...t, nombre: tipoEditandoNombre.trim() } : t))
     );
     setTipoEditandoId(null);
+  } catch (err: any) {
+    alert(err?.response?.data?.mensaje ?? 'No se pudo actualizar el tipo de solicitud.');
   }
+}
 
   async function handleEliminarTipo(id: number) {
-    if (!confirm('¿Eliminar este tipo de solicitud?')) return;
+  if (!confirm('¿Eliminar este tipo de solicitud?')) return;
+  try {
     await eliminarTipoSolicitud(id);
     setTipos((prev) => prev.filter((t) => t.id !== id));
+  } catch (err: any) {
+    alert(err?.response?.data?.mensaje ?? 'No se pudo eliminar el tipo de solicitud.');
   }
+}
 
   function cerrarModalTipos() {
     setModalTipos(null);

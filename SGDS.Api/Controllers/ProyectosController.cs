@@ -53,6 +53,38 @@ public class ProyectosController : ControllerBase
         return Ok(resultado);
     }
 
+    [HttpGet("{id}/operadores")]
+public async Task<IActionResult> GetOperadoresDelProyecto(int id)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    if (!esAdminSyc && !proyectosPermitidos.Contains(id))
+    {
+        return Forbid();
+    }
+
+    var operadores = await _context.UsuarioProyectos
+        .Where(up => up.ProyectoId == id && up.Usuario.Activo)
+        .Include(up => up.Usuario)
+        .Include(up => up.Rol)
+        .Select(up => new OperadorProyectoDto
+        {
+            UsuarioId = up.UsuarioId,
+            NombreCompleto = up.Usuario.NombreCompleto,
+            RolNombre = up.Rol.Nombre
+        })
+        .ToListAsync();
+
+    return Ok(operadores);
+}
+
+
+
+
+
     // POST: api/Proyectos (solo Admin SYC)
     [HttpPost]
     public async Task<IActionResult> CrearProyecto(CrearProyectoDto dto)

@@ -104,8 +104,6 @@ export default function FichaCiudadanoPage() {
                 </svg>
                 Nueva solicitud
               </button>
-
-
             </div>
 
             <div className="grid grid-cols-[380px_1fr] gap-5 items-start">

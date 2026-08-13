@@ -40,3 +40,13 @@ public class CrearTipoSolicitudDto
     public int ProyectoId { get; set; }
     public string Nombre { get; set; } = string.Empty;
 }
+public class ActualizarTipoSolicitudDto
+{
+    public string Nombre { get; set; } = string.Empty;
+}
+public class OperadorProyectoDto
+{
+    public int UsuarioId { get; set; }
+    public string NombreCompleto { get; set; } = string.Empty;
+    public string RolNombre { get; set; } = string.Empty;
+}

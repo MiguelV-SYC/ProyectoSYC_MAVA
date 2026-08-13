@@ -84,3 +84,130 @@ export async function asignarUsuarioSolicitud(solicitudId: number, usuarioId: nu
         { headers: authHeader() }
     );   
 }
+
+export interface SolicitudResponseDto {
+  id: number;
+  ciudadanoId?: number;
+  ciudadanoNombre?: string;
+  ciudadanoDocumento?: string;
+  empresaId?: number;
+  empresaNombre?: string;
+  empresaNit?: string;
+  usuarioAsignadoId?: number;
+  usuarioAsignadoNombre?: string;
+  estado: string;
+  numero: string;
+  tipoSolicitudNombre?: string;
+  fechaCreacion: string;
+  fechaCierre?: string;
+}
+
+export interface ConteoEstadoDto {
+  estado: string;
+  total: number;
+}
+
+export interface PaginacionResponseDto<T> {
+  datos: T[];
+  totalRegistros: number;
+  paginaActual: number;
+  totalPaginas: number;
+}
+
+export interface ListadoSolicitudesResponseDto {
+  pagina: PaginacionResponseDto<SolicitudResponseDto>;
+  conteosPorEstado: ConteoEstadoDto[];
+}
+
+export async function getSolicitudesListado(params: {
+  proyectoId?: number;
+  buscar?: string;
+  estado?: string;
+  tipoSolicitudId?: number;
+  pagina?: number;
+  tamanoPagina?: number;
+}): Promise<ListadoSolicitudesResponseDto> {
+  const { data } = await axios.get<ListadoSolicitudesResponseDto>(`${API_URL}/Solicitudes/listado`, {
+    params,
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface HistorialEstadoDto {
+  estadoAnterior?: string;
+  estadoNuevo: string;
+  fechaCambio: string;
+  usuarioNombre?: string;
+}
+
+export interface DocumentoResponseDto {
+  id: number;
+  nombreArchivo: string;
+  solicitudNumero: string;
+  fecha: string;
+}
+
+export interface SolicitudDetalleResponseDto {
+  id: number;
+  numero: string;
+  ciudadanoId?: number;
+  ciudadanoNombre?: string;
+  ciudadanoDocumento?: string;
+  empresaId?: number;
+  empresaNombre?: string;
+  empresaNit?: string;
+  usuarioAsignadoId?: number;
+  usuarioAsignadoNombre?: string;
+  proyectoNombre?: string;
+  tipoSolicitudNombre?: string;
+  estado: string;
+  fechaCreacion: string;
+  fechaCierre?: string;
+  datosAdicionales?: string;
+  historialEstados: HistorialEstadoDto[];
+  documentos: DocumentoResponseDto[];
+}
+
+export async function getSolicitudDetalle(id: number): Promise<SolicitudDetalleResponseDto> {
+  const { data } = await axios.get<SolicitudDetalleResponseDto>(`${API_URL}/Solicitudes/${id}`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface CrearSolicitudDto {
+  ciudadanoId?: number;
+  empresaId?: number;
+  proyectoId: number;
+  tipoSolicitudId: number;
+  vehiculoId?: number;
+  datosAdicionales?: string;
+}
+
+export async function crearSolicitud(dto: CrearSolicitudDto): Promise<{ id: number; numero: string }> {
+  const { data } = await axios.post(`${API_URL}/Solicitudes`, dto, { headers: authHeader() });
+  return data;
+}
+
+export async function cambiarEstado(id: number, nuevoEstado: string): Promise<void> {
+  await axios.put(`${API_URL}/Solicitudes/${id}/cambiar-estado`, { nuevoEstado }, { headers: authHeader() });
+}
+
+export async function asignarUsuario(id: number, usuarioId: number): Promise<void> {
+  await axios.put(`${API_URL}/Solicitudes/${id}/asignar-usuario`, { usuarioId }, { headers: authHeader() });
+}
+
+export interface TipoSolicitudDto {
+  id: number;
+  nombre: string;
+  proyectoId: number;
+}
+
+export async function getTiposSolicitudPorProyecto(proyectoId: number): Promise<TipoSolicitudDto[]> {
+  const { data } = await axios.get<TipoSolicitudDto[]>(`${API_URL}/TiposSolicitud`, {
+    params: { proyectoId },
+    headers: authHeader(),
+  });
+  return data;
+}

@@ -131,17 +131,18 @@ useEffect(() => {
     </div>
     <div className="flex flex-col gap-1">
       {misProyectos.map((p, i) => (
-        <div
+        <Link
           key={p.proyectoId}
+          to={`/solicitudes?proyectoId=${p.proyectoId}`}
           className={`flex items-center justify-between px-3 py-2 rounded-[9px] text-[13px] font-medium ${
-            i === 0 ? 'bg-[#0d9488]/20 text-white' : 'text-white/70'
+            i === 0 ? 'bg-[#0d9488]/20 text-white' : 'text-white/70 hover:bg-white/[0.06]'
           }`}
         >
           <span>{p.proyectoNombre}</span>
           <span className="text-[10.5px] font-bold bg-white/15 rounded-full w-5 h-5 flex items-center justify-center">
             {p.totalAsignadas}
           </span>
-        </div>
+        </Link>
       ))}
     </div>
   </div>
@@ -160,7 +161,7 @@ useEffect(() => {
         <NavItem
           active={active === 'solicitudes'}
           label="Solicitudes" 
-          to="/dashboard" 
+          to={misProyectos[0] ? `/solicitudes?proyectoId=${misProyectos[0].proyectoId}` : '/dashboard'} 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
         />
 
@@ -174,7 +175,7 @@ useEffect(() => {
         <NavItem
           active={active === 'empresas'}
           label="Empresas" 
-          to="/dashboard" 
+          to="/empresas" 
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
         />
 

@@ -54,3 +54,16 @@ export async function crearProyecto(dto: CrearProyectoDto): Promise<ProyectoResp
 export async function actualizarProyecto(id: number, dto: ActualizarProyectoDto): Promise<void> {
   await axios.put(`${API_URL}/Proyectos/${id}`, dto, { headers: authHeader() });
 }
+
+export interface OperadorProyectoDto {
+  usuarioId: number;
+  nombreCompleto: string;
+  rolNombre: string;
+}
+
+export async function getOperadoresPorProyecto(proyectoId: number): Promise<OperadorProyectoDto[]> {
+  const { data } = await axios.get<OperadorProyectoDto[]>(`${API_URL}/Proyectos/${proyectoId}/operadores`, {
+    headers: authHeader(),
+  });
+  return data;
+}

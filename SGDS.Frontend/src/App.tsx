@@ -11,6 +11,12 @@ import CiudadanosListPage from './pages/CiudadanosListPage';
 import OperadorHomePage from './pages/OperadorHomePage';
 import FichaCiudadanoPage from './pages/FichaCiudadanoPage';
 import FormularioCiudadanoPage from './pages/FormularioCiudadanoPage';
+import ListadoEmpresasPage from './pages/ListadoEmpresasPage';
+import FichaEmpresaPage from './pages/FichaEmpresaPage';
+import FormularioEmpresaPage from './pages/FormularioEmpresaPage';
+import ListadoSolicitudesPage from './pages/ListadoSolicitudesPage';
+import NuevaSolicitudPage from './pages/NuevaSolicitudPage';
+import DetalleSolicitudPage from './pages/DetalleSolicitudPage';
 
 function App() {
   const { user } = useAuth();
@@ -80,6 +86,41 @@ function App() {
       <Route
         path="/ciudadanos/:id/editar" 
         element={user ? <FormularioCiudadanoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/empresas" 
+        element={user ? <ListadoEmpresasPage /> : <Navigate to="login" replace />}
+      />
+
+      <Route
+        path="/empresas/:id"
+        element={user ? <FichaEmpresaPage /> : <Navigate to="login" replace />}
+      /> 
+
+      <Route
+        path="/empresas/nueva"
+        element={user ? <FormularioEmpresaPage /> : <Navigate to="login" replace />}
+      />
+
+      <Route
+        path="/empresas/:id/editar"
+        element={user ? <FormularioEmpresaPage /> : <Navigate to="login" replace />}
+      />
+
+      <Route
+        path="/solicitudes"
+        element={user ? <ListadoSolicitudesPage /> : <Navigate to="/login" replace /> }
+      />
+
+      <Route 
+      path="/solicitudes/nueva" 
+      element={user ? <NuevaSolicitudPage /> : <Navigate to="/login" replace />} 
+      />
+
+      <Route 
+        path="/solicitudes/:id" 
+        element={user ? <DetalleSolicitudPage/> : <Navigate to="/login" replace />} 
       />
 
     </Routes>

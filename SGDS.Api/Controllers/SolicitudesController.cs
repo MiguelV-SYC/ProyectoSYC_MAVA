@@ -21,7 +21,7 @@ public class SolicitudesController : ControllerBase
 
     // GET: api/Solicitudes
 [HttpGet]
-public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
+public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId, [FromQuery] int? empresaId)
 {
     var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
     var proyectosClaims = User.FindAll("proyecto").Select(c => c.Value.Split(':')[0]).ToList();
@@ -41,9 +41,14 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
     }
 
     if (ciudadanoId.HasValue)
-        {
-            query = query.Where(s => s.CiudadanoId == ciudadanoId.Value);
-        }
+    {
+        query = query.Where(s => s.CiudadanoId == ciudadanoId.Value);
+    }
+
+    if (empresaId.HasValue)
+    {
+        query = query.Where(s => s.EmpresaId == empresaId.Value);
+    }
 
     var solicitudes = await query
         .Select(s => new SolicitudResponseDto
@@ -52,8 +57,10 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
             Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
             CiudadanoId = s.CiudadanoId,
             CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
+            CiudadanoDocumento = s.Ciudadano != null ? s.Ciudadano.TipoDocumento + " " + s.Ciudadano.NumeroDocumento : null,
             EmpresaId = s.EmpresaId,
             EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
+            EmpresaNit = s.Empresa != null ? s.Empresa.Nit : null,
             UsuarioAsignadoId = s.UsuarioAsignadoId,
             UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
             TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
@@ -65,12 +72,11 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
 
     return Ok(solicitudes);
 }
-
-// GET: api/Solicitudes/
+// GET: api/Solicitudes/5
 [HttpGet("{id}")]
-    public async Task<IActionResult> GetSolicitud(int id)
-    {
-         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+public async Task<IActionResult> GetSolicitud(int id)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
     var proyectosPermitidos = User.FindAll("proyecto")
         .Select(c => int.Parse(c.Value.Split(':')[0]))
         .ToList();
@@ -79,6 +85,11 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
         .Include(s => s.Ciudadano)
         .Include(s => s.Empresa)
         .Include(s => s.UsuarioAsignado)
+        .Include(s => s.Proyecto)
+        .Include(s => s.TipoSolicitud)
+        .Include(s => s.HistorialEstados)
+            .ThenInclude(h => h.Usuario)
+        .Include(s => s.Documentos)
         .FirstOrDefaultAsync(s => s.Id == id);
 
     if (solicitud == null)
@@ -89,23 +100,45 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId)
         return NotFound();
     }
 
-    var dto = new SolicitudResponseDto
+    var dto = new SolicitudDetalleResponseDto
     {
         Id = solicitud.Id,
+        Numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString(),
         CiudadanoId = solicitud.CiudadanoId,
         CiudadanoNombre = solicitud.Ciudadano?.NombreCompleto,
+        CiudadanoDocumento = solicitud.Ciudadano != null ? $"{solicitud.Ciudadano.TipoDocumento} {solicitud.Ciudadano.NumeroDocumento}" : null,
         EmpresaId = solicitud.EmpresaId,
         EmpresaNombre = solicitud.Empresa?.RazonSocial,
+        EmpresaNit = solicitud.Empresa?.Nit,
+        DatosAdicionales = solicitud.DatosAdicionales,
         UsuarioAsignadoId = solicitud.UsuarioAsignadoId,
         UsuarioAsignadoNombre = solicitud.UsuarioAsignado?.NombreCompleto,
+        ProyectoNombre = solicitud.Proyecto?.Nombre,
+        ProyectoId = solicitud.ProyectoId,
+        TipoSolicitudNombre = solicitud.TipoSolicitud?.Nombre,
         Estado = solicitud.Estado,
         FechaCreacion = solicitud.FechaCreacion,
-        FechaCierre = solicitud.FechaCierre
+        FechaCierre = solicitud.FechaCierre,
+        HistorialEstados = solicitud.HistorialEstados
+            .OrderByDescending(h => h.FechaCambio)
+            .Select(h => new HistorialEstadoDto
+            {
+                EstadoAnterior = h.EstadoAnterior,
+                EstadoNuevo = h.EstadoNuevo,
+                FechaCambio = h.FechaCambio,
+                UsuarioNombre = h.Usuario?.NombreCompleto
+            }).ToList(),
+        Documentos = solicitud.Documentos.Select(d => new DocumentoResponseDto
+        {
+            Id = d.Id,
+            NombreArchivo = d.NombreArchivo,
+            SolicitudNumero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString(),
+            Fecha = d.FechaCarga
+        }).ToList()
     };
 
     return Ok(dto);
-
-    }
+}
 //inicio: metodos para el home-operador
     [HttpGet("mis-conteos-por-proyecto")]
 public async Task<IActionResult> GetMisConteosPorProyecto()
@@ -271,6 +304,105 @@ private SolicitudAtencionDto MapearAtencion(Solicitud s, DateTime hoy, bool esSi
         return Ok(resultado);
     }
 //Fin metodos get home-operador
+
+// inicio ger: api/Solicitudes/listado
+[HttpGet("listado")]
+public async Task<IActionResult> GetListadoSolicitudes(
+    [FromQuery] int? proyectoId,
+    [FromQuery] string? buscar,
+    [FromQuery] string? estado,
+    [FromQuery] int? tipoSolicitudId,
+    [FromQuery] int pagina = 1,
+    [FromQuery] int tamanoPagina = 20)
+{
+    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    var proyectosPermitidos = User.FindAll("proyecto")
+        .Select(c => int.Parse(c.Value.Split(':')[0]))
+        .ToList();
+
+    var queryBase = _context.Solicitudes
+        .Include(s => s.Ciudadano)
+        .Include(s => s.Empresa)
+        .Include(s => s.UsuarioAsignado)
+        .Include(s => s.Proyecto)
+        .Include(s => s.TipoSolicitud)
+        .AsQueryable();
+
+    if (!esAdminSyc)
+    {
+        queryBase = queryBase.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
+    }
+
+    if (proyectoId.HasValue)
+    {
+        queryBase = queryBase.Where(s => s.ProyectoId == proyectoId.Value);
+    }
+
+    if (tipoSolicitudId.HasValue)
+    {
+        queryBase = queryBase.Where(s => s.TipoSolicitudId == tipoSolicitudId.Value);
+    }
+
+    if (!string.IsNullOrWhiteSpace(buscar))
+    {
+        queryBase = queryBase.Where(s =>
+            (s.Ciudadano != null && s.Ciudadano.NombreCompleto.Contains(buscar)) ||
+            (s.Empresa != null && s.Empresa.RazonSocial.Contains(buscar)) ||
+            s.Id.ToString().Contains(buscar));
+    }
+
+    // Los conteos por estado se calculan ANTES de aplicar el filtro de estado específico,
+    // así los chips siempre muestran el total real de cada categoría, no solo la seleccionada
+    var conteosPorEstado = await queryBase
+        .GroupBy(s => s.Estado)
+        .Select(g => new ConteoEstadoDto { Estado = g.Key, Total = g.Count() })
+        .ToListAsync();
+
+    var query = queryBase;
+    if (!string.IsNullOrWhiteSpace(estado))
+    {
+        query = query.Where(s => s.Estado == estado);
+    }
+
+    var totalRegistros = await query.CountAsync();
+    var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamanoPagina);
+
+    var solicitudes = await query
+        .OrderByDescending(s => s.FechaCreacion)
+        .Skip((pagina - 1) * tamanoPagina)
+        .Take(tamanoPagina)
+        .Select(s => new SolicitudResponseDto
+        {
+            Id = s.Id,
+            Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
+            CiudadanoId = s.CiudadanoId,
+            CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
+            EmpresaId = s.EmpresaId,
+            EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
+            UsuarioAsignadoId = s.UsuarioAsignadoId,
+            UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
+            TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
+            Estado = s.Estado,
+            FechaCreacion = s.FechaCreacion,
+            FechaCierre = s.FechaCierre
+        })
+        .ToListAsync();
+
+    var respuesta = new ListadoSolicitudesResponseDto
+    {
+        Pagina = new PaginacionResponseDto<SolicitudResponseDto>
+        {
+            Datos = solicitudes,
+            TotalRegistros = totalRegistros,
+            PaginaActual = pagina,
+            TotalPaginas = totalPaginas
+        },
+        ConteosPorEstado = conteosPorEstado
+    };
+
+    return Ok(respuesta);
+}
+
     // POST: api/Solicitudes
     [HttpPost]
     public async Task<IActionResult> CrearSolicitud(CrearSolicitudDto dto)
@@ -287,6 +419,7 @@ private SolicitudAtencionDto MapearAtencion(Solicitud s, DateTime hoy, bool esSi
             ProyectoId = dto.ProyectoId,
             TipoSolicitudId = dto.TipoSolicitudId,
             VehiculoId = dto.VehiculoId,
+            DatosAdicionales = dto.DatosAdicionales,
             Estado = "Radicada",
             FechaCreacion = DateTime.UtcNow
         };
