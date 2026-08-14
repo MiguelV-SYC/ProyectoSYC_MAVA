@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using SGDS.Domain.Entities;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SGDS.Api.Controllers;
 
@@ -86,43 +87,70 @@ public class AuthController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-[HttpPost("solicitar-acceso")]
-public async Task<IActionResult> SolicitarAcceso(SolicitarAccesoDto dto)
-{
-    if (dto.ProyectosSolicitados == null || dto.ProyectosSolicitados.Count == 0)
+    [HttpPost("solicitar-acceso")]
+    public async Task<IActionResult> SolicitarAcceso(SolicitarAccesoDto dto)
     {
-        return BadRequest(new { mensaje = "Debe seleccionar al menos un proyecto" });
+        if (dto.ProyectosSolicitados == null || dto.ProyectosSolicitados.Count == 0)
+        {
+            return BadRequest(new { mensaje = "Debe seleccionar al menos un proyecto" });
+        }
+
+        var proyectosValidos = await _context.Proyectos
+            .Where(p => dto.ProyectosSolicitados.Contains(p.Id) && p.Activo)
+            .Select(p => p.Id)
+            .ToListAsync();
+
+        if (proyectosValidos.Count != dto.ProyectosSolicitados.Count)
+        {
+            return BadRequest(new { mensaje = "Uno o más proyectos seleccionados no son válidos" });
+        }
+
+        var nuevaSolicitud = new SolicitudAcceso
+        {
+            NombreCompleto = dto.NombreCompleto,
+            Email = dto.Email,
+            DocumentoIdentidad = dto.DocumentoIdentidad,
+            Telefono = dto.Telefono,
+            RolSolicitado = dto.RolSolicitado,
+            Motivo = dto.Motivo,
+            Estado = "Pendiente"
+        };
+
+        foreach (var proyectoId in proyectosValidos)
+        {
+            nuevaSolicitud.ProyectosSolicitados.Add(new SolicitudAccesoProyecto { ProyectoId = proyectoId });
+        }
+
+        _context.SolicitudesAcceso.Add(nuevaSolicitud);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { mensaje = "Solicitud registrada. Un administrador la revisará y te contactará por correo." });
     }
-
-    var proyectosValidos = await _context.Proyectos
-        .Where(p => dto.ProyectosSolicitados.Contains(p.Id) && p.Activo)
-        .Select(p => p.Id)
-        .ToListAsync();
-
-    if (proyectosValidos.Count != dto.ProyectosSolicitados.Count)
+//cambiar contraseña siendo operador y estando logueado
+    [HttpPut("cambiar-password")]
+    [Authorize]
+    public async Task<IActionResult> CambiarPassword(CambiarPasswordDto dto)
     {
-        return BadRequest(new { mensaje = "Uno o más proyectos seleccionados no son válidos" });
+        var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
+
+        var usuario = await _context.Usuarios.FindAsync(usuarioId);
+
+        if (usuario == null)
+            return NotFound();
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.ContrasenaActual, usuario.PasswordHash))
+        {
+            return BadRequest(new { mensaje = "La contraseña actual no es correcta" });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.ContrasenaNueva) || dto.ContrasenaNueva.Length < 8)
+        {
+            return BadRequest(new { mensaje = "La nueva contraseña debe tener al menos 8 caracteres" });
+        }
+
+        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.ContrasenaNueva);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
-
-    var nuevaSolicitud = new SolicitudAcceso
-    {
-        NombreCompleto = dto.NombreCompleto,
-        Email = dto.Email,
-        DocumentoIdentidad = dto.DocumentoIdentidad,
-        Telefono = dto.Telefono,
-        RolSolicitado = dto.RolSolicitado,
-        Motivo = dto.Motivo,
-        Estado = "Pendiente"
-    };
-
-    foreach (var proyectoId in proyectosValidos)
-    {
-        nuevaSolicitud.ProyectosSolicitados.Add(new SolicitudAccesoProyecto { ProyectoId = proyectoId });
-    }
-
-    _context.SolicitudesAcceso.Add(nuevaSolicitud);
-    await _context.SaveChangesAsync();
-
-    return Ok(new { mensaje = "Solicitud registrada. Un administrador la revisará y te contactará por correo." });
-}
 }

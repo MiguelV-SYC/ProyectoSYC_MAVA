@@ -20,6 +20,7 @@ import DetalleSolicitudPage from './pages/DetalleSolicitudPage';
 import WorkflowKanbanPage from './pages/WorkFlowKanbanPage';
 import DocumentosPage from './pages/DocumentosPage';
 import ReportesPage from './pages/ReportesPage';
+import MiPerfilPage from './pages/MiPerfilPage';
 
 function App() {
   const { user } = useAuth();
@@ -140,6 +141,9 @@ function App() {
         path="/reportes"
         element={user ? <ReportesPage /> : <Navigate to="/login" replace />}
       />
+      <Route 
+        path="/mi-perfil" 
+        element={user ? <MiPerfilPage /> : <Navigate to="/login" replace />} />
 
       </Routes>
     

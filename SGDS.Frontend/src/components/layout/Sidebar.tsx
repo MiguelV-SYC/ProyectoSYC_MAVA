@@ -243,7 +243,10 @@ export default function Sidebar({ active }: { active: string }) {
         )}
       </nav>
 
-      <div className="relative z-10 flex items-center gap-2.5 px-3 pt-4 mt-2.5 border-t border-white/[0.08]">
+      <Link
+        to="/mi-perfil"
+        className="relative z-10 flex items-center gap-2.5 px-3 pt-4 mt-2.5 border-t border-white/[0.08] hover:bg-white/[0.04] rounded-t-[9px] transition-colors"
+      >
         <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center font-bold text-xs text-white bg-[linear-gradient(145deg,var(--color-blue-500),var(--color-blue-600))]">
           {iniciales}
         </div>
@@ -251,7 +254,7 @@ export default function Sidebar({ active }: { active: string }) {
           <div className="text-[12.5px] font-semibold text-white">{nombre}</div>
           <div className="text-[10.5px] text-blue-400">{rol}</div>
         </div>
-      </div>
+      </Link>
       <button
         onClick={logout}
         className="relative z-10 flex items-center gap-2.5 px-3 py-[9px] mt-1 rounded-[9px] text-[12.5px] font-medium text-white/50 hover:bg-red-600/[0.12] hover:text-red-400 transition-colors"

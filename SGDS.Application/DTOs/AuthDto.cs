@@ -20,4 +20,10 @@ namespace SGDS.Application.DTOs
         public string   Password { get; set; } = string.Empty;
     }
 
+    public class CambiarPasswordDto
+    {
+        public string ContrasenaActual { get; set; } = string.Empty;
+        public string ContrasenaNueva { get; set; } = string.Empty;
+    }
+
 }

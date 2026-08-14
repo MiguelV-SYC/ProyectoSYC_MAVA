@@ -126,3 +126,24 @@ export async function inactivarUsuario(id: number): Promise<void> {
     await axios.delete(`${API_URL}/Usuarios/${id}`, { headers: authHeader() });
 }
 
+export interface ProyectoUsuarioDto {
+  proyectoId: number;
+  proyectoNombre: string;
+  rolNombre: string;
+}
+
+export interface UsuarioDetalleDto {
+  id: number;
+  nombreCompleto: string;
+  email: string;
+  esAdminSyc: boolean;
+  activo: boolean;
+  proyectos: ProyectoUsuarioDto[];
+}
+
+export async function getUsuarioPorId(id: number): Promise<UsuarioDetalleDto> {
+  const { data } = await axios.get<UsuarioDetalleDto>(`${API_URL}/Usuarios/${id}`, {
+    headers: authHeader(),
+  });
+  return data;
+}
