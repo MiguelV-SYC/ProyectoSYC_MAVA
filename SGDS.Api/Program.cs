@@ -6,6 +6,7 @@ using Microsoft.OpenApi;
 using System.Text;
 using SGDS.Application.Interfaces;
 using SGDS.Infrastructure.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -72,6 +73,8 @@ builder.Services.AddCors(options =>
 //adición de esta variable para enrutamiento para el almacenamiento de documentos.
 var rutaAlmacenamiento = Path.Combine(builder.Environment.ContentRootPath, "Almacenamiento");
 builder.Services.AddSingleton<IAlmacenamientoService>(new AlmacenamientoLocalService(rutaAlmacenamiento));
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
 

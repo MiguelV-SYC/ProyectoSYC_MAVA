@@ -214,7 +214,7 @@ export default function Sidebar({ active }: { active: string }) {
         <NavItem
           active={active === 'reportes'}
           label="Reportes"
-          to="/dashboard"
+          to={proyectoActivoId ? `/reportes?proyectoId=${proyectoActivoId}` : '/dashboard'}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
         />
 

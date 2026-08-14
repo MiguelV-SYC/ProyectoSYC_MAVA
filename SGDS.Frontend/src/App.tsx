@@ -19,6 +19,7 @@ import NuevaSolicitudPage from './pages/NuevaSolicitudPage';
 import DetalleSolicitudPage from './pages/DetalleSolicitudPage';
 import WorkflowKanbanPage from './pages/WorkFlowKanbanPage';
 import DocumentosPage from './pages/DocumentosPage';
+import ReportesPage from './pages/ReportesPage';
 
 function App() {
   const { user } = useAuth();
@@ -135,7 +136,12 @@ function App() {
         element={user ? <DocumentosPage /> : <Navigate to="/login" replace />} 
       />
 
-    </Routes>
+      <Route
+        path="/reportes"
+        element={user ? <ReportesPage /> : <Navigate to="/login" replace />}
+      />
+
+      </Routes>
     
   );
 }

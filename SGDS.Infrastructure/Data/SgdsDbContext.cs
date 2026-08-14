@@ -83,7 +83,7 @@ private void RegistrarAuditoria()
     public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
     public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
-
+    public DbSet<Reporte> Reportes => Set<Reporte>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -114,6 +114,7 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
         modelBuilder.Entity<SolicitudAcceso>().ToTable("solicitud_acceso");
         modelBuilder.Entity<SolicitudAccesoProyecto>().ToTable("solicitud_acceso_proyecto");
+        modelBuilder.Entity<Reporte>().ToTable("reportes");
 
 
     }
