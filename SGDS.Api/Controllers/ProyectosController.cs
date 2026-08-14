@@ -29,6 +29,7 @@ public class ProyectosController : ControllerBase
         var query = _context.Proyectos
             .Include(p => p.TiposSolicitud)
             .Include(p => p.UsuarioProyectos)
+            .Include(p => p.Solicitudes)
             .AsQueryable();
 
         if (!esAdminSyc)
@@ -47,7 +48,8 @@ public class ProyectosController : ControllerBase
             Activo = p.Activo,
             EstadoPersonalizado = p.EstadoPersonalizado,
             TotalTiposSolicitud = p.TiposSolicitud.Count(t => t.Activo),
-            TotalOperadores = p.UsuarioProyectos.Count
+            TotalOperadores = p.UsuarioProyectos.Count,
+            TotalSolicitudes = p.Solicitudes.Count,
         }).ToList();
 
         return Ok(resultado);

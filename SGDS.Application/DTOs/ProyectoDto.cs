@@ -10,6 +10,7 @@ public class ProyectoResponseDto
     public string? EstadoPersonalizado { get; set; }
     public int TotalTiposSolicitud { get; set; }
     public int TotalOperadores { get; set; }
+    public int TotalSolicitudes { get; set; }
 }
 
 public class CrearProyectoDto

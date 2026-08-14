@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import {
   generarReporte,
@@ -7,9 +7,9 @@ import {
   descargarReporte,
   type ReporteGeneradoDto,
 } from '../services/reporteService';
-import { getSolicitudesListado } from '../services/solicitudService';
-import { getTiposSolicitudPorProyecto, type TipoSolicitudDto } from '../services/solicitudService';
-import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
+import { getSolicitudesListado, getTiposSolicitudPorProyecto, type TipoSolicitudDto } from '../services/solicitudService';
+import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
+import SelectorProyecto from '../components/shared/SelectorProyecto';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada'];
 
@@ -30,8 +30,10 @@ function diasDesde(iso: string) {
 
 export default function ReportesPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const proyectoId = Number(searchParams.get('proyectoId'));
 
+  const [proyectosDisponibles, setProyectosDisponibles] = useState<ProyectoResponseDto[]>([]);
   const [proyecto, setProyecto] = useState<ProyectoResponseDto | null>(null);
   const [tipos, setTipos] = useState<TipoSolicitudDto[]>([]);
   const [recientes, setRecientes] = useState<ReporteGeneradoDto[]>([]);
@@ -50,15 +52,16 @@ export default function ReportesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    getProyectosAdmin().then(setProyectosDisponibles);
+  }, []);
+
+  useEffect(() => {
     if (!proyectoId) return;
     getProyectosActivos().then((lista) => setProyecto(lista.find((p) => p.id === proyectoId) ?? null));
     getTiposSolicitudPorProyecto(proyectoId).then(setTipos);
     getReportesRecientes(proyectoId).then(setRecientes).catch(() => setRecientes([]));
   }, [proyectoId]);
 
-  // Vista previa aproximada: suma los conteos por estado marcado desde el listado real.
-  // No aplica el rango de fechas (el endpoint de listado no lo soporta todavía), así que
-  // el número final que confirme "generar" puede diferir un poco de este estimado.
   useEffect(() => {
     if (!proyectoId) return;
     getSolicitudesListado({
@@ -107,14 +110,19 @@ export default function ReportesPage() {
   }
 
   if (!proyectoId) {
-    return (
-      <div className="flex min-h-screen bg-paper">
-        <Sidebar active="reportes" />
-        <main className="flex-1 flex items-center justify-center text-sm text-ink-600">
-          Selecciona un proyecto en "Mis proyectos" para generar reportes.
-        </main>
-      </div>
-    );
+  return (
+    <div className="flex h-screen bg-paper">
+      <Sidebar active="reportes" />
+      <main className="flex-1 overflow-hidden">
+        <SelectorProyecto
+          titulo="Elige un proyecto"
+          descripcion="Selecciona el proyecto para el que quieres generar un reporte."
+          proyectos={proyectosDisponibles}
+          onElegir={(id) => navigate(`/reportes?proyectoId=${id}`)}
+        />
+      </main>
+    </div>
+   );
   }
 
   return (

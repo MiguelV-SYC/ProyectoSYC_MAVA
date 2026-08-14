@@ -11,6 +11,7 @@ export interface ProyectoResponseDto {
   estadoPersonalizado: string | null;
   totalTiposSolicitud: number;
   totalOperadores: number;
+  totalSolicitudes: number;
 }
 
 export interface CrearProyectoDto {

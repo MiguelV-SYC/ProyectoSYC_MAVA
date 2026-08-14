@@ -122,6 +122,11 @@ public async Task<IActionResult> GetListadoDocumentos(
         .Select(c => int.Parse(c.Value.Split(':')[0]))
         .ToList();
 
+    if (!esAdminSyc && !proyectoId.HasValue)
+    {
+        return BadRequest(new { mensaje = "Debe especificar un proyecto" });
+    }
+
     var queryBase = _context.Documentos
         .Include(d => d.Solicitud)
             .ThenInclude(s => s!.Proyecto)
@@ -150,7 +155,6 @@ public async Task<IActionResult> GetListadoDocumentos(
             (d.Solicitud != null && d.Solicitud.Id.ToString().Contains(buscar)));
     }
 
-    // A partir de aquí trabajamos en memoria, porque ClasificarTipo() no se puede traducir a SQL
     var todosLosDocumentos = await queryBase
         .OrderByDescending(d => d.FechaCarga)
         .ToListAsync();
@@ -181,6 +185,7 @@ public async Task<IActionResult> GetListadoDocumentos(
             SolicitudNumero = d.Solicitud?.Proyecto != null
                 ? $"{d.Solicitud.Proyecto.Codigo}-{d.Solicitud.Id:0000}"
                 : d.SolicitudId.ToString(),
+            ProyectoNombre = d.Solicitud?.Proyecto?.Nombre,
             Fecha = d.FechaCarga,
             TamanoBytes = d.TamanoBytes,
             TipoArchivo = d.TipoArchivo,

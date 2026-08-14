@@ -6,7 +6,10 @@ import {
   cambiarEstado,
   type SolicitudResponseDto,
 } from '../services/solicitudService';
-import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
+import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
+import SelectorProyecto from '../components/shared/SelectorProyecto';
+
+
 
 const COLUMNAS = [
   { estado: 'Radicada', dot: 'bg-[#64748b]' },
@@ -47,6 +50,11 @@ export default function WorkflowKanbanPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const proyectoId = Number(searchParams.get('proyectoId'));
+  const [proyectosDisponibles, setProyectosDisponibles] = useState<ProyectoResponseDto[]>([]);
+
+  useEffect(() => {
+    getProyectosAdmin().then(setProyectosDisponibles);
+  }, []);
 
   const [proyecto, setProyecto] = useState<ProyectoResponseDto | null>(null);
   const [columnas, setColumnas] = useState<Record<string, SolicitudResponseDto[]>>({});
@@ -115,15 +123,20 @@ export default function WorkflowKanbanPage() {
   }
 
   if (!proyectoId) {
-    return (
-      <div className="flex min-h-screen bg-paper">
-        <Sidebar active="workflow" />
-        <main className="flex-1 flex items-center justify-center text-sm text-ink-600">
-          Selecciona un proyecto en "Mis proyectos" para ver su workflow.
-        </main>
-      </div>
-    );
-  }
+  return (
+    <div className="flex h-screen bg-paper">
+      <Sidebar active="workflow" />
+      <main className="flex-1 overflow-hidden">
+        <SelectorProyecto
+          titulo="Elige un proyecto"
+          descripcion="Selecciona el proyecto cuyo workflow quieres ver."
+          proyectos={proyectosDisponibles}
+          onElegir={(id) => navigate(`/workflow?proyectoId=${id}`)}
+        />
+      </main>
+    </div>
+  );
+}
 
   const tiposDisponibles = [
     ...new Set(

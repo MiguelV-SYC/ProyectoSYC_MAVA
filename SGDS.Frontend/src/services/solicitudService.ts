@@ -98,6 +98,7 @@ export interface SolicitudResponseDto {
   estado: string;
   numero: string;
   tipoSolicitudNombre?: string;
+  proyectoNombre?: string; // nuevo campo creado para funcionalidad del sidebar admin
   fechaCreacion: string;
   fechaCierre?: string;
   fechaUltimoCambioEstado: string;
