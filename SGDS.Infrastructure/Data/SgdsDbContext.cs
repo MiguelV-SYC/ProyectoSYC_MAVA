@@ -56,16 +56,29 @@ private void RegistrarAuditoria()
         };
 
         var nombreEntidad = entrada.Entity.GetType().Name;
+        var proyectoId = ObtenerProyectoId(entrada.Entity);
 
         Auditorias.Add(new Auditoria
         {
             UsuarioId = usuarioId,
+            ProyectoId = proyectoId,
             Accion = $"{accion} {nombreEntidad}",
             Modulo = nombreEntidad,
             FechaHora = DateTime.UtcNow,
             DireccionIp = direccionIp
         });
     }
+}
+
+private static int? ObtenerProyectoId(object entidad)
+{
+    if (entidad is Solicitud solicitud)
+        return solicitud.ProyectoId;
+
+    if (entidad is TipoSolicitud tipoSolicitud)
+        return tipoSolicitud.ProyectoId;
+
+    return null;
 }
 
 

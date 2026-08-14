@@ -21,6 +21,7 @@ import WorkflowKanbanPage from './pages/WorkFlowKanbanPage';
 import DocumentosPage from './pages/DocumentosPage';
 import ReportesPage from './pages/ReportesPage';
 import MiPerfilPage from './pages/MiPerfilPage';
+import AuditoriaPage from './pages/AuditoriaPage';
 
 function App() {
   const { user } = useAuth();
@@ -143,7 +144,13 @@ function App() {
       />
       <Route 
         path="/mi-perfil" 
-        element={user ? <MiPerfilPage /> : <Navigate to="/login" replace />} />
+        element={user ? <MiPerfilPage /> : <Navigate to="/login" replace />} 
+      />
+
+      <Route 
+        path="/auditoria" 
+        element={user?.esAdminSyc ? <AuditoriaPage /> : <Navigate to="/dashboard" replace />} 
+      />
 
       </Routes>
     

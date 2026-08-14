@@ -51,19 +51,18 @@ export default function Sidebar({ active }: { active: string }) {
     }
   }, [user?.esAdminSyc]);
 
-  // Proyecto activo: prioriza el que está en la URL actual (si hay uno);
-  // si no, el último guardado en localStorage; si tampoco, el primero de la lista.
   const proyectoIdUrl = searchParams.get('proyectoId');
   useEffect(() => {
-    if (proyectoIdUrl) {
+    if (proyectoIdUrl && !user?.esAdminSyc) {
       localStorage.setItem(CLAVE_PROYECTO_ACTIVO, proyectoIdUrl);
     }
-  }, [proyectoIdUrl]);
+  }, [proyectoIdUrl, user?.esAdminSyc]);
 
-  const proyectoActivoId =
-    proyectoIdUrl ??
-    localStorage.getItem(CLAVE_PROYECTO_ACTIVO) ??
-    (misProyectos[0] ? String(misProyectos[0].proyectoId) : null);
+  // Admin SYC nunca usa el proyecto persistido de una sesión de Operador —
+  // sus vistas de Solicitudes/Documentos son globales (todos los proyectos) por defecto.
+  const proyectoActivoId = user?.esAdminSyc
+    ? null
+    : proyectoIdUrl ?? localStorage.getItem(CLAVE_PROYECTO_ACTIVO) ?? (misProyectos[0] ? String(misProyectos[0].proyectoId) : null);
 
   const nombre = user?.nombreCompleto ?? '';
   const iniciales = nombre
@@ -75,8 +74,32 @@ export default function Sidebar({ active }: { active: string }) {
     .toUpperCase();
   const rol = user?.esAdminSyc ? 'Administrador SYC' : 'Operador';
 
-  const rutaSolicitudes = proyectoActivoId ? `/solicitudes?proyectoId=${proyectoActivoId}` : '/dashboard';
-  const rutaWorkflow = proyectoActivoId ? `/workflow?proyectoId=${proyectoActivoId}` : '/dashboard';
+  // Admin: Solicitudes/Documentos son vistas globales (sin proyectoId).
+  // Workflow/Reportes siempre requieren elegir un proyecto — se deja que la propia
+  // página muestre el selector cuando no venga proyectoId en la URL.
+  const rutaSolicitudes = user?.esAdminSyc
+    ? '/solicitudes'
+    : proyectoActivoId
+    ? `/solicitudes?proyectoId=${proyectoActivoId}`
+    : '/dashboard';
+
+  const rutaDocumentos = user?.esAdminSyc
+    ? '/documentos'
+    : proyectoActivoId
+    ? `/documentos?proyectoId=${proyectoActivoId}`
+    : '/dashboard';
+
+  const rutaWorkflow = user?.esAdminSyc
+    ? '/workflow'
+    : proyectoActivoId
+    ? `/workflow?proyectoId=${proyectoActivoId}`
+    : '/dashboard';
+
+  const rutaReportes = user?.esAdminSyc
+    ? '/reportes'
+    : proyectoActivoId
+    ? `/reportes?proyectoId=${proyectoActivoId}`
+    : '/dashboard';
 
   return (
     <aside className="w-[260px] shrink-0 relative flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
@@ -93,30 +116,12 @@ export default function Sidebar({ active }: { active: string }) {
 
       <div className="absolute inset-0 z-0 pointer-events-none">
         <svg viewBox="0 0 260 900" preserveAspectRatio="none" className="w-full h-full">
-          <path
-            className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]"
-            d="M0 210 L55 210 L55 300 L140 300 L140 380"
-          />
-          <path
-            className="fill-none stroke-white/[0.55] stroke-[1.4] [stroke-linecap:round] [stroke-dasharray:10_340] animate-[c-travel_7s_linear_infinite] [filter:drop-shadow(0_0_4px_rgba(255,255,255,0.85))_drop-shadow(0_0_1px_rgba(255,255,255,1))]"
-            d="M0 210 L55 210 L55 300 L140 300 L140 380"
-          />
-          <path
-            className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]"
-            d="M260 480 L190 480 L190 560 L95 560 L95 660 L260 660"
-          />
-          <path
-            className="fill-none stroke-white/[0.55] stroke-[1.4] [stroke-linecap:round] [stroke-dasharray:10_340] animate-[c-travel_10s_linear_infinite] [animation-delay:-3s] [filter:drop-shadow(0_0_4px_rgba(255,255,255,0.85))_drop-shadow(0_0_1px_rgba(255,255,255,1))]"
-            d="M260 480 L190 480 L190 560 L95 560 L95 660 L260 660"
-          />
-          <path
-            className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]"
-            d="M40 560 L40 700 L120 700 L120 800 L220 800 L220 900"
-          />
-          <path
-            className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]"
-            d="M260 760 L205 760 L205 900"
-          />
+          <path className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]" d="M0 210 L55 210 L55 300 L140 300 L140 380" />
+          <path className="fill-none stroke-white/[0.55] stroke-[1.4] [stroke-linecap:round] [stroke-dasharray:10_340] animate-[c-travel_7s_linear_infinite] [filter:drop-shadow(0_0_4px_rgba(255,255,255,0.85))_drop-shadow(0_0_1px_rgba(255,255,255,1))]" d="M0 210 L55 210 L55 300 L140 300 L140 380" />
+          <path className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]" d="M260 480 L190 480 L190 560 L95 560 L95 660 L260 660" />
+          <path className="fill-none stroke-white/[0.55] stroke-[1.4] [stroke-linecap:round] [stroke-dasharray:10_340] animate-[c-travel_10s_linear_infinite] [animation-delay:-3s] [filter:drop-shadow(0_0_4px_rgba(255,255,255,0.85))_drop-shadow(0_0_1px_rgba(255,255,255,1))]" d="M260 480 L190 480 L190 560 L95 560 L95 660 L260 660" />
+          <path className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]" d="M40 560 L40 700 L120 700 L120 800 L220 800 L220 900" />
+          <path className="fill-none stroke-white/[0.16] stroke-[1.4] [stroke-linecap:round]" d="M260 760 L205 760 L205 900" />
           <circle className="fill-white/[0.85] [filter:drop-shadow(0_0_4px_rgba(255,255,255,0.9))]" cx="55" cy="210" r="3.2" />
           <circle className="fill-white/30" cx="140" cy="300" r="2.6" />
           <circle className="fill-white/30" cx="190" cy="480" r="2.6" />
@@ -175,46 +180,40 @@ export default function Sidebar({ active }: { active: string }) {
           to="/dashboard"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
         />
-
         <NavItem
           active={active === 'solicitudes'}
           label="Solicitudes"
           to={rutaSolicitudes}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
         />
-
         <NavItem
           active={active === 'ciudadanos'}
           label="Ciudadanos"
           to="/ciudadanos"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
         />
-
         <NavItem
           active={active === 'empresas'}
           label="Empresas"
           to="/empresas"
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
         />
-
         <NavItem
           active={active === 'documentos'}
           label="Documentos"
-          to={proyectoActivoId ? `/documentos?proyectoId=${proyectoActivoId}` : '/dashboard'}
+          to={rutaDocumentos}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
         />
-
         <NavItem
           active={active === 'workflow'}
           label="Workflow"
           to={rutaWorkflow}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8 6h5a3 3 0 013 3v6" /></svg>}
         />
-
         <NavItem
           active={active === 'reportes'}
           label="Reportes"
-          to={proyectoActivoId ? `/reportes?proyectoId=${proyectoActivoId}` : '/dashboard'}
+          to={rutaReportes}
           icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
         />
 
