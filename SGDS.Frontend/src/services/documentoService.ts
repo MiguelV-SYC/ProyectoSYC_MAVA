@@ -31,6 +31,7 @@ export interface DocumentoListadoDto {
   tamanoBytes: number;
   tipoArchivo: string;
   categoria: 'PDF' | 'Imágenes' | 'Otros';
+  proyectoNombre?: string; // campo nuevo para funcionalidad del sidebar admin
 }
 
 export interface PaginacionResponseDto<T> {
