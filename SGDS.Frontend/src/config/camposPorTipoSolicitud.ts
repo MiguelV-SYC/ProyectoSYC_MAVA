@@ -13,13 +13,24 @@ export const CAMPOS_POR_TIPO: Record<string, CampoConfig[]> = {
     { key: 'ciudad', label: 'Ciudad', tipo: 'texto' },
   ],
   'Afiliación - Vinculación': [
-    { key: 'fechaAfiliacion', label: 'Fecha de afiliación solicitada', tipo: 'fecha' },
+    { key: 'fechaAfiliacionSolicitada', label: 'Fecha de afiliación solicitada', tipo: 'fecha' },
+    { key: 'observaciones', label: 'Observaciones', tipo: 'texto' },
   ],
   'Afiliación - Traslado de fondo de pensiones': [
-    { key: 'fondoOrigen', label: 'Fondo de origen', tipo: 'select', opciones: ['Porvenir', 'Protección', 'Colfondos', 'Skandia'] },
-    { key: 'fondoDestino', label: 'Fondo destino', tipo: 'select', opciones: ['Colpensiones (Prima Media)'] },
-    { key: 'fechaTraslado', label: 'Fecha de traslado solicitada', tipo: 'fecha' },
-    { key: 'observaciones', label: 'Observaciones', tipo: 'texto', placeholder: 'Información adicional relevante para el trámite' },
+    {
+      key: 'fondoOrigen',
+      label: 'Fondo de origen',
+      tipo: 'select',
+      opciones: ['Porvenir', 'Protección', 'Colfondos', 'Skandia']
+    },
+    {
+      key: 'fondoDestino',
+      label: 'Fondo destino',
+      tipo: 'select',
+      opciones: ['Colpensiones']
+    },
+    { key: 'fechaTraslado', label: 'Fecha de traslado', tipo: 'fecha' },
+    { key: 'observaciones', label: 'Observaciones', tipo: 'texto' },
   ],
 };
 

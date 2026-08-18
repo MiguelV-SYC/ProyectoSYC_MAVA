@@ -11,6 +11,7 @@ import {
 } from '../services/documentoService';
 import { getSolicitudesListado, type SolicitudResponseDto } from '../services/solicitudService';
 import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const POR_PAGINA = 8;
 
@@ -62,6 +63,7 @@ export default function DocumentosPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [errorSubida, setErrorSubida] = useState<string | null>(null);
+  const color = useColorProyectoActivo();
 
   useEffect(() => {
     const cargarProyectos = esAdmin ? getProyectosAdmin : getProyectosActivos;
@@ -156,7 +158,10 @@ export default function DocumentosPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="documentos" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -172,7 +177,7 @@ export default function DocumentosPage() {
           {proyectoId && (
             <button
               onClick={abrirModalSubir}
-              className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
+              className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
             >
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
                 <path d="M12 3v13M6 10l6 6 6-6" /><path d="M5 21h14" />
@@ -242,9 +247,9 @@ export default function DocumentosPage() {
               <button
                 key={d.id}
                 onClick={() => descargarDocumento(d.id, d.nombreArchivo)}
-                className="text-left bg-white border border-line rounded-2xl p-5 hover:border-[#0d9488] transition-colors"
+                className="text-left bg-white border border-line rounded-2xl p-5 hover:border-[var(--color-accento)] transition-colors"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#e3f7f4] flex items-center justify-center mb-3.5 [&>svg]:w-[19px] [&>svg]:h-[19px] [&>svg]:stroke-[#0d9488]">
+                <div className="w-11 h-11 rounded-xl bg-[var(--color-accento-claro)] flex items-center justify-center mb-3.5 [&>svg]:w-[19px] [&>svg]:h-[19px] [&>svg]:stroke-[var(--color-accento)]">
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8">
                     {ICONO_CATEGORIA[d.categoria] ?? ICONO_CATEGORIA.Otros}
                   </svg>
@@ -277,7 +282,7 @@ export default function DocumentosPage() {
                 .map((n) => (
                   <button key={n} onClick={() => setPagina(n)}
                     className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs ${
-                      n === pagina ? 'bg-[#0d9488] border-[#0d9488] text-white font-semibold' : 'border-line bg-white text-ink-600'
+                      n === pagina ? 'bg-[var(--color-accento)] border-[var(--color-accento)] text-white font-semibold' : 'border-line bg-white text-ink-600'
                     }`}>{n}</button>
                 ))}
               <button onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
@@ -294,7 +299,7 @@ export default function DocumentosPage() {
 
             <label className="block text-xs font-semibold text-ink-900 mb-1.5">Solicitud</label>
             {solicitudElegida ? (
-              <div className="flex items-center justify-between bg-[#e3f7f4] border border-[#0d9488] rounded-[9px] px-3.5 py-2.5 mb-4">
+              <div className="flex items-center justify-between bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-[9px] px-3.5 py-2.5 mb-4">
                 <span className="text-[13px] font-semibold text-ink-900">#{solicitudElegida.numero} — {solicitudElegida.tipoSolicitudNombre}</span>
                 <button onClick={() => setSolicitudElegida(null)} className="text-[11px] text-ink-400 font-medium">Cambiar</button>
               </div>
@@ -348,7 +353,7 @@ export default function DocumentosPage() {
               <button
                 onClick={handleSubir}
                 disabled={subiendo}
-                className="flex-1 py-2.5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 {subiendo ? 'Subiendo...' : 'Subir'}
               </button>

@@ -10,6 +10,7 @@ import {
 import { getSolicitudesListado, getTiposSolicitudPorProyecto, type TipoSolicitudDto } from '../services/solicitudService';
 import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
 import SelectorProyecto from '../components/shared/SelectorProyecto';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada'];
 
@@ -86,6 +87,7 @@ export default function ReportesPage() {
   }
 
   const rangoDias = Math.max(0, Math.round((new Date(hasta).getTime() - new Date(desde).getTime()) / 86400000));
+  const color = getColorProyecto(proyecto?.nombre);
 
   async function handleGenerar() {
     setGenerando(true);
@@ -126,7 +128,10 @@ export default function ReportesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="reportes" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -185,7 +190,7 @@ export default function ReportesPage() {
                       type="checkbox"
                       checked={estadosMarcados.has(estado)}
                       onChange={() => toggleEstado(estado)}
-                      className="accent-[#0d9488] w-4 h-4"
+                      className="accent-[var(--color-accento)] w-4 h-4"
                     />
                     <span className="text-[13px] text-ink-900">{estado}</span>
                   </label>
@@ -202,10 +207,10 @@ export default function ReportesPage() {
                     type="button"
                     onClick={() => setFormato(f)}
                     className={`flex flex-col items-center gap-2 py-6 rounded-xl border-2 ${
-                      formato === f ? 'border-[#0d9488] bg-[#e3f7f4]' : 'border-line'
+                      formato === f ? 'border-[var(--color-accento)] bg-[var(--color-accento-claro)]' : 'border-line'
                     }`}
                   >
-                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className={`w-6 h-6 ${formato === f ? 'stroke-[#0d9488]' : 'stroke-ink-400'}`}>
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className={`w-6 h-6 ${formato === f ? 'stroke-[var(--color-accento)]' : 'stroke-ink-400'}`}>
                       <rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" />
                     </svg>
                     <span className="text-[13.5px] font-semibold text-ink-900">
@@ -224,7 +229,7 @@ export default function ReportesPage() {
               <button
                 onClick={handleGenerar}
                 disabled={generando || estadosMarcados.size === 0}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-4 h-4 stroke-white">
                   <path d="M12 3v13M6 10l6 6 6-6" /><path d="M5 21h14" />
@@ -266,8 +271,8 @@ export default function ReportesPage() {
                       onClick={() => descargarReporte(r.id, r.nombreArchivo)}
                       className="flex items-center gap-2.5 text-left"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#e3f7f4] flex items-center justify-center shrink-0">
-                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[#0d9488]">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[var(--color-accento)]">
                           <rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6" />
                         </svg>
                       </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import { getCiudadanos, type CiudadanoResponseDto } from '../services/ciudadanoService';
 import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const POR_PAGINA = 6;
 
@@ -45,9 +46,13 @@ export default function CiudadanosListPage() {
 
   const inicio = totalRegistros === 0 ? 0 : (pagina - 1) * POR_PAGINA + 1;
   const fin = Math.min(pagina * POR_PAGINA, totalRegistros);
+  const color = useColorProyectoActivo();
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="ciudadanos" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -69,7 +74,7 @@ export default function CiudadanosListPage() {
    
           <button
             onClick={() => navigate('/ciudadanos/nuevo')}
-            className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
+            className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
               <path d="M12 5v14M5 12h14" />
@@ -198,7 +203,7 @@ export default function CiudadanosListPage() {
                   onClick={() => setPagina(n)}
                   className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs ${
                     n === pagina
-                      ? 'bg-[#0d9488] border-[#0d9488] text-white font-semibold'
+                      ? 'bg-[var(--color-accento)] border-[var(--color-accento)] text-white font-semibold'
                       : 'border-line bg-white text-ink-600'
                   }`}
                 >

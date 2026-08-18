@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import { getEmpresaDetalle, type EmpresaDetalleResponseDto } from '../services/empresaService';
 import { getSolicitudesPorEmpresa, type SolicitudResumenDto } from '../services/solicitudDetalleService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const ESTADO_STYLE: Record<string, string> = {
   Radicada: 'bg-[#f1f5f9] text-[#64748b]',
   'En revisión': 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
-  Aprobada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
@@ -51,8 +52,13 @@ export default function FichaEmpresaPage() {
     .join('')
     .toUpperCase();
 
+  const color = useColorProyectoActivo();
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="empresas" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -98,7 +104,7 @@ export default function FichaEmpresaPage() {
                 </button>
                 <button
                   onClick={() => navigate(`/solicitudes/nueva?empresaId=${empresa.id}`)}
-                  className="flex items-center gap-1.5 bg-[#0d9488] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
+                  className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
                 >
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[13px] h-[13px] stroke-white">
                     <path d="M12 5v14M5 12h14" />

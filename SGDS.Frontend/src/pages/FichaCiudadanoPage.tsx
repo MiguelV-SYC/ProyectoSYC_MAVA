@@ -4,13 +4,14 @@ import Sidebar from '../components/layout/Sidebar';
 import { getCiudadanoDetalle, type CiudadanoDetalleResponseDto } from '../services/ciudadanoService';
 import { getSolicitudesPorCiudadano, type SolicitudResumenDto } from '../services/solicitudDetalleService';
 import { getDocumentosPorCiudadano, type DocumentoResumenDto } from '../services/documentoService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const ESTADO_STYLE: Record<string, string> = {
   Radicada: 'bg-[#f1f5f9] text-[#64748b]',
   'En revisión': 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
-  Aprobada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
@@ -55,8 +56,13 @@ export default function FichaCiudadanoPage() {
     .join('')
     .toUpperCase();
 
+  const color = useColorProyectoActivo();
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="ciudadanos" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -98,7 +104,7 @@ export default function FichaCiudadanoPage() {
               </button>
               <button
                 onClick={() => navigate(`/solicitudes/nueva?ciudadanoId=${ciudadano.id}`)}
-                className="flex items-center gap-1.5 bg-[#0d9488] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold">
+                className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold">
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[13px] h-[13px] stroke-white">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
@@ -133,8 +139,8 @@ export default function FichaCiudadanoPage() {
                   </div>
                   {ciudadano.proyectosConActividad.map((p) => (
                     <div key={p.proyectoId} className="flex items-center gap-2.5 px-5 py-3 border-b border-paper last:border-0">
-                      <div className="w-8 h-8 rounded-[9px] bg-[#e3f7f4] flex items-center justify-center shrink-0">
-                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[15px] h-[15px] stroke-[#0d9488]">
+                      <div className="w-8 h-8 rounded-[9px] bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[15px] h-[15px] stroke-[var(--color-accento)]">
                           <path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" />
                         </svg>
                       </div>

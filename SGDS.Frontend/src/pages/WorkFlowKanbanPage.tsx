@@ -8,6 +8,7 @@ import {
 } from '../services/solicitudService';
 import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
 import SelectorProyecto from '../components/shared/SelectorProyecto';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 
 
@@ -16,9 +17,9 @@ const COLUMNAS = [
   { estado: 'En revisión', dot: 'bg-blue-600' },
   { estado: 'Pendiente', dot: 'bg-[#d97706]' },
   { estado: 'Requiere información', dot: 'bg-[#7c3aed]' },
-  { estado: 'Aprobada', dot: 'bg-[#0d9488]' },
+  { estado: 'Aprobada', dot: 'bg-[var(--color-accento)]' },
   { estado: 'Rechazada', dot: 'bg-[#dc2626]' },
-  { estado: 'Finalizada', dot: 'bg-[#0d9488]' },
+  { estado: 'Finalizada', dot: 'bg-[var(--color-accento)]' },
 ];
 
 const TERMINALES = ['Aprobada', 'Rechazada', 'Finalizada'];
@@ -147,8 +148,13 @@ export default function WorkflowKanbanPage() {
     ),
   ] as string[];
 
+  const color = getColorProyecto(proyecto?.nombre);
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="workflow" />
 
       <main className="flex-1 px-[38px] py-7 overflow-x-auto">
@@ -219,7 +225,7 @@ export default function WorkflowKanbanPage() {
                   onDragLeave={() => setColumnaSobre((cur) => (cur === c.estado ? null : cur))}
                   onDrop={(e: DragEvent) => { e.preventDefault(); handleDrop(c.estado); }}
                   className={`w-[290px] shrink-0 rounded-2xl p-3 ${
-                    columnaSobre === c.estado ? 'bg-[#e3f7f4]' : 'bg-[#eef2f7]'
+                    columnaSobre === c.estado ? 'bg-[var(--color-accento-claro)]' : 'bg-[#eef2f7]'
                   }`}
                 >
                   <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">

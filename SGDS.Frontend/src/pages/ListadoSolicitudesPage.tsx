@@ -10,6 +10,7 @@ import {
   type TipoSolicitudDto,
 } from '../services/solicitudService';
 import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 const POR_PAGINA = 8;
 
@@ -18,9 +19,9 @@ const ESTADO_STYLE: Record<string, string> = {
   'En revisión': 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
-  Aprobada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
-  Finalizada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Finalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
 };
 
 function formatearFecha(iso?: string) {
@@ -106,6 +107,7 @@ useEffect(() => {
   const totalTodas = conteos.reduce((sum, c) => sum + c.total, 0);
   const inicio = totalRegistros === 0 ? 0 : (pagina - 1) * POR_PAGINA + 1;
   const fin = Math.min(pagina * POR_PAGINA, totalRegistros);
+  const color = getColorProyecto(proyecto?.nombre);
 
   if (sinProyectoRequerido) {
     return (
@@ -119,7 +121,10 @@ useEffect(() => {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="solicitudes" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -135,7 +140,7 @@ useEffect(() => {
           {proyectoId && (
             <button
               onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
-              className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
+              className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
             >
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
                 <path d="M12 5v14M5 12h14" />
@@ -299,7 +304,7 @@ useEffect(() => {
                 .map((n) => (
                   <button key={n} onClick={() => setPagina(n)}
                     className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs ${
-                      n === pagina ? 'bg-[#0d9488] border-[#0d9488] text-white font-semibold' : 'border-line bg-white text-ink-600'
+                      n === pagina ? 'bg-[var(--color-accento)] border-[var(--color-accento)] text-white font-semibold' : 'border-line bg-white text-ink-600'
                     }`}>{n}</button>
                 ))}
               <button onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
