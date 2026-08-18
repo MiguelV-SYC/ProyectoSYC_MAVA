@@ -191,6 +191,13 @@ const SGDSBackground: React.FC = () => {
                 strokeDasharray="4 12" 
                 strokeOpacity="0.3" 
             />
+        
+        <g
+            className="hud-rotate-reverse"
+            style={{ 
+                transformOrigin: "960px 540px" 
+            }}
+        ></g>
 
             <circle 
                 cx="960" 

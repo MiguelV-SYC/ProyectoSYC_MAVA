@@ -57,7 +57,7 @@ body {
   to { transform: rotate(360deg); }
 }
 .hud-rotate {
-  animation: hudRotate 60s linear infinite;
+  animation: hudRotate 120s linear infinite;
 }
 
 @keyframes particleFloat {
@@ -74,5 +74,5 @@ body {
   to { transform: rotate(0deg); }
 }
 .hud-rotate-reverse {
-  animation: hudRotateReverse 60s linear infinite;
+  animation: hudRotateReverse 200s linear infinite;
 }
