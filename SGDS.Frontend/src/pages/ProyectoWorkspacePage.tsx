@@ -3,15 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import { getProyectosAdmin, getResumenProyecto, type ProyectoResponseDto, type ResumenProyectoDto } from '../services/proyectoService';
 import { getSolicitudesListado, getTiposSolicitudPorProyecto, type SolicitudResponseDto, type TipoSolicitudDto } from '../services/solicitudService';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADO_STYLE: Record<string, string> = {
   Radicada: 'bg-[#f1f5f9] text-[#64748b]',
   'En revisión': 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
-  Aprobada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
-  Finalizada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Finalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
 };
 
 const ICONOS: Record<string, React.ReactNode> = {
@@ -98,8 +99,17 @@ export default function ProyectoWorkspacePage() {
     );
   }
 
+  const color = getColorProyecto(proyecto.nombre);
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{
+        '--color-accento': color.primario,
+        '--color-accento-claro': color.primarioClaro,
+        '--color-accento-oscuro': color.primarioOscuro,
+      } as React.CSSProperties}
+    >
       <Sidebar active="inicio" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -113,7 +123,7 @@ export default function ProyectoWorkspacePage() {
           Volver a mis proyectos
         </button>
 
-        <div className="relative bg-gradient-to-r from-[#0d9488] to-[#0f766e] rounded-2xl p-7 mb-7 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-[var(--color-accento)] to-[var(--color-accento-oscuro)] rounded-2xl p-7 mb-7 overflow-hidden">
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-4">
               <div className="w-[54px] h-[54px] rounded-2xl bg-white/15 flex items-center justify-center shrink-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:stroke-white">
@@ -145,7 +155,7 @@ export default function ProyectoWorkspacePage() {
           <h2 className="font-display text-[16px] font-semibold text-ink-900">Resumen del proyecto</h2>
           <button
             onClick={() => navigate(`/solicitudes/nueva?proyectoId=${id}`)}
-            className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
+            className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
               <path d="M12 5v14M5 12h14" />
@@ -163,7 +173,7 @@ export default function ProyectoWorkspacePage() {
           ].map((c) => (
             <div key={c.label} className="bg-white border border-line rounded-xl p-5">
               <div className="text-[12px] text-ink-600 mb-1.5">{c.label}</div>
-              <div className={`font-display text-2xl font-bold ${c.destacado ? 'text-[#0d9488]' : 'text-ink-900'}`}>
+              <div className={`font-display text-2xl font-bold ${c.destacado ? 'text-[var(--color-accento)]' : 'text-ink-900'}`}>
                 {c.valor}
               </div>
             </div>
@@ -177,7 +187,7 @@ export default function ProyectoWorkspacePage() {
               <button
                 onClick={() => setTipoFiltro('')}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                  tipoFiltro === '' ? 'bg-[#0d9488] text-white' : 'text-ink-600'
+                  tipoFiltro === '' ? 'bg-[var(--color-accento)] text-white' : 'text-ink-600'
                 }`}
               >
                 Todas
@@ -187,7 +197,7 @@ export default function ProyectoWorkspacePage() {
                   key={t.id}
                   onClick={() => setTipoFiltro(String(t.id))}
                   className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                    tipoFiltro === String(t.id) ? 'bg-[#0d9488] text-white' : 'text-ink-600'
+                    tipoFiltro === String(t.id) ? 'bg-[var(--color-accento)] text-white' : 'text-ink-600'
                   }`}
                 >
                   {t.nombre}
