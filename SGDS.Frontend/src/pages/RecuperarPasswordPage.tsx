@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import logoSgds from '../assets/logo-sgds.png';
+import SGDSBackground from '../components/SGDSBackground';
 
 // NOTA: no existe todavía un endpoint real de recuperación de contraseña en el
 // backend (RF-05 quedó marcado como "fase posterior al piloto, no bloquea el MVP").
@@ -23,8 +24,9 @@ export default function RecuperarPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper p-6">
-      <div className="w-full max-w-[880px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+  <SGDSBackground />
+      <div className="relative z-10 w-full max-w-[880px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
         {/* Panel izquierdo — marca */}
         <div className="relative flex flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.10),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">

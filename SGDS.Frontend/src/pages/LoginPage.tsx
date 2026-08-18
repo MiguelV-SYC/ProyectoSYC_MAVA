@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoSgds from '../assets/logo-sgds.png';
 import { Link } from 'react-router-dom';
+import SGDSBackground from '../components/SGDSBackground';
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
@@ -25,8 +26,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper p-6">
-      <div className="w-full max-w-[1280px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+      <SGDSBackground />
+
+      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
         {/* Panel izquierdo — marca */}
         <div className="relative flex flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
@@ -44,20 +47,20 @@ export default function LoginPage() {
             className="absolute inset-0"
             style={{
               backgroundImage:
-                'radial-gradient(circle at 50% 40%, transparent 0 118px, rgba(255,255,255,0.14) 119px 120px, transparent 121px), radial-gradient(circle at 50% 40%, transparent 0 150px, rgba(255,255,255,0.08) 151px 152px, transparent 153px)',
+                'radial-gradient(circle at 50% 41%, transparent 0 150px, rgba(255,255,255,0.08) 151px 152px, transparent 153px)',
             }}
           />
 
-          <div className="relative z-10 w-[190px] h-[190px] mb-[30px]">
+          <div className="relative z-10 w-[220px] h-[220px] mb-[30px]">
             <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/[0.18] animate-[spin_40s_linear_infinite]">
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] top-[-4px] left-1/2 -translate-x-1/2" />
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] bottom-[-4px] left-1/2 -translate-x-1/2" />
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] left-[-4px] top-1/2 -translate-y-1/2" />
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] right-[-4px] top-1/2 -translate-y-1/2" />
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] top-[14px] right-[20px]" />
-              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] bottom-[14px] left-[20px]" />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '0px', left: '110px', transform: 'translate(-50%, -50%)' }} />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '55px', left: '205px', transform: 'translate(-50%, -50%)' }} />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '165px', left: '205px', transform: 'translate(-50%, -50%)' }} />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '220px', left: '110px', transform: 'translate(-50%, -50%)' }} />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '165px', left: '15px', transform: 'translate(-50%, -50%)' }} />
+              <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '55px', left: '15px', transform: 'translate(-50%, -50%)' }} />
             </div>
-            <div className="absolute inset-[22px] flex items-center justify-center [filter:drop-shadow(0_18px_34px_rgba(0,0,0,0.45))]">
+            <div className="absolute inset-[38px] flex items-center justify-center [filter:drop-shadow(0_18px_34px_rgba(0,0,0,0.45))]">
               <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
             </div>
           </div>
