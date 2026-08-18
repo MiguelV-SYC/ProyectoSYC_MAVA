@@ -38,6 +38,10 @@ export default function ListadoSolicitudesPage() {
 
   const proyectoIdUrl = searchParams.get('proyectoId');
   const [proyectoFiltro, setProyectoFiltro] = useState(proyectoIdUrl ?? '');
+
+useEffect(() => {
+  setProyectoFiltro(proyectoIdUrl ?? '');
+}, [proyectoIdUrl]);
   const proyectoId = proyectoFiltro ? Number(proyectoFiltro) : undefined;
 
   const [proyecto, setProyecto] = useState<ProyectoResponseDto | null>(null);
@@ -69,7 +73,7 @@ export default function ListadoSolicitudesPage() {
       setTipos([]);
       return;
     }
-    getProyectosActivos().then((lista) => setProyecto(lista.find((p) => p.id === proyectoId) ?? null));
+    getProyectosActivos().then((lista) => setProyecto(lista.find((p) => Number(p.id) === proyectoId) ?? null));
     getTiposSolicitudPorProyecto(proyectoId).then(setTipos);
   }, [proyectoId]);
 

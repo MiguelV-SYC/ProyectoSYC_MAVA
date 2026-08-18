@@ -74,11 +74,7 @@ function App() {
         element={user ? <CiudadanosListPage /> : <Navigate to="/login" replace />} 
       />
 
-      <Route 
-        path="*" 
-        element={<Navigate to={user ? '/dashboard' : '/login'} replace />} 
-      />
-
+      
       <Route
         path="/ciudadanos/:id"
         element={user ? <FichaCiudadanoPage /> : <Navigate to="/login" replace />}
@@ -157,6 +153,13 @@ function App() {
         path="/proyectos/:proyectoId" 
         element={user?.esAdminSyc ? <ProyectoWorkspacePage /> : <Navigate to="/dashboard" replace />} 
       />
+      
+      <Route 
+        path="*" 
+        element={<Navigate to={user ? '/dashboard' : '/login'} replace />} 
+      />
+
+
 
       </Routes>
     
