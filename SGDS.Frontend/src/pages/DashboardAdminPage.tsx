@@ -130,7 +130,7 @@ export default function DashboardAdminPage() {
             {proyectos.map((p) => (
               <button
                 key={p.id}
-                onClick={() => navigate(`/solicitudes?proyectoId=${p.id}`)}
+                onClick={() => navigate(`/proyectos/${p.id}`)}
                 className="relative bg-white border border-line rounded-2xl p-[22px] flex flex-col gap-3.5 text-left transition-all hover:-translate-y-[3px] hover:shadow-[0_16px_32px_-12px_rgba(15,26,46,0.16)] hover:border-blue-400"
               >
                 {p.estadoPersonalizado && (

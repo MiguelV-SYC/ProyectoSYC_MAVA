@@ -83,6 +83,51 @@ public async Task<IActionResult> GetOperadoresDelProyecto(int id)
     return Ok(operadores);
 }
 
+    //Inicio: método get para el workspace de comfenalco
+    [HttpGet("{id}/resumen")]
+    public async Task<IActionResult> GetResumenProyecto(int id)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
+        var proyectoExiste = await _context.Proyectos.AnyAsync(p => p.Id == id);
+        if (!proyectoExiste)
+            return NotFound();
+
+        var hoy = DateTime.UtcNow.Date;
+        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var radicadasHoy = await _context.Solicitudes
+            .CountAsync(s => s.ProyectoId == id && s.FechaCreacion.Date == hoy);
+
+        var aprobadasEsteMes = await _context.Solicitudes
+            .CountAsync(s => s.ProyectoId == id && s.Estado == "Aprobada"
+                && s.FechaCierre != null && s.FechaCierre.Value >= inicioMes);
+
+        var finalizadas = await _context.Solicitudes
+            .Where(s => s.ProyectoId == id && s.FechaCierre != null)
+            .Select(s => new { s.FechaCreacion, s.FechaCierre })
+            .ToListAsync();
+
+        double? tiempoPromedio = null;
+        if (finalizadas.Count > 0)
+        {
+            tiempoPromedio = finalizadas.Average(s => (s.FechaCierre!.Value - s.FechaCreacion).TotalDays);
+        }
+
+        var resumen = new ProyectoResumenDto
+        {
+            TiempoPromedioResolucion = tiempoPromedio.HasValue ? Math.Round(tiempoPromedio.Value, 1) : null,
+            RadicadasHoy = radicadasHoy,
+            AprobadasEsteMes = aprobadasEsteMes
+        };
+
+        return Ok(resumen);
+    }
+    
+    
+    //fin
 
 
 

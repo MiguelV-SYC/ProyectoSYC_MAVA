@@ -22,6 +22,7 @@ import DocumentosPage from './pages/DocumentosPage';
 import ReportesPage from './pages/ReportesPage';
 import MiPerfilPage from './pages/MiPerfilPage';
 import AuditoriaPage from './pages/AuditoriaPage';
+import ProyectoWorkspacePage from './pages/ProyectoWorkspacePage';
 
 function App() {
   const { user } = useAuth();
@@ -150,6 +151,11 @@ function App() {
       <Route 
         path="/auditoria" 
         element={user?.esAdminSyc ? <AuditoriaPage /> : <Navigate to="/dashboard" replace />} 
+      />
+
+      <Route
+        path="/proyectos/:proyectoId" 
+        element={user?.esAdminSyc ? <ProyectoWorkspacePage /> : <Navigate to="/dashboard" replace />} 
       />
 
       </Routes>

@@ -51,3 +51,10 @@ public class OperadorProyectoDto
     public string NombreCompleto { get; set; } = string.Empty;
     public string RolNombre { get; set; } = string.Empty;
 }
+
+public class ProyectoResumenDto
+{
+    public double? TiempoPromedioResolucion { get; set; }
+    public int RadicadasHoy { get; set; }
+    public int AprobadasEsteMes { get; set; }
+}

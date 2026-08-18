@@ -68,3 +68,16 @@ export async function getOperadoresPorProyecto(proyectoId: number): Promise<Oper
   });
   return data;
 }
+
+export interface ResumenProyectoDto {
+  tiempoPromedioResolucion : number | null; 
+  radicadasHoy: number; 
+  aprobadasEsteMes: number; 
+}
+
+export async function getResumenProyecto(id: number): Promise<ResumenProyectoDto> {
+  const { data } = await axios.get<ResumenProyectoDto>(`${API_URL}/Proyectos/${id}/resumen`, {
+    headers: authHeader(),
+  });
+  return data; 
+}

@@ -509,7 +509,8 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         var estadoAnterior = solicitud.Estado;
         solicitud.Estado = dto.NuevoEstado;
 
-        if (dto.NuevoEstado == "Cerrada" || dto.NuevoEstado == "Finalizada")
+        var estadosFinales = new[] { "Aprobada", "Rechazada", "Finalizada" };
+        if (estadosFinales.Contains(dto.NuevoEstado))
         {
             solicitud.FechaCierre = DateTime.UtcNow;
         }
