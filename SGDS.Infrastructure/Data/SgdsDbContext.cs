@@ -97,6 +97,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
     public DbSet<Reporte> Reportes => Set<Reporte>();
+    public DbSet<TornaguiaInfoconsumo> TornaguiasInfoconsumo => Set<TornaguiaInfoconsumo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,6 +122,24 @@ private static int? ObtenerProyectoId(object entidad)
             new TipoSolicitud { Id = 17, ProyectoId = 10, Nombre = "Convenio", Activo = true },
             new TipoSolicitud { Id = 18, ProyectoId = 10, Nombre = "Acto sin cuantía", Activo = true }
         );
+
+        // Catálogo de tipos de trámite (tornaguía) del proyecto Infoconsumo (id 8 en la BD real).
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 20, ProyectoId = 8, Nombre = "Movilización", Activo = true },
+            new TipoSolicitud { Id = 21, ProyectoId = 8, Nombre = "Reenvío", Activo = true },
+            new TipoSolicitud { Id = 22, ProyectoId = 8, Nombre = "Tránsito", Activo = true },
+            new TipoSolicitud { Id = 23, ProyectoId = 8, Nombre = "Tránsito local", Activo = true },
+            new TipoSolicitud { Id = 24, ProyectoId = 8, Nombre = "Tránsito declarado", Activo = true }
+        );
+
+        modelBuilder.Entity<TornaguiaInfoconsumo>().ToTable("tornaguias_infoconsumo");
+        modelBuilder.Entity<TornaguiaInfoconsumo>().HasIndex(t => t.SolicitudId).IsUnique();
+        modelBuilder.Entity<TornaguiaInfoconsumo>().HasIndex(t => new { t.PlacaVehiculo, t.NitTransportador });
+        modelBuilder.Entity<TornaguiaInfoconsumo>()
+            .HasOne(t => t.Solicitud)
+            .WithOne(s => s.TornaguiaInfoconsumo)
+            .HasForeignKey<TornaguiaInfoconsumo>(t => t.SolicitudId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });

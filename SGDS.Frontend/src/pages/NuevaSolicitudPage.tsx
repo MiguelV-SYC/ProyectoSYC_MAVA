@@ -14,6 +14,9 @@ import { CAMPOS_POR_TIPO, CAMPO_FALLBACK } from '../config/camposPorTipoSolicitu
 import { getColorProyecto } from '../config/colorPorProyecto';
 import { DATOS_CONTRATO_VACIOS, construirDatosAdicionalesEstampillas, type DatosContratoEstampillas } from '../config/estampillasConfig';
 import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
+import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
+import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
+import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -74,11 +77,15 @@ export default function NuevaSolicitudPage() {
   // Datos específicos del trámite Estampillas — Datos del contrato
   const [datosContrato, setDatosContrato] = useState<DatosContratoEstampillas>(DATOS_CONTRATO_VACIOS);
 
+  // Datos específicos del trámite Infoconsumo — Producto gravado y Movilización
+  const [datosTornaguia, setDatosTornaguia] = useState<DatosTornaguia>(DATOS_TORNAGUIA_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const esIUVA = proyecto?.nombre === 'IUVA';
   const esEstampillas = proyecto?.nombre === 'Estampillas';
+  const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -88,6 +95,11 @@ export default function NuevaSolicitudPage() {
       if (lista.length > 0) setTipoSeleccionado(lista[0]);
     });
   }, [proyectoId]);
+
+  // Infoconsumo: el afiliado siempre es una empresa (registrada en RUT/cámara de comercio).
+  useEffect(() => {
+    if (esInfoconsumo) setTipoAfiliado('empresa');
+  }, [esInfoconsumo]);
 
   // Afiliado que llega ya resuelto por la URL — ya sea del gancho de ficha,
   // o de volver de "crear nuevo ciudadano/empresa" a mitad del formulario
@@ -235,6 +247,49 @@ export default function NuevaSolicitudPage() {
       setError('Ingresa el valor total del contrato para continuar.');
       return;
     }
+    if (esInfoconsumo) {
+      if (!datosTornaguia.unidadesFisicas || !datosTornaguia.placaVehiculo) {
+        setError('Ingresa las unidades físicas y la placa del vehículo para continuar.');
+        return;
+      }
+      const errorCoherencia = validarCoherenciaOrigenDestino(tipoSeleccionado.nombre, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino);
+      if (errorCoherencia) {
+        setError(errorCoherencia);
+        return;
+      }
+    }
+
+    if (esInfoconsumo) {
+      setGuardando(true);
+      try {
+        const creada = await crearSolicitudInfoconsumo({
+          proyectoId,
+          tipoSolicitudId: tipoSeleccionado.id,
+          empresaId: empresaSeleccionada!.id,
+          categoriaProducto: datosTornaguia.categoriaProducto,
+          gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
+          unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
+          pvpCertificado: Number(datosTornaguia.pvpCertificado) || 0,
+          departamentoOrigen: datosTornaguia.departamentoOrigen,
+          municipioOrigen: datosTornaguia.municipioOrigen,
+          departamentoDestino: datosTornaguia.departamentoDestino,
+          municipioDestino: datosTornaguia.municipioDestino,
+          empresaTransportadora: datosTornaguia.empresaTransportadora,
+          nitTransportador: datosTornaguia.nitTransportador || undefined,
+          placaVehiculo: datosTornaguia.placaVehiculo,
+          conductor: datosTornaguia.conductor || undefined,
+          cedulaConductor: datosTornaguia.cedulaConductor || undefined,
+          tipoVehiculo: datosTornaguia.tipoVehiculo || undefined,
+          observaciones: datosTornaguia.observaciones || undefined,
+        });
+        navigate(`/solicitudes/${creada.id}`);
+      } catch (err: any) {
+        setError(err?.response?.data?.mensaje ?? 'No se pudo radicar la solicitud. Intenta de nuevo.');
+      } finally {
+        setGuardando(false);
+      }
+      return;
+    }
 
     const datosAdicionales = esIUVA
       ? JSON.stringify({
@@ -274,20 +329,22 @@ export default function NuevaSolicitudPage() {
   function renderBuscadorAfiliado() {
     return (
       <>
-        <div className="flex gap-1.5 mb-3.5">
-          {(['ciudadano', 'empresa'] as TipoAfiliado[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { setTipoAfiliado(t); setBusquedaAfiliado(''); }}
-              className={`text-xs font-semibold px-3.5 py-2 rounded-full ${
-                tipoAfiliado === t ? 'bg-[#0f172a] text-white' : 'bg-paper border border-line text-ink-600'
-              }`}
-            >
-              {t === 'ciudadano' ? 'Persona natural' : 'Empresa'}
-            </button>
-          ))}
-        </div>
+        {!esInfoconsumo && (
+          <div className="flex gap-1.5 mb-3.5">
+            {(['ciudadano', 'empresa'] as TipoAfiliado[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => { setTipoAfiliado(t); setBusquedaAfiliado(''); }}
+                className={`text-xs font-semibold px-3.5 py-2 rounded-full ${
+                  tipoAfiliado === t ? 'bg-[#0f172a] text-white' : 'bg-paper border border-line text-ink-600'
+                }`}
+              >
+                {t === 'ciudadano' ? 'Persona natural' : 'Empresa'}
+              </button>
+            ))}
+          </div>
+        )}
 
         <label className="block text-xs font-semibold text-ink-900 mb-1.5">
           Buscar por {tipoAfiliado === 'ciudadano' ? 'documento o nombre' : 'razón social o NIT'}
@@ -516,7 +573,7 @@ export default function NuevaSolicitudPage() {
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
-              {esEstampillas ? '2. Contribuyente' : '2. Afiliado'}
+              {esInfoconsumo ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : '2. Afiliado'}
             </h3>
 
             {vehiculoVinculado && (
@@ -693,7 +750,19 @@ export default function NuevaSolicitudPage() {
           </div>
         )}
 
-        {!esIUVA && !esEstampillas && (
+        {esInfoconsumo && (
+          <FormularioTornaguia
+            value={datosTornaguia}
+            onChange={setDatosTornaguia}
+            errorCoherencia={
+              tipoSeleccionado
+                ? validarCoherenciaOrigenDestino(tipoSeleccionado.nombre, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
+                : null
+            }
+          />
+        )}
+
+        {!esIUVA && !esEstampillas && !esInfoconsumo && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (

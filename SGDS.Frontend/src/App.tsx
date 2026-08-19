@@ -29,6 +29,9 @@ import FormularioVehiculoPage from './pages/FormularioVehiculoPage';
 import PreliquidacionPage from './pages/PreliquidacionPage';
 import EditarSolicitudPage from './pages/EditarSolicitudPage';
 import PreliquidacionEstampillasPage from './pages/PreliquidacionEstampillasPage';
+import TornaguiaPage from './pages/TornaguiaPage';
+import LiquidacionImpoConsumoPage from './pages/LiquidacionImpoConsumoPage';
+import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 
 function App() {
   const { user } = useAuth();
@@ -144,6 +147,21 @@ function App() {
       <Route
         path="/solicitudes/:id/preliquidacion-estampillas"
         element={user ? <PreliquidacionEstampillasPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/tornaguia"
+        element={user ? <TornaguiaPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/liquidacion-impoconsumo"
+        element={user ? <LiquidacionImpoConsumoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/infoconsumo/empresas/:empresaId/historial"
+        element={user ? <HistorialEmpresaPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

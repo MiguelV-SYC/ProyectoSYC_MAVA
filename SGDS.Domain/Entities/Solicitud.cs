@@ -23,6 +23,8 @@ public class Solicitud
 
     public int? VehiculoId { get; set; }
     public Vehiculo? Vehiculo { get; set;}
+
+    public TornaguiaInfoconsumo? TornaguiaInfoconsumo { get; set; }
 // fin
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();

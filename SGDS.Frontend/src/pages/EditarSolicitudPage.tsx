@@ -16,6 +16,9 @@ import {
   type DatosContratoEstampillas,
 } from '../config/estampillasConfig';
 import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
+import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
+import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
+import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 export default function EditarSolicitudPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +28,8 @@ export default function EditarSolicitudPage() {
   const [tipos, setTipos] = useState<TipoSolicitudDto[]>([]);
   const [tipoSolicitudId, setTipoSolicitudId] = useState<number | null>(null);
   const [datosContrato, setDatosContrato] = useState<DatosContratoEstampillas>(DATOS_CONTRATO_VACIOS);
+  const [datosTornaguia, setDatosTornaguia] = useState<DatosTornaguia>(DATOS_TORNAGUIA_VACIOS);
+  const [estadoTornaguia, setEstadoTornaguia] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -37,15 +42,39 @@ export default function EditarSolicitudPage() {
       .then((s) => {
         setSolicitud(s);
         setTipoSolicitudId(s.tipoSolicitudId ?? null);
-        let datos: Record<string, string> = {};
-        try {
-          datos = s.datosAdicionales ? JSON.parse(s.datosAdicionales) : {};
-        } catch {
-          datos = {};
-        }
-        setDatosContrato(leerDatosContratoEstampillas(datos));
         if (s.proyectoId) {
           getTiposSolicitudPorProyecto(s.proyectoId).then(setTipos);
+        }
+
+        if (s.proyectoNombre === 'Infoconsumo') {
+          getTornaguia(s.id).then((t) => {
+            setEstadoTornaguia(t.estado);
+            setDatosTornaguia({
+              categoriaProducto: t.categoriaProducto,
+              gradosAlcoholimetricos: t.gradosAlcoholimetricos != null ? String(t.gradosAlcoholimetricos) : '',
+              unidadesFisicas: String(t.unidadesFisicas),
+              pvpCertificado: String(t.pvpCertificado),
+              departamentoOrigen: t.departamentoOrigen,
+              municipioOrigen: t.municipioOrigen,
+              departamentoDestino: t.departamentoDestino,
+              municipioDestino: t.municipioDestino,
+              empresaTransportadora: t.empresaTransportadora,
+              nitTransportador: t.nitTransportador ?? '',
+              placaVehiculo: t.placaVehiculo,
+              conductor: t.conductor ?? '',
+              cedulaConductor: t.cedulaConductor ?? '',
+              tipoVehiculo: t.tipoVehiculo ?? '',
+              observaciones: t.observaciones ?? '',
+            });
+          });
+        } else {
+          let datos: Record<string, string> = {};
+          try {
+            datos = s.datosAdicionales ? JSON.parse(s.datosAdicionales) : {};
+          } catch {
+            datos = {};
+          }
+          setDatosContrato(leerDatosContratoEstampillas(datos));
         }
       })
       .finally(() => setLoading(false));
@@ -53,18 +82,48 @@ export default function EditarSolicitudPage() {
 
   const color = getColorProyecto(solicitud?.proyectoNombre);
   const esEstampillas = solicitud?.proyectoNombre === 'Estampillas';
+  const esInfoconsumo = solicitud?.proyectoNombre === 'Infoconsumo';
+  const tipoTramiteSeleccionado = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? '';
+  const errorCoherencia = esInfoconsumo
+    ? validarCoherenciaOrigenDestino(tipoTramiteSeleccionado, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
+    : null;
 
   async function handleGuardar() {
     if (!solicitud) return;
     setGuardando(true);
     setError(null);
     try {
-      const tipoBase = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? solicitud.tipoSolicitudNombre ?? '';
-      const datosAdicionales = JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoBase));
-      await actualizarSolicitud(solicitud.id, {
-        tipoSolicitudId: tipoSolicitudId ?? undefined,
-        datosAdicionales,
-      });
+      if (esInfoconsumo) {
+        if (errorCoherencia) {
+          setError(errorCoherencia);
+          return;
+        }
+        await actualizarSolicitudInfoconsumo(solicitud.id, {
+          tipoSolicitudId: tipoSolicitudId ?? undefined,
+          categoriaProducto: datosTornaguia.categoriaProducto,
+          gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
+          unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
+          pvpCertificado: Number(datosTornaguia.pvpCertificado) || 0,
+          departamentoOrigen: datosTornaguia.departamentoOrigen,
+          municipioOrigen: datosTornaguia.municipioOrigen,
+          departamentoDestino: datosTornaguia.departamentoDestino,
+          municipioDestino: datosTornaguia.municipioDestino,
+          empresaTransportadora: datosTornaguia.empresaTransportadora,
+          nitTransportador: datosTornaguia.nitTransportador || undefined,
+          placaVehiculo: datosTornaguia.placaVehiculo,
+          conductor: datosTornaguia.conductor || undefined,
+          cedulaConductor: datosTornaguia.cedulaConductor || undefined,
+          tipoVehiculo: datosTornaguia.tipoVehiculo || undefined,
+          observaciones: datosTornaguia.observaciones || undefined,
+        });
+      } else {
+        const tipoBase = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? solicitud.tipoSolicitudNombre ?? '';
+        const datosAdicionales = JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoBase));
+        await actualizarSolicitud(solicitud.id, {
+          tipoSolicitudId: tipoSolicitudId ?? undefined,
+          datosAdicionales,
+        });
+      }
       navigate(`/solicitudes/${solicitud.id}`);
     } catch (err: any) {
       setError(err?.response?.data?.mensaje ?? 'No se pudo guardar. Intenta de nuevo.');
@@ -101,9 +160,9 @@ export default function EditarSolicitudPage() {
         </h1>
         <p className="text-ink-600 text-[12.5px] mb-5">{solicitud.proyectoNombre}</p>
 
-        {!esEstampillas ? (
+        {!esEstampillas && !esInfoconsumo ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
-            La edición todavía solo está disponible para solicitudes de Estampillas.
+            La edición todavía solo está disponible para solicitudes de Estampillas e Infoconsumo.
           </div>
         ) : (
           <>
@@ -116,12 +175,21 @@ export default function EditarSolicitudPage() {
               >
                 {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
               </select>
+              {esInfoconsumo && estadoTornaguia && estadoTornaguia !== 'Elaborada' && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+                  Esta tornaguía ya está en estado <b>{estadoTornaguia}</b> — edítala con cuidado, los cambios no revierten lo ya expedido/legalizado.
+                </p>
+              )}
             </div>
 
-            <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
-              <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>
-              <FormularioDatosContrato value={datosContrato} onChange={setDatosContrato} />
-            </div>
+            {esInfoconsumo ? (
+              <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} errorCoherencia={errorCoherencia} />
+            ) : (
+              <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
+                <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>
+                <FormularioDatosContrato value={datosContrato} onChange={setDatosContrato} />
+              </div>
+            )}
 
             {error && (
               <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</div>

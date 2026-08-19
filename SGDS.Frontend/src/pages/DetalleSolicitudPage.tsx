@@ -10,6 +10,8 @@ import {
 import { getOperadoresPorProyecto, type OperadorProyectoDto } from '../services/proyectoService';
 import { subirDocumento } from '../services/documentoService';
 import { getColorProyecto } from '../config/colorPorProyecto';
+import { getTornaguia, type TornaguiaResponseDto } from '../services/infoconsumoService';
+import MapaRuta from '../components/infoconsumo/MapaRuta';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada', 'Finalizada'];
 
@@ -43,6 +45,7 @@ export default function DetalleSolicitudPage() {
   const [loading, setLoading] = useState(true);
 
   const [datosAdicionales, setDatosAdicionales] = useState<Record<string, string> | null>(null);
+  const [tornaguiaInfo, setTornaguiaInfo] = useState<TornaguiaResponseDto | null>(null);
 
   const [modalEstado, setModalEstado] = useState(false);
   const [nuevoEstado, setNuevoEstado] = useState('');
@@ -67,6 +70,9 @@ export default function DetalleSolicitudPage() {
       setDatosAdicionales(s.datosAdicionales ? JSON.parse(s.datosAdicionales) : null);
     } catch {
       setDatosAdicionales(null);
+    }
+    if (s.proyectoNombre === 'Infoconsumo') {
+      getTornaguia(s.id).then(setTornaguiaInfo).catch(() => setTornaguiaInfo(null));
     }
     setLoading(false);
   }
@@ -207,6 +213,37 @@ export default function DetalleSolicitudPage() {
                 </button>
               </>
             )}
+            {solicitud.proyectoNombre === 'Infoconsumo' && (
+              <>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/editar`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                  Editar solicitud
+                </button>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/tornaguia`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <path d="M17 3l4 4-4 4M7 21l-4-4 4-4" /><path d="M21 7H9M3 17h12" />
+                  </svg>
+                  Tornaguía
+                </button>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/liquidacion-impoconsumo`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h1M8 12h1M8 16h1M12 8h4M12 12h4M12 16h4" />
+                  </svg>
+                  Impto consumo
+                </button>
+              </>
+            )}
             <button
               onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
               className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"
@@ -216,15 +253,17 @@ export default function DetalleSolicitudPage() {
               </svg>
               Adjuntar documento
             </button>
-            <button
-              onClick={() => { setNuevoEstado(solicitud.estado); setModalEstado(true); }}
-              className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
-            >
-              Cambiar estado
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-3 h-3 stroke-white">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
+            {solicitud.proyectoNombre !== 'Infoconsumo' && (
+              <button
+                onClick={() => { setNuevoEstado(solicitud.estado); setModalEstado(true); }}
+                className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
+              >
+                Cambiar estado
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-3 h-3 stroke-white">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -289,6 +328,27 @@ export default function DetalleSolicitudPage() {
                 </div>
               )}
             </div>
+
+            {solicitud.proyectoNombre === 'Infoconsumo' && tornaguiaInfo?.latOrigen != null && tornaguiaInfo?.lngOrigen != null && tornaguiaInfo?.latDestino != null && tornaguiaInfo?.lngDestino != null && (
+              <div className="bg-white border border-line rounded-[14px] p-5">
+                <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Ruta de movilización</h3>
+                <MapaRuta
+                  latOrigen={tornaguiaInfo.latOrigen}
+                  lngOrigen={tornaguiaInfo.lngOrigen}
+                  latDestino={tornaguiaInfo.latDestino}
+                  lngDestino={tornaguiaInfo.lngDestino}
+                  labelOrigen={`${tornaguiaInfo.municipioOrigen}, ${tornaguiaInfo.departamentoOrigen}`}
+                  labelDestino={`${tornaguiaInfo.municipioDestino}, ${tornaguiaInfo.departamentoDestino}`}
+                  color={color.primario}
+                  alturaPx={260}
+                />
+                {tornaguiaInfo.distanciaAproximadaKm != null && (
+                  <p className="text-[11px] text-ink-400 mt-2">
+                    Distancia aproximada entre capitales de departamento: {tornaguiaInfo.distanciaAproximadaKm.toFixed(0)} km (línea recta, no distancia vial real).
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Historial de estados</h3>
