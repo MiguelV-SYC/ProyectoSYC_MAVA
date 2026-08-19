@@ -106,6 +106,15 @@ private static int? ObtenerProyectoId(object entidad)
 
         modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
 
+        // Restricciones UNIQUE ya existentes en la base de datos real (creadas a mano antes de
+        // introducir EF Core Migrations) — se declaran aquí para que el modelo las refleje.
+        modelBuilder.Entity<Ciudadano>().HasIndex(c => c.NumeroDocumento).IsUnique();
+        modelBuilder.Entity<Empresa>().HasIndex(e => e.Nit).IsUnique();
+        modelBuilder.Entity<Proyecto>().HasIndex(p => p.Codigo).IsUnique();
+        modelBuilder.Entity<Rol>().HasIndex(r => r.Nombre).IsUnique();
+        modelBuilder.Entity<Usuario>().HasIndex(u => u.Email).IsUnique();
+        modelBuilder.Entity<Vehiculo>().HasIndex(v => v.Placa).IsUnique();
+
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
 

@@ -78,6 +78,12 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
 
+// Aplica automáticamente cualquier migración pendiente de EF Core al arrancar la API.
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<SgdsDbContext>().Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
