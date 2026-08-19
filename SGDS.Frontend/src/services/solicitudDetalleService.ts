@@ -27,8 +27,24 @@ export async function getSolicitudesPorCiudadano(ciudadanoId: number): Promise<S
 
 export async function getSolicitudesPorEmpresa(empresaId: number): Promise<SolicitudResumenDto[]> {
   const { data } = await axios.get<SolicitudResumenDto[]>(`${API_URL}/Solicitudes`, {
-    params: { empresaId }, 
-    headers: authHeader(), 
+    params: { empresaId },
+    headers: authHeader(),
   });
-  return data; 
+  return data;
+}
+
+export interface SolicitudVehiculoResumenDto {
+  id: number;
+  numero: string;
+  tipoSolicitudNombre?: string;
+  estado: string;
+  fechaCreacion: string;
+}
+
+export async function getSolicitudesPorVehiculo(vehiculoId: number): Promise<SolicitudVehiculoResumenDto[]> {
+  const { data } = await axios.get<SolicitudVehiculoResumenDto[]>(`${API_URL}/Solicitudes`, {
+    params: { vehiculoId },
+    headers: authHeader(),
+  });
+  return data;
 }

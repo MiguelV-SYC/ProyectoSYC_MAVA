@@ -138,15 +138,29 @@ useEffect(() => {
             </p>
           </div>
           {proyectoId && (
-            <button
-              onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
-              className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
-            >
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Nueva solicitud
-            </button>
+            <div className="flex items-center gap-2.5">
+              {proyecto?.nombre === 'IUVA' && (
+                <button
+                  onClick={() => navigate(`/vehiculos?proyectoId=${proyectoId}`)}
+                  className="flex items-center gap-[7px] bg-white border border-line text-ink-600 rounded-[10px] px-4 py-[10px] text-[13px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[15px] h-[15px] stroke-ink-600">
+                    <rect x="3" y="10" width="16" height="7" rx="1.5" /><path d="M6 10l1.5-4h6L15 10" />
+                    <circle cx="6.5" cy="17.5" r="1.6" /><circle cx="14.5" cy="17.5" r="1.6" />
+                  </svg>
+                  Vehículos
+                </button>
+              )}
+              <button
+                onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
+                className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
+              >
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Nueva solicitud
+              </button>
+            </div>
           )}
         </div>
 

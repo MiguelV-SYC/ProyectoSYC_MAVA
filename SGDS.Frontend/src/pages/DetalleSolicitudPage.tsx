@@ -174,6 +174,17 @@ export default function DetalleSolicitudPage() {
             </div>
           </div>
           <div className="flex gap-2.5">
+            {solicitud.proyectoNombre === 'IUVA' && (
+              <button
+                onClick={() => navigate(`/solicitudes/${solicitud.id}/preliquidacion`)}
+                className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+              >
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                  <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h1M8 12h1M8 16h1M12 8h4M12 12h4M12 16h4" />
+                </svg>
+                Preliquidación
+              </button>
+            )}
             <button
               onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
               className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"
@@ -218,6 +229,23 @@ export default function DetalleSolicitudPage() {
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Documento</div>
                   <div className="text-[13.5px] font-semibold text-ink-900">{solicitud.ciudadanoDocumento ?? solicitud.empresaNit}</div>
+                </div>
+                <div>
+                  <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Vehículo asociado</div>
+                  {solicitud.vehiculoId ? (
+                    <button
+                      onClick={() => navigate(`/vehiculos/${solicitud.vehiculoId}?proyectoId=${solicitud.proyectoId}`)}
+                      className="text-[13.5px] font-semibold text-[var(--color-accento)] hover:underline text-left"
+                    >
+                      Placa {solicitud.vehiculoPlaca}
+                      {[solicitud.vehiculoMarca, solicitud.vehiculoLinea].filter(Boolean).length > 0
+                        ? ` — ${[solicitud.vehiculoMarca, solicitud.vehiculoLinea].filter(Boolean).join(' ')}`
+                        : ''}
+                      {solicitud.vehiculoModelo ? ` · ${solicitud.vehiculoModelo}` : ''}
+                    </button>
+                  ) : (
+                    <div className="text-[13.5px] font-semibold text-ink-900">—</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Fecha de radicación</div>

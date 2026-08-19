@@ -23,6 +23,10 @@ import ReportesPage from './pages/ReportesPage';
 import MiPerfilPage from './pages/MiPerfilPage';
 import AuditoriaPage from './pages/AuditoriaPage';
 import ProyectoWorkspacePage from './pages/ProyectoWorkspacePage';
+import VehiculosListPage from './pages/VehiculosListPage';
+import FichaVehiculoPage from './pages/FichaVehiculoPage';
+import FormularioVehiculoPage from './pages/FormularioVehiculoPage';
+import PreliquidacionPage from './pages/PreliquidacionPage';
 
 function App() {
   const { user } = useAuth();
@@ -120,9 +124,34 @@ function App() {
       element={user ? <NuevaSolicitudPage /> : <Navigate to="/login" replace />} 
       />
 
-      <Route 
-        path="/solicitudes/:id" 
-        element={user ? <DetalleSolicitudPage/> : <Navigate to="/login" replace />} 
+      <Route
+        path="/solicitudes/:id"
+        element={user ? <DetalleSolicitudPage/> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/preliquidacion"
+        element={user ? <PreliquidacionPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/vehiculos"
+        element={user ? <VehiculosListPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/vehiculos/:id"
+        element={user ? <FichaVehiculoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/vehiculos/nuevo"
+        element={user ? <FormularioVehiculoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/vehiculos/:id/editar"
+        element={user ? <FormularioVehiculoPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

@@ -20,7 +20,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetVehiculos()
+    public async Task<IActionResult> GetVehiculos([FromQuery] int? proyectoId)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
         var proyectosPermitidos = User.FindAll("proyecto")
@@ -37,18 +37,26 @@ public class VehiculosController : ControllerBase
             query = query.Where(v => v.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)));
         }
 
+        if (proyectoId.HasValue)
+        {
+            query = query.Where(v => v.Solicitudes.Any(s => s.ProyectoId == proyectoId.Value));
+        }
+
         var vehiculos = await query
             .Select(v => new VehiculoResponseDto
             {
                 Id = v.Id,
                 CiudadanoId = v.CiudadanoId,
                 CiudadanoNombre = v.Ciudadano != null ? v.Ciudadano.NombreCompleto : null,
+                CiudadanoDocumento = v.Ciudadano != null ? v.Ciudadano.TipoDocumento + " " + v.Ciudadano.NumeroDocumento : null,
                 EmpresaId = v.EmpresaId,
                 EmpresaNombre = v.Empresa != null ? v.Empresa.RazonSocial : null,
+                EmpresaNit = v.Empresa != null ? v.Empresa.Nit : null,
                 Placa = v.Placa,
                 Marca = v.Marca,
                 Linea = v.Linea,
-                Modelo = v.Modelo
+                Modelo = v.Modelo,
+                NumeroChasis = v.NumeroChasis
             })
             .ToListAsync();
 
@@ -82,12 +90,15 @@ public class VehiculosController : ControllerBase
             Id = vehiculo.Id,
             CiudadanoId = vehiculo.CiudadanoId,
             CiudadanoNombre = vehiculo.Ciudadano?.NombreCompleto,
+            CiudadanoDocumento = vehiculo.Ciudadano != null ? $"{vehiculo.Ciudadano.TipoDocumento} {vehiculo.Ciudadano.NumeroDocumento}" : null,
             EmpresaId = vehiculo.EmpresaId,
             EmpresaNombre = vehiculo.Empresa?.RazonSocial,
+            EmpresaNit = vehiculo.Empresa?.Nit,
             Placa = vehiculo.Placa,
             Marca = vehiculo.Marca,
             Linea = vehiculo.Linea,
-            Modelo = vehiculo.Modelo
+            Modelo = vehiculo.Modelo,
+            NumeroChasis = vehiculo.NumeroChasis
         };
 
         return Ok(dto);
@@ -108,7 +119,8 @@ public class VehiculosController : ControllerBase
             Placa = dto.Placa,
             Marca = dto.Marca,
             Linea = dto.Linea,
-            Modelo = dto.Modelo
+            Modelo = dto.Modelo,
+            NumeroChasis = dto.NumeroChasis
         };
 
         _context.Vehiculos.Add(nuevoVehiculo);
@@ -122,7 +134,8 @@ public class VehiculosController : ControllerBase
             Placa = nuevoVehiculo.Placa,
             Marca = nuevoVehiculo.Marca,
             Linea = nuevoVehiculo.Linea,
-            Modelo = nuevoVehiculo.Modelo
+            Modelo = nuevoVehiculo.Modelo,
+            NumeroChasis = nuevoVehiculo.NumeroChasis
         };
 
         return CreatedAtAction(nameof(GetVehiculo), new { id = nuevoVehiculo.Id }, respuesta);
@@ -148,6 +161,7 @@ public class VehiculosController : ControllerBase
         vehiculo.Marca = dto.Marca;
         vehiculo.Linea = dto.Linea;
         vehiculo.Modelo = dto.Modelo;
+        vehiculo.NumeroChasis = dto.NumeroChasis;
 
         await _context.SaveChangesAsync();
 

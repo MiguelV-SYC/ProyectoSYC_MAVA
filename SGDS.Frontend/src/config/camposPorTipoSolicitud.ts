@@ -32,6 +32,10 @@ export const CAMPOS_POR_TIPO: Record<string, CampoConfig[]> = {
     { key: 'fechaTraslado', label: 'Fecha de traslado', tipo: 'fecha' },
     { key: 'observaciones', label: 'Observaciones', tipo: 'texto' },
   ],
+  // IUVA ("Causación de impuesto vehicular") no usa esta configuración genérica: tiene un
+  // formulario dedicado en NuevaSolicitudPage.tsx (pasos "Vehículo", "Características del
+  // vehículo" y "Base gravable") porque necesita checkboxes, campos condicionales y el
+  // cálculo del impuesto — cosas que CampoConfig no modela.
 };
 
 // Fallback cuando el tipo de solicitud no tiene campos configurados todavía

@@ -10,9 +10,10 @@ public class Vehiculo
     public Empresa? Empresa { get; set; }
 
     public string Placa { get; set; } = string.Empty;
-    public string? Marca { get; set; } 
+    public string? Marca { get; set; }
     public string? Linea { get; set; }
     public int? Modelo { get; set; }
+    public string? NumeroChasis { get; set; }
 
     public ICollection<Solicitud> Solicitudes { get; set; } = new List<Solicitud>();
 }

@@ -5,6 +5,11 @@ using SGDS.Application.DTOs;
 using SGDS.Domain.Entities;
 using SGDS.Infrastructure.Data;
 using SGDS.Application.Interfaces;
+using System.Text.Json;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using QRCoder;
 
 namespace SGDS.Api.Controllers;
 
@@ -24,7 +29,7 @@ public SolicitudesController(SgdsDbContext context, IAlmacenamientoService almac
 
     // GET: api/Solicitudes
 [HttpGet]
-public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId, [FromQuery] int? empresaId)
+public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId, [FromQuery] int? empresaId, [FromQuery] int? vehiculoId)
 {
     var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
     var proyectosClaims = User.FindAll("proyecto").Select(c => c.Value.Split(':')[0]).ToList();
@@ -51,6 +56,11 @@ public async Task<IActionResult> GetSolicitudes([FromQuery] int? ciudadanoId, [F
     if (empresaId.HasValue)
     {
         query = query.Where(s => s.EmpresaId == empresaId.Value);
+    }
+
+    if (vehiculoId.HasValue)
+    {
+        query = query.Where(s => s.VehiculoId == vehiculoId.Value);
     }
 
     var solicitudes = await query
@@ -90,6 +100,7 @@ public async Task<IActionResult> GetSolicitud(int id)
         .Include(s => s.UsuarioAsignado)
         .Include(s => s.Proyecto)
         .Include(s => s.TipoSolicitud)
+        .Include(s => s.Vehiculo)
         .Include(s => s.HistorialEstados)
             .ThenInclude(h => h.Usuario)
         .Include(s => s.Documentos)
@@ -122,6 +133,11 @@ public async Task<IActionResult> GetSolicitud(int id)
         Estado = solicitud.Estado,
         FechaCreacion = solicitud.FechaCreacion,
         FechaCierre = solicitud.FechaCierre,
+        VehiculoId = solicitud.VehiculoId,
+        VehiculoPlaca = solicitud.Vehiculo?.Placa,
+        VehiculoMarca = solicitud.Vehiculo?.Marca,
+        VehiculoLinea = solicitud.Vehiculo?.Linea,
+        VehiculoModelo = solicitud.Vehiculo?.Modelo,
         HistorialEstados = solicitud.HistorialEstados
             .OrderByDescending(h => h.FechaCambio)
             .Select(h => new HistorialEstadoDto
@@ -547,6 +563,230 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // GET: api/Solicitudes/5/preliquidacion-pdf
+    [HttpGet("{id}/preliquidacion-pdf")]
+    public async Task<IActionResult> GetPreliquidacionPdf(int id)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var solicitud = await _context.Solicitudes
+            .Include(s => s.Ciudadano)
+            .Include(s => s.Empresa)
+            .Include(s => s.Proyecto)
+            .Include(s => s.Vehiculo)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (solicitud == null)
+            return NotFound();
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+            return NotFound();
+
+        if (solicitud.Vehiculo == null)
+            return BadRequest(new { mensaje = "Esta solicitud no tiene un vehículo asociado" });
+
+        var datos = LeerDatosAdicionales(solicitud.DatosAdicionales);
+
+        var avaluo = decimal.TryParse(datos.GetValueOrDefault("avaluoComercial"), out var av) ? av : 0m;
+        var antiguoClasico = datos.GetValueOrDefault("antiguoClasico") == "Sí";
+        var blindado = datos.GetValueOrDefault("blindado") == "Sí";
+
+        var (baseGravable, tarifa, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico, blindado);
+
+        var fechaInicio = solicitud.FechaCreacion;
+        var fechaLimiteOportuno = fechaInicio.AddDays(15);
+        var fechaLimiteExtraordinario = fechaInicio.AddDays(30);
+        var totalExtraordinario = Math.Round(impuesto * 1.05m, 0);
+
+        var numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString();
+        var propietarioNombre = solicitud.Ciudadano?.NombreCompleto ?? solicitud.Empresa?.RazonSocial ?? "—";
+        var propietarioDocumento = solicitud.Ciudadano != null
+            ? $"{solicitud.Ciudadano.TipoDocumento} {solicitud.Ciudadano.NumeroDocumento}"
+            : solicitud.Empresa?.Nit ?? "—";
+
+        var qrBytes = GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
+
+        var pdfBytes = GenerarPreliquidacionPdf(
+            numero, solicitud.Vehiculo, propietarioNombre, propietarioDocumento, datos,
+            avaluo, baseGravable, tarifa, Math.Round(impuesto, 0), totalExtraordinario,
+            fechaInicio, fechaLimiteOportuno, fechaLimiteExtraordinario, qrBytes);
+
+        return File(pdfBytes, "application/pdf", $"Preliquidacion_{numero}.pdf");
+    }
+
+    // GET: api/Solicitudes/5/preliquidacion-qr.png
+    [HttpGet("{id}/preliquidacion-qr.png")]
+    public async Task<IActionResult> GetPreliquidacionQr(int id)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var solicitud = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Include(s => s.Vehiculo)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (solicitud == null)
+            return NotFound();
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+            return NotFound();
+
+        if (solicitud.Vehiculo == null)
+            return BadRequest(new { mensaje = "Esta solicitud no tiene un vehículo asociado" });
+
+        var datos = LeerDatosAdicionales(solicitud.DatosAdicionales);
+        var avaluo = decimal.TryParse(datos.GetValueOrDefault("avaluoComercial"), out var av) ? av : 0m;
+        var antiguoClasico = datos.GetValueOrDefault("antiguoClasico") == "Sí";
+        var blindado = datos.GetValueOrDefault("blindado") == "Sí";
+        var (_, _, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico, blindado);
+
+        var numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString();
+        var fechaLimiteOportuno = solicitud.FechaCreacion.AddDays(15);
+
+        var qrBytes = GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
+
+        return File(qrBytes, "image/png");
+    }
+
+    private static Dictionary<string, string> LeerDatosAdicionales(string? datosAdicionales)
+    {
+        var datos = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(datosAdicionales))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(datosAdicionales);
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    datos[prop.Name] = prop.Value.ValueKind == JsonValueKind.String ? (prop.Value.GetString() ?? "") : prop.Value.ToString();
+                }
+            }
+            catch (JsonException) { }
+        }
+        return datos;
+    }
+
+    private static string ContenidoQrPreliquidacion(string numero, string placa, decimal valorAPagar, DateTime fechaLimite) =>
+        $"SGDS-IUVA|{numero}|Placa:{placa}|Valor:{valorAPagar:0}|Vence:{fechaLimite:yyyy-MM-dd}";
+
+    private static byte[] GenerarQrPng(string contenido)
+    {
+        using var generador = new QRCodeGenerator();
+        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
+        var pngQr = new PngByteQRCode(datosQr);
+        return pngQr.GetGraphic(20);
+    }
+
+    private static (decimal baseGravable, decimal tarifa, decimal impuesto) CalcularImpuestoVehicular(decimal avaluo, bool antiguoClasico, bool blindado)
+    {
+        var baseGravable = avaluo;
+        if (antiguoClasico) baseGravable *= 0.5m;
+        if (blindado) baseGravable *= 1.10m;
+
+        decimal tarifa;
+        if (baseGravable <= 57_349_000m) tarifa = 0.015m;
+        else if (baseGravable <= 129_032_000m) tarifa = 0.025m;
+        else tarifa = 0.035m;
+
+        var impuesto = baseGravable * tarifa;
+        return (baseGravable, tarifa, impuesto);
+    }
+
+    private byte[] GenerarPreliquidacionPdf(
+        string numero, Vehiculo vehiculo, string propietarioNombre, string propietarioDocumento,
+        Dictionary<string, string> datos, decimal avaluo, decimal baseGravable, decimal tarifa, decimal impuesto,
+        decimal totalExtraordinario, DateTime fechaInicio, DateTime fechaLimiteOportuno, DateTime fechaLimiteExtraordinario,
+        byte[] qrBytes)
+    {
+        string Moneda(decimal v) => v.ToString("C0", new System.Globalization.CultureInfo("es-CO"));
+
+        var documento = Document.Create(contenedor =>
+        {
+            contenedor.Page(pagina =>
+            {
+                pagina.Size(PageSizes.A4);
+                pagina.Margin(30);
+                pagina.DefaultTextStyle(x => x.FontSize(10));
+
+                pagina.Header().Column(col =>
+                {
+                    col.Item().Text("Liquidación de Impuesto Vehicular").FontSize(16).Bold();
+                    col.Item().Text("Departamento de Santander · SGDS").FontSize(11);
+                    col.Item().PaddingTop(4).Text($"Referencia: {numero}").FontSize(10).Bold();
+                });
+
+                pagina.Content().PaddingTop(15).Column(col =>
+                {
+                    col.Spacing(12);
+
+                    col.Item().Text("Datos del vehículo").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
+                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
+                        Fila("Placa", vehiculo.Placa);
+                        Fila("Marca / Línea", $"{vehiculo.Marca} {vehiculo.Linea}".Trim());
+                        Fila("Modelo", vehiculo.Modelo?.ToString() ?? "—");
+                        Fila("Número de chasis", vehiculo.NumeroChasis ?? "—");
+                        Fila("Tipo de vehículo", datos.GetValueOrDefault("tipoVehiculo", "—"));
+                        Fila("Cilindraje", datos.GetValueOrDefault("cilindraje", "—"));
+                        Fila("Departamento", datos.GetValueOrDefault("departamento", "—"));
+                    });
+
+                    col.Item().Text("Propietario").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
+                        t.Cell().Text("Nombre"); t.Cell().Text(propietarioNombre);
+                        t.Cell().Text("Documento"); t.Cell().Text(propietarioDocumento);
+                    });
+
+                    col.Item().Text("Base gravable").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
+                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
+                        Fila("Avalúo comercial", Moneda(avaluo));
+                        Fila("¿Antiguo o clásico?", datos.GetValueOrDefault("antiguoClasico", "No"));
+                        Fila("¿Blindado?", datos.GetValueOrDefault("blindado", "No"));
+                        Fila("Base gravable ajustada", Moneda(baseGravable));
+                        Fila("Tarifa aplicada", $"{tarifa * 100:0.0}%");
+                        Fila("Valor del impuesto", Moneda(impuesto));
+                    });
+
+                    col.Item().Text("Fechas y valores de pago").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); });
+                        t.Cell().Text("Concepto").Bold(); t.Cell().Text("Fecha límite").Bold(); t.Cell().Text("Valor a pagar").Bold();
+                        t.Cell().Text("Pago oportuno"); t.Cell().Text(fechaLimiteOportuno.ToString("dd/MM/yyyy")); t.Cell().Text(Moneda(impuesto));
+                        t.Cell().Text("Pago extraordinario (+5% recargo)"); t.Cell().Text(fechaLimiteExtraordinario.ToString("dd/MM/yyyy")); t.Cell().Text(Moneda(totalExtraordinario));
+                    });
+
+                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
+                    col.Item().AlignCenter().Text(numero).FontSize(8);
+
+                    col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
+                    col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
+                });
+
+                pagina.Footer().AlignCenter().Text(texto =>
+                {
+                    texto.Span("Generado el ");
+                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
+                });
+            });
+        });
+
+        return documento.GeneratePdf();
     }
 
 }

@@ -162,6 +162,7 @@ export interface SolicitudDetalleResponseDto {
   usuarioAsignadoId?: number;
   usuarioAsignadoNombre?: string;
   proyectoNombre?: string;
+  proyectoId?: number;
   tipoSolicitudNombre?: string;
   estado: string;
   fechaCreacion: string;
@@ -169,6 +170,11 @@ export interface SolicitudDetalleResponseDto {
   datosAdicionales?: string;
   historialEstados: HistorialEstadoDto[];
   documentos: DocumentoResponseDto[];
+  vehiculoId?: number;
+  vehiculoPlaca?: string;
+  vehiculoMarca?: string;
+  vehiculoLinea?: string;
+  vehiculoModelo?: number;
 }
 
 export async function getSolicitudDetalle(id: number): Promise<SolicitudDetalleResponseDto> {
@@ -176,6 +182,29 @@ export async function getSolicitudDetalle(id: number): Promise<SolicitudDetalleR
     headers: authHeader(),
   });
   return data;
+}
+
+export async function obtenerPreliquidacionQrBlobUrl(id: number): Promise<string> {
+  const response = await axios.get(`${API_URL}/Solicitudes/${id}/preliquidacion-qr.png`, {
+    headers: authHeader(),
+    responseType: 'blob',
+  });
+  return window.URL.createObjectURL(new Blob([response.data]));
+}
+
+export async function descargarPreliquidacionPdf(id: number, nombreArchivo: string): Promise<void> {
+  const response = await axios.get(`${API_URL}/Solicitudes/${id}/preliquidacion-pdf`, {
+    headers: authHeader(),
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', nombreArchivo);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 export interface CrearSolicitudDto {

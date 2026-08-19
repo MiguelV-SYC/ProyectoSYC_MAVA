@@ -118,4 +118,9 @@ public class SolicitudDetalleResponseDto
     public string? CiudadanoDocumento { get; set; }
     public string? EmpresaNit { get; set; }
     public string? DatosAdicionales { get; set; }
+    public int? VehiculoId { get; set; }
+    public string? VehiculoPlaca { get; set; }
+    public string? VehiculoMarca { get; set; }
+    public string? VehiculoLinea { get; set; }
+    public int? VehiculoModelo { get; set; }
 }
