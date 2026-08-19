@@ -324,6 +324,11 @@ public async Task<IActionResult> GetListadoSolicitudes(
         .Select(c => int.Parse(c.Value.Split(':')[0]))
         .ToList();
 
+    if (!esAdminSyc && !proyectoId.HasValue)
+    {
+        return BadRequest(new { mensaje = "Debe especificar un proyecto" });
+    }
+
     var queryBase = _context.Solicitudes
         .Include(s => s.Ciudadano)
         .Include(s => s.Empresa)
@@ -355,8 +360,6 @@ public async Task<IActionResult> GetListadoSolicitudes(
             s.Id.ToString().Contains(buscar));
     }
 
-    // Los conteos por estado se calculan ANTES de aplicar el filtro de estado específico,
-    // así los chips siempre muestran el total real de cada categoría, no solo la seleccionada
     var conteosPorEstado = await queryBase
         .GroupBy(s => s.Estado)
         .Select(g => new ConteoEstadoDto { Estado = g.Key, Total = g.Count() })
@@ -371,29 +374,30 @@ public async Task<IActionResult> GetListadoSolicitudes(
     var totalRegistros = await query.CountAsync();
     var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)tamanoPagina);
 
-   var solicitudes = await query
-    .OrderByDescending(s => s.FechaCreacion)
-    .Skip((pagina - 1) * tamanoPagina)
-    .Take(tamanoPagina)
-    .Select(s => new SolicitudResponseDto
-    {
-        Id = s.Id,
-        Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
-        CiudadanoId = s.CiudadanoId,
-        CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
-        EmpresaId = s.EmpresaId,
-        EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
-        UsuarioAsignadoId = s.UsuarioAsignadoId,
-        UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
-        TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
-        Estado = s.Estado,
-        FechaCreacion = s.FechaCreacion,
-        FechaCierre = s.FechaCierre,
-        FechaUltimoCambioEstado = s.HistorialEstados.Any()
-            ? s.HistorialEstados.Max(h => h.FechaCambio)
-            : s.FechaCreacion
-    })
-    .ToListAsync();
+    var solicitudes = await query
+        .OrderByDescending(s => s.FechaCreacion)
+        .Skip((pagina - 1) * tamanoPagina)
+        .Take(tamanoPagina)
+        .Select(s => new SolicitudResponseDto
+        {
+            Id = s.Id,
+            Numero = s.Proyecto != null ? s.Proyecto.Codigo + "-" + s.Id.ToString("0000") : s.Id.ToString(),
+            ProyectoNombre = s.Proyecto != null ? s.Proyecto.Nombre : null,
+            CiudadanoId = s.CiudadanoId,
+            CiudadanoNombre = s.Ciudadano != null ? s.Ciudadano.NombreCompleto : null,
+            EmpresaId = s.EmpresaId,
+            EmpresaNombre = s.Empresa != null ? s.Empresa.RazonSocial : null,
+            UsuarioAsignadoId = s.UsuarioAsignadoId,
+            UsuarioAsignadoNombre = s.UsuarioAsignado != null ? s.UsuarioAsignado.NombreCompleto : null,
+            TipoSolicitudNombre = s.TipoSolicitud != null ? s.TipoSolicitud.Nombre : null,
+            Estado = s.Estado,
+            FechaCreacion = s.FechaCreacion,
+            FechaCierre = s.FechaCierre,
+            FechaUltimoCambioEstado = s.HistorialEstados.Any()
+                ? s.HistorialEstados.Max(h => h.FechaCambio)
+                : s.FechaCreacion
+        })
+        .ToListAsync();
 
     var respuesta = new ListadoSolicitudesResponseDto
     {
@@ -409,7 +413,6 @@ public async Task<IActionResult> GetListadoSolicitudes(
 
     return Ok(respuesta);
 }
-
     // POST: api/Solicitudes
     [HttpPost]
     public async Task<IActionResult> CrearSolicitud(CrearSolicitudDto dto)
@@ -506,7 +509,8 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         var estadoAnterior = solicitud.Estado;
         solicitud.Estado = dto.NuevoEstado;
 
-        if (dto.NuevoEstado == "Cerrada" || dto.NuevoEstado == "Finalizada")
+        var estadosFinales = new[] { "Aprobada", "Rechazada", "Finalizada" };
+        if (estadosFinales.Contains(dto.NuevoEstado))
         {
             solicitud.FechaCierre = DateTime.UtcNow;
         }

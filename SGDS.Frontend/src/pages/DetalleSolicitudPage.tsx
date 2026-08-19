@@ -8,6 +8,8 @@ import {
   type SolicitudDetalleResponseDto,
 } from '../services/solicitudService';
 import { getOperadoresPorProyecto, type OperadorProyectoDto } from '../services/proyectoService';
+import { subirDocumento } from '../services/documentoService';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada', 'Finalizada'];
 
@@ -16,9 +18,9 @@ const ESTADO_STYLE: Record<string, string> = {
   'En revisión': 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
-  Aprobada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
-  Finalizada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Finalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
 };
 
 function formatearFechaHora(iso?: string) {
@@ -50,6 +52,11 @@ export default function DetalleSolicitudPage() {
   const [operadores, setOperadores] = useState<OperadorProyectoDto[]>([]);
   const [operadorElegido, setOperadorElegido] = useState('');
   const [guardandoReasignar, setGuardandoReasignar] = useState(false);
+
+  const [modalDocumento, setModalDocumento] = useState(false);
+  const [archivoElegido, setArchivoElegido] = useState<File | null>(null);
+  const [subiendoDocumento, setSubiendoDocumento] = useState(false);
+  const [errorDocumento, setErrorDocumento] = useState<string | null>(null);
 
   async function cargar() {
     if (!id) return;
@@ -107,6 +114,22 @@ export default function DetalleSolicitudPage() {
     }
   }
 
+  async function handleSubirDocumento() {
+    if (!solicitud || !archivoElegido) return;
+    setSubiendoDocumento(true);
+    setErrorDocumento(null);
+    try {
+      await subirDocumento(solicitud.id, archivoElegido);
+      setModalDocumento(false);
+      setArchivoElegido(null);
+      await cargar();
+    } catch (err: any) {
+      setErrorDocumento(err?.response?.data?.mensaje ?? 'No se pudo subir el documento.');
+    } finally {
+      setSubiendoDocumento(false);
+    }
+  }
+
   if (loading || !solicitud) {
     return (
       <div className="flex min-h-screen bg-paper">
@@ -116,8 +139,13 @@ export default function DetalleSolicitudPage() {
     );
   }
 
+  const color = getColorProyecto(solicitud.proyectoNombre);
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="solicitudes" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
@@ -131,8 +159,8 @@ export default function DetalleSolicitudPage() {
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#e3f7f4] flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-5 h-5 stroke-[#0d9488]">
+            <div className="w-11 h-11 rounded-xl bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-5 h-5 stroke-[var(--color-accento)]">
                 <path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" />
               </svg>
             </div>
@@ -147,18 +175,17 @@ export default function DetalleSolicitudPage() {
           </div>
           <div className="flex gap-2.5">
             <button
-              disabled
-              title="Disponible en el módulo de Documentos"
-              className="flex items-center gap-1.5 bg-white border border-line text-ink-400 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold opacity-60 cursor-not-allowed"
+              onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
+              className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"
             >
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-400">
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
                 <rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6" />
               </svg>
               Adjuntar documento
             </button>
             <button
               onClick={() => { setNuevoEstado(solicitud.estado); setModalEstado(true); }}
-              className="flex items-center gap-1.5 bg-[#0d9488] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
+              className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
             >
               Cambiar estado
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-3 h-3 stroke-white">
@@ -222,7 +249,7 @@ export default function DetalleSolicitudPage() {
                 {solicitud.historialEstados.map((h, i) => (
                   <div key={i} className="flex gap-3 pb-4 last:pb-0">
                     <div className="flex flex-col items-center">
-                      <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 ${i === 0 ? 'border-[#0d9488] bg-[#e3f7f4]' : 'border-line bg-white'}`} />
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 ${i === 0 ? 'border-[var(--color-accento)] bg-[var(--color-accento-claro)]' : 'border-line bg-white'}`} />
                       {i < solicitud.historialEstados.length - 1 && <div className="w-px flex-1 bg-line" />}
                     </div>
                     <div className="pb-1">
@@ -321,7 +348,7 @@ export default function DetalleSolicitudPage() {
               <button
                 onClick={handleCambiarEstado}
                 disabled={guardandoEstado}
-                className="flex-1 py-2.5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 {guardandoEstado ? 'Guardando...' : 'Confirmar'}
               </button>
@@ -355,9 +382,42 @@ export default function DetalleSolicitudPage() {
               <button
                 onClick={handleReasignar}
                 disabled={guardandoReasignar || !operadorElegido}
-                className="flex-1 py-2.5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 {guardandoReasignar ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalDocumento && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-2xl p-7 w-full max-w-[380px]">
+            <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Adjuntar documento</h2>
+            <input
+              type="file"
+              onChange={(e) => setArchivoElegido(e.target.files?.[0] ?? null)}
+              className="w-full text-[13px] mb-5"
+            />
+            {errorDocumento && (
+              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+                {errorDocumento}
+              </div>
+            )}
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setModalDocumento(false)}
+                className="flex-1 py-2.5 rounded-[9px] border border-line text-ink-600 text-sm font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubirDocumento}
+                disabled={subiendoDocumento || !archivoElegido}
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
+              >
+                {subiendoDocumento ? 'Subiendo...' : 'Subir'}
               </button>
             </div>
           </div>

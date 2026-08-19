@@ -11,6 +11,7 @@ export interface ProyectoResponseDto {
   estadoPersonalizado: string | null;
   totalTiposSolicitud: number;
   totalOperadores: number;
+  totalSolicitudes: number;
 }
 
 export interface CrearProyectoDto {
@@ -66,4 +67,17 @@ export async function getOperadoresPorProyecto(proyectoId: number): Promise<Oper
     headers: authHeader(),
   });
   return data;
+}
+
+export interface ResumenProyectoDto {
+  tiempoPromedioResolucion : number | null; 
+  radicadasHoy: number; 
+  aprobadasEsteMes: number; 
+}
+
+export async function getResumenProyecto(id: number): Promise<ResumenProyectoDto> {
+  const { data } = await axios.get<ResumenProyectoDto>(`${API_URL}/Proyectos/${id}/resumen`, {
+    headers: authHeader(),
+  });
+  return data; 
 }

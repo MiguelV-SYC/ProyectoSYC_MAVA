@@ -8,6 +8,7 @@ import {
   actualizarEmpresa,
   type BusquedaNitResponse,
 } from '../services/empresaService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 export default function FormularioEmpresaPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ export default function FormularioEmpresaPage() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cargandoInicial, setCargandoInicial] = useState(esEdicion);
+  const color = useColorProyectoActivo();
 
   // Carga los datos existentes si estamos editando
   useEffect(() => {
@@ -123,7 +125,10 @@ export default function FormularioEmpresaPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="empresas" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[900px]">
@@ -266,7 +271,7 @@ export default function FormularioEmpresaPage() {
             <button
               type="submit"
               disabled={guardando || (!esEdicion && duplicado?.existe)}
-              className="py-2.5 px-5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+              className="py-2.5 px-5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
             >
               {guardando ? 'Guardando...' : 'Guardar empresa'}
             </button>

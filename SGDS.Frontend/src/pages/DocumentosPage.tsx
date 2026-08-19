@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
+import { useAuth } from '../context/AuthContext';
 import {
   getDocumentosListado,
   subirDocumento,
@@ -9,7 +10,8 @@ import {
   type ConteoTipoDto,
 } from '../services/documentoService';
 import { getSolicitudesListado, type SolicitudResponseDto } from '../services/solicitudService';
-import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
+import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const POR_PAGINA = 8;
 
@@ -33,9 +35,16 @@ const ICONO_CATEGORIA: Record<string, React.ReactNode> = {
 
 export default function DocumentosPage() {
   const [searchParams] = useSearchParams();
-  const proyectoId = Number(searchParams.get('proyectoId'));
+  const { user } = useAuth();
+  const esAdmin = Boolean(user?.esAdminSyc);
+
+  const proyectoIdUrl = searchParams.get('proyectoId');
+  const [proyectoFiltro, setProyectoFiltro] = useState(proyectoIdUrl ?? '');
+  const proyectoId = proyectoFiltro ? Number(proyectoFiltro) : undefined;
+  const sinProyectoRequerido = !esAdmin && !proyectoId;
 
   const [proyecto, setProyecto] = useState<ProyectoResponseDto | null>(null);
+  const [proyectosDisponibles, setProyectosDisponibles] = useState<ProyectoResponseDto[]>([]);
   const [documentos, setDocumentos] = useState<DocumentoListadoDto[]>([]);
   const [conteos, setConteos] = useState<ConteoTipoDto[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
@@ -54,14 +63,20 @@ export default function DocumentosPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [errorSubida, setErrorSubida] = useState<string | null>(null);
+  const color = useColorProyectoActivo();
 
   useEffect(() => {
-    if (!proyectoId) return;
+    const cargarProyectos = esAdmin ? getProyectosAdmin : getProyectosActivos;
+    cargarProyectos().then(setProyectosDisponibles);
+  }, [esAdmin]);
+
+  useEffect(() => {
+    if (!proyectoId) { setProyecto(null); return; }
     getProyectosActivos().then((lista) => setProyecto(lista.find((p) => p.id === proyectoId) ?? null));
   }, [proyectoId]);
 
   async function cargar() {
-    if (!proyectoId) return;
+    if (sinProyectoRequerido) { setLoading(false); return; }
     setLoading(true);
     const res = await getDocumentosListado({
       proyectoId,
@@ -80,35 +95,29 @@ export default function DocumentosPage() {
   useEffect(() => {
     const timeout = setTimeout(cargar, 350);
     return () => clearTimeout(timeout);
-  }, [proyectoId, busqueda, tipoFiltro, pagina]);
+  }, [proyectoId, busqueda, tipoFiltro, pagina, sinProyectoRequerido]);
 
-  // Al abrir el modal, carga las solicitudes más recientes del proyecto de una vez —
-// así el usuario elige de una lista en vez de tener que adivinar el número exacto
-useEffect(() => {
-  if (!modalSubir) return;
-  setCargandoSolicitudes(true);
-  getSolicitudesListado({ proyectoId, pagina: 1, tamanoPagina: 50 })
-    .then((res) => setTodasSolicitudes(res.pagina.datos))
-    .finally(() => setCargandoSolicitudes(false));
-}, [modalSubir, proyectoId]);
+  useEffect(() => {
+    if (!modalSubir) return;
+    setCargandoSolicitudes(true);
+    getSolicitudesListado({ proyectoId, pagina: 1, tamanoPagina: 50 })
+      .then((res) => setTodasSolicitudes(res.pagina.datos))
+      .finally(() => setCargandoSolicitudes(false));
+  }, [modalSubir, proyectoId]);
 
-// Filtro en vivo, del lado del cliente, sobre esas 50 ya cargadas —
-// por número, tipo de solicitud o nombre del afiliado
-const resultadosSolicitud = todasSolicitudes.filter((s) => {
-  const q = busquedaSolicitud.trim().toLowerCase();
-  if (!q) return true;
-  return (
-    s.numero.toLowerCase().includes(q) ||
-    (s.tipoSolicitudNombre ?? '').toLowerCase().includes(q) ||
-    (s.ciudadanoNombre ?? s.empresaNombre ?? '').toLowerCase().includes(q)
-  );
-});
-  
+  const resultadosSolicitud = todasSolicitudes.filter((s) => {
+    const q = busquedaSolicitud.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      s.numero.toLowerCase().includes(q) ||
+      (s.tipoSolicitudNombre ?? '').toLowerCase().includes(q) ||
+      (s.ciudadanoNombre ?? s.empresaNombre ?? '').toLowerCase().includes(q)
+    );
+  });
 
   function abrirModalSubir() {
     setModalSubir(true);
     setBusquedaSolicitud('');
-    setResultadosSolicitud([]);
     setSolicitudElegida(null);
     setArchivo(null);
     setErrorSubida(null);
@@ -137,7 +146,7 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
   const inicio = totalRegistros === 0 ? 0 : (pagina - 1) * POR_PAGINA + 1;
   const fin = Math.min(pagina * POR_PAGINA, totalRegistros);
 
-  if (!proyectoId) {
+  if (sinProyectoRequerido) {
     return (
       <div className="flex min-h-screen bg-paper">
         <Sidebar active="documentos" />
@@ -149,32 +158,37 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="documentos" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
-              Documentos — {proyecto?.nombre ?? '...'}
+              Documentos{proyecto ? ` — ${proyecto.nombre}` : esAdmin ? ' — Todos los proyectos' : ''}
             </h1>
             <p className="text-ink-600 text-[12.5px] mt-[3px]">
-              Expediente digital: todos los archivos adjuntos a las solicitudes de este proyecto
+              Expediente digital: todos los archivos adjuntos {proyecto ? 'a las solicitudes de este proyecto' : 'de la plataforma'}
             </p>
           </div>
-          <button
-            onClick={abrirModalSubir}
-            className="flex items-center gap-[7px] bg-[#0d9488] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_rgba(13,148,136,0.5)]"
-          >
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
-              <path d="M12 3v13M6 10l6 6 6-6" /><path d="M5 21h14" />
-            </svg>
-            Subir documento
-          </button>
+          {proyectoId && (
+            <button
+              onClick={abrirModalSubir}
+              className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-[15px] h-[15px] stroke-white">
+                <path d="M12 3v13M6 10l6 6 6-6" /><path d="M5 21h14" />
+              </svg>
+              Subir documento
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2.5 bg-white border border-line rounded-xl px-3.5 py-3 mb-4">
-          <div className="flex items-center gap-2 flex-1 bg-paper border border-line rounded-[9px] px-3 py-2">
+        <div className="flex items-center gap-2.5 bg-white border border-line rounded-xl px-3.5 py-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px] bg-paper border border-line rounded-[9px] px-3 py-2">
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" className="w-[15px] h-[15px] stroke-ink-400 shrink-0">
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
             </svg>
@@ -185,6 +199,18 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
               className="border-none outline-none bg-transparent text-[12.5px] w-full font-body"
             />
           </div>
+          {esAdmin && (
+            <select
+              value={proyectoFiltro}
+              onChange={(e) => { setProyectoFiltro(e.target.value); setTipoFiltro(''); setPagina(1); }}
+              className="bg-paper border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+            >
+              <option value="">Todos los proyectos</option>
+              {proyectosDisponibles.map((p) => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -221,9 +247,9 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
               <button
                 key={d.id}
                 onClick={() => descargarDocumento(d.id, d.nombreArchivo)}
-                className="text-left bg-white border border-line rounded-2xl p-5 hover:border-[#0d9488] transition-colors"
+                className="text-left bg-white border border-line rounded-2xl p-5 hover:border-[var(--color-accento)] transition-colors"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#e3f7f4] flex items-center justify-center mb-3.5 [&>svg]:w-[19px] [&>svg]:h-[19px] [&>svg]:stroke-[#0d9488]">
+                <div className="w-11 h-11 rounded-xl bg-[var(--color-accento-claro)] flex items-center justify-center mb-3.5 [&>svg]:w-[19px] [&>svg]:h-[19px] [&>svg]:stroke-[var(--color-accento)]">
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8">
                     {ICONO_CATEGORIA[d.categoria] ?? ICONO_CATEGORIA.Otros}
                   </svg>
@@ -231,7 +257,10 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
                 <div className="font-semibold text-[13.5px] text-ink-900 mb-1.5 truncate" title={d.nombreArchivo}>
                   {d.nombreArchivo}
                 </div>
-                <div className="text-[12px] text-blue-600 font-medium mb-2">#{d.solicitudNumero}</div>
+                <div className="text-[12px] text-blue-600 font-medium mb-0.5">#{d.solicitudNumero}</div>
+                {!proyecto && d.proyectoNombre && (
+                  <div className="text-[11px] text-ink-500 mb-1.5">{d.proyectoNombre}</div>
+                )}
                 <div className="text-[11px] text-ink-400">
                   {formatearTamano(d.tamanoBytes)} · {formatearFecha(d.fecha)}
                 </div>
@@ -253,7 +282,7 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
                 .map((n) => (
                   <button key={n} onClick={() => setPagina(n)}
                     className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs ${
-                      n === pagina ? 'bg-[#0d9488] border-[#0d9488] text-white font-semibold' : 'border-line bg-white text-ink-600'
+                      n === pagina ? 'bg-[var(--color-accento)] border-[var(--color-accento)] text-white font-semibold' : 'border-line bg-white text-ink-600'
                     }`}>{n}</button>
                 ))}
               <button onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
@@ -270,37 +299,37 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
 
             <label className="block text-xs font-semibold text-ink-900 mb-1.5">Solicitud</label>
             {solicitudElegida ? (
-              <div className="flex items-center justify-between bg-[#e3f7f4] border border-[#0d9488] rounded-[9px] px-3.5 py-2.5 mb-4">
+              <div className="flex items-center justify-between bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-[9px] px-3.5 py-2.5 mb-4">
                 <span className="text-[13px] font-semibold text-ink-900">#{solicitudElegida.numero} — {solicitudElegida.tipoSolicitudNombre}</span>
                 <button onClick={() => setSolicitudElegida(null)} className="text-[11px] text-ink-400 font-medium">Cambiar</button>
               </div>
             ) : (
               <>
                 <input
-    value={busquedaSolicitud}
-    onChange={(e) => setBusquedaSolicitud(e.target.value)}
-    placeholder="Buscar por número, tipo o afiliado (o elige de la lista)..."
-    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 mb-2"
-  />
-  <div className="max-h-[220px] overflow-y-auto flex flex-col gap-1.5 mb-4">
-    {cargandoSolicitudes ? (
-      <p className="text-xs text-ink-400 text-center py-4">Cargando solicitudes...</p>
-    ) : resultadosSolicitud.length === 0 ? (
-      <p className="text-xs text-ink-400 text-center py-4">No hay solicitudes que coincidan.</p>
-    ) : (
-      resultadosSolicitud.map((s) => (
-        <button
-          key={s.id}
-          type="button"
-          onClick={() => setSolicitudElegida(s)}
-          className="w-full text-left bg-paper border border-line rounded-[9px] px-3.5 py-2.5 shrink-0"
-        >
-          <div className="text-[13px] font-semibold text-ink-900">#{s.numero} — {s.tipoSolicitudNombre}</div>
-          <div className="text-[11px] text-ink-400">{s.ciudadanoNombre ?? s.empresaNombre}</div>
-        </button>
-      ))
-    )}
-  </div>
+                  value={busquedaSolicitud}
+                  onChange={(e) => setBusquedaSolicitud(e.target.value)}
+                  placeholder="Buscar por número, tipo o afiliado (o elige de la lista)..."
+                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 mb-2"
+                />
+                <div className="max-h-[220px] overflow-y-auto flex flex-col gap-1.5 mb-4">
+                  {cargandoSolicitudes ? (
+                    <p className="text-xs text-ink-400 text-center py-4">Cargando solicitudes...</p>
+                  ) : resultadosSolicitud.length === 0 ? (
+                    <p className="text-xs text-ink-400 text-center py-4">No hay solicitudes que coincidan.</p>
+                  ) : (
+                    resultadosSolicitud.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSolicitudElegida(s)}
+                        className="w-full text-left bg-paper border border-line rounded-[9px] px-3.5 py-2.5 shrink-0"
+                      >
+                        <div className="text-[13px] font-semibold text-ink-900">#{s.numero} — {s.tipoSolicitudNombre}</div>
+                        <div className="text-[11px] text-ink-400">{s.ciudadanoNombre ?? s.empresaNombre}</div>
+                      </button>
+                    ))
+                  )}
+                </div>
               </>
             )}
 
@@ -324,7 +353,7 @@ const resultadosSolicitud = todasSolicitudes.filter((s) => {
               <button
                 onClick={handleSubir}
                 disabled={subiendo}
-                className="flex-1 py-2.5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 {subiendo ? 'Subiendo...' : 'Subir'}
               </button>

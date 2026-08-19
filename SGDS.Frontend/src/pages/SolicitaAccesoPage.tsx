@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { solicitarAcceso } from '../services/authService';
 import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
 import logoSgds from '../assets/logo-sgds.png';
+import SGDSBackground from '../components/SGDSBackground';
 
 export default function SolicitaAccesoPage() {
   const [proyectos, setProyectos] = useState<ProyectoResponseDto[]>([]);
@@ -62,8 +63,9 @@ export default function SolicitaAccesoPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper p-6">
-      <div className="w-full max-w-[980px] grid grid-cols-[0.75fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+  <SGDSBackground />
+      <div className="relative z-10 w-full max-w-[980px] grid grid-cols-[0.75fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
         {/* Panel izquierdo — marca */}
         <div className="relative flex flex-col justify-between px-9 py-11 text-white overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(79,139,255,0.20),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_60%,var(--color-navy-800))]">

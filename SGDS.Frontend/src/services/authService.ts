@@ -24,9 +24,8 @@ interface MensajeResponse {
 }
 
 export async function solicitarAcceso(dto: SolicitarAccesoDto): Promise<string> {
-  const { data } =await axios.post<MensajeResponse>(`${API_URL}/Auth/solicitar-acceso`, dto );
+  const { data } = await axios.post<MensajeResponse>(`${API_URL}/Auth/solicitar-acceso`, dto);
   return data.mensaje;
-  
 }
 
 interface JwtClaims {
@@ -72,4 +71,19 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     proyectos: parseProyectoClaim(decoded.proyecto),
     token: data.token,
   };
+}
+
+function authHeader() {
+  const saved = localStorage.getItem('sgds_auth_user');
+  const token = saved ? JSON.parse(saved).token : null;
+  return { Authorization: `Bearer ${token}` };
+}
+
+export interface CambiarPasswordDto {
+  contrasenaActual: string;
+  contrasenaNueva: string;
+}
+
+export async function cambiarPassword(dto: CambiarPasswordDto): Promise<void> {
+  await axios.put(`${API_URL}/Auth/cambiar-password`, dto, { headers: authHeader() });
 }

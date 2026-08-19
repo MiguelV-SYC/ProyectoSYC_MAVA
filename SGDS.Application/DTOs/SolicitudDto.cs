@@ -17,6 +17,7 @@ public class SolicitudResponseDto
     public DateTime FechaUltimoCambioEstado { get; set; }
     public string? CiudadanoDocumento { get; set; }
     public string? EmpresaNit { get; set; }
+    public string? ProyectoNombre { get; set; }
 }
 
 public class CrearSolicitudDto

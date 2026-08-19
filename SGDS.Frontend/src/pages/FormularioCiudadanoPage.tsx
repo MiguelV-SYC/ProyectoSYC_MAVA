@@ -8,6 +8,7 @@ import {
   getCiudadanoDetalle,
   type BusquedaDocumentoResponse,
 } from '../services/ciudadanoService';
+import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
 
 const TIPOS_DOCUMENTO = [
   { value: 'CC', label: 'Cédula de ciudadanía' },
@@ -111,8 +112,13 @@ export default function FormularioCiudadanoPage() {
     }
   }
 
+  const color = useColorProyectoActivo();
+
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="ciudadanos" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[820px]">
@@ -271,7 +277,7 @@ export default function FormularioCiudadanoPage() {
                 <button
                   type="submit"
                   disabled={guardando || (duplicado?.existe ?? false)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
                 >
                   {guardando ? 'Guardando...' : 'Guardar ciudadano'}
                   {!guardando && (

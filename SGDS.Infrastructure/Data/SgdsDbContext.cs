@@ -56,16 +56,29 @@ private void RegistrarAuditoria()
         };
 
         var nombreEntidad = entrada.Entity.GetType().Name;
+        var proyectoId = ObtenerProyectoId(entrada.Entity);
 
         Auditorias.Add(new Auditoria
         {
             UsuarioId = usuarioId,
+            ProyectoId = proyectoId,
             Accion = $"{accion} {nombreEntidad}",
             Modulo = nombreEntidad,
             FechaHora = DateTime.UtcNow,
             DireccionIp = direccionIp
         });
     }
+}
+
+private static int? ObtenerProyectoId(object entidad)
+{
+    if (entidad is Solicitud solicitud)
+        return solicitud.ProyectoId;
+
+    if (entidad is TipoSolicitud tipoSolicitud)
+        return tipoSolicitud.ProyectoId;
+
+    return null;
 }
 
 
@@ -83,7 +96,7 @@ private void RegistrarAuditoria()
     public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
     public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
-
+    public DbSet<Reporte> Reportes => Set<Reporte>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -114,6 +127,7 @@ private void RegistrarAuditoria()
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
         modelBuilder.Entity<SolicitudAcceso>().ToTable("solicitud_acceso");
         modelBuilder.Entity<SolicitudAccesoProyecto>().ToTable("solicitud_acceso_proyecto");
+        modelBuilder.Entity<Reporte>().ToTable("reportes");
 
 
     }

@@ -10,6 +10,7 @@ import { getProyectosActivos, type ProyectoResponseDto } from '../services/proye
 import { getCiudadanos, getCiudadanoDetalle, type CiudadanoResponseDto } from '../services/ciudadanoService';
 import { getEmpresas, getEmpresaDetalle, type EmpresaResponseDto } from '../services/empresaService';
 import { CAMPOS_POR_TIPO, CAMPO_FALLBACK } from '../config/camposPorTipoSolicitud';
+import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -110,6 +111,7 @@ export default function NuevaSolicitudPage() {
   const campos = tipoSeleccionado ? CAMPOS_POR_TIPO[tipoSeleccionado.nombre] : undefined;
   const afiliadoResueltoPorUrl = Boolean(ciudadanoIdUrl || empresaIdUrl);
   const volverAActual = `/solicitudes/nueva?proyectoId=${proyectoId}`;
+  const color = getColorProyecto(proyecto?.nombre);
 
   async function handleSubmit() {
     setError(null);
@@ -142,7 +144,10 @@ export default function NuevaSolicitudPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div
+      className="flex min-h-screen bg-paper"
+      style={{ '--color-accento': color.primario, '--color-accento-claro': color.primarioClaro } as React.CSSProperties}
+    >
       <Sidebar active="solicitudes" />
 
       <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[900px]">
@@ -170,7 +175,7 @@ export default function NuevaSolicitudPage() {
                 type="button"
                 onClick={() => { setTipoSeleccionado(t); setDatosTramite({}); }}
                 className={`flex items-center gap-2.5 border-[1.5px] rounded-xl px-4 py-3.5 text-[13px] font-semibold text-left ${
-                  tipoSeleccionado?.id === t.id ? 'border-[#0d9488] bg-[#e3f7f4] text-[#0d9488]' : 'border-line text-ink-900'
+                  tipoSeleccionado?.id === t.id ? 'border-[var(--color-accento)] bg-[var(--color-accento-claro)] text-[var(--color-accento)]' : 'border-line text-ink-900'
                 }`}
               >
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[18px] h-[18px] stroke-current shrink-0">
@@ -186,8 +191,8 @@ export default function NuevaSolicitudPage() {
           <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">2. Afiliado</h3>
 
           {afiliadoResueltoPorUrl ? (
-            <div className="flex items-center gap-3 bg-[#e3f7f4] border border-[#0d9488] rounded-xl px-3.5 py-3">
-              <div className="w-8 h-8 rounded-lg bg-[#0d9488] text-white flex items-center justify-center text-xs font-bold shrink-0">
+            <div className="flex items-center gap-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-xl px-3.5 py-3">
+              <div className="w-8 h-8 rounded-lg bg-[var(--color-accento)] text-white flex items-center justify-center text-xs font-bold shrink-0">
                 {(ciudadanoSeleccionado?.nombreCompleto ?? empresaSeleccionada?.razonSocial ?? '')
                   .split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()}
               </div>
@@ -246,7 +251,7 @@ export default function NuevaSolicitudPage() {
                       type="button"
                       onClick={() => setCiudadanoSeleccionado(c)}
                       className={`w-full flex items-center gap-3 rounded-xl px-3.5 py-3 mb-1.5 text-left ${
-                        ciudadanoSeleccionado?.id === c.id ? 'bg-[#e3f7f4] border border-[#0d9488]' : 'bg-paper border border-line'
+                        ciudadanoSeleccionado?.id === c.id ? 'bg-[var(--color-accento-claro)] border border-[var(--color-accento)]' : 'bg-paper border border-line'
                       }`}
                     >
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
@@ -257,7 +262,7 @@ export default function NuevaSolicitudPage() {
                         <div className="text-[11px] text-ink-400">CC {c.numeroDocumento}</div>
                       </div>
                       {ciudadanoSeleccionado?.id === c.id && (
-                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" className="w-4 h-4 stroke-[#0d9488]">
+                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" className="w-4 h-4 stroke-[var(--color-accento)]">
                           <path d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -269,7 +274,7 @@ export default function NuevaSolicitudPage() {
                       type="button"
                       onClick={() => setEmpresaSeleccionada(e)}
                       className={`w-full flex items-center gap-3 rounded-xl px-3.5 py-3 mb-1.5 text-left ${
-                        empresaSeleccionada?.id === e.id ? 'bg-[#e3f7f4] border border-[#0d9488]' : 'bg-paper border border-line'
+                        empresaSeleccionada?.id === e.id ? 'bg-[var(--color-accento-claro)] border border-[var(--color-accento)]' : 'bg-paper border border-line'
                       }`}
                     >
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
@@ -280,7 +285,7 @@ export default function NuevaSolicitudPage() {
                         <div className="text-[11px] text-ink-400">NIT {e.nit}-{e.digitoVerificacion}</div>
                       </div>
                       {empresaSeleccionada?.id === e.id && (
-                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" className="w-4 h-4 stroke-[#0d9488]">
+                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" className="w-4 h-4 stroke-[var(--color-accento)]">
                           <path d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -323,7 +328,7 @@ export default function NuevaSolicitudPage() {
                     </select>
                   ) : (
                     <input
-                      type={c.tipo === 'numero' ? 'number' : 'text'}
+                      type={c.tipo === 'numero' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text'}
                       value={datosTramite[c.key] ?? ''}
                       onChange={(e) => setDatosTramite((d) => ({ ...d, [c.key]: e.target.value }))}
                       placeholder={c.placeholder}
@@ -366,7 +371,7 @@ export default function NuevaSolicitudPage() {
             type="button"
             onClick={handleSubmit}
             disabled={guardando}
-            className="flex items-center gap-1.5 py-2.5 px-5 rounded-[9px] bg-[#0d9488] text-white text-sm font-semibold disabled:opacity-60"
+            className="flex items-center gap-1.5 py-2.5 px-5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
           >
             {guardando ? 'Radicando...' : 'Radicar solicitud'}
             {!guardando && (

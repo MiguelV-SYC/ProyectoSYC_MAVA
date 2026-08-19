@@ -19,6 +19,10 @@ import NuevaSolicitudPage from './pages/NuevaSolicitudPage';
 import DetalleSolicitudPage from './pages/DetalleSolicitudPage';
 import WorkflowKanbanPage from './pages/WorkFlowKanbanPage';
 import DocumentosPage from './pages/DocumentosPage';
+import ReportesPage from './pages/ReportesPage';
+import MiPerfilPage from './pages/MiPerfilPage';
+import AuditoriaPage from './pages/AuditoriaPage';
+import ProyectoWorkspacePage from './pages/ProyectoWorkspacePage';
 
 function App() {
   const { user } = useAuth();
@@ -70,11 +74,7 @@ function App() {
         element={user ? <CiudadanosListPage /> : <Navigate to="/login" replace />} 
       />
 
-      <Route 
-        path="*" 
-        element={<Navigate to={user ? '/dashboard' : '/login'} replace />} 
-      />
-
+      
       <Route
         path="/ciudadanos/:id"
         element={user ? <FichaCiudadanoPage /> : <Navigate to="/login" replace />}
@@ -135,7 +135,33 @@ function App() {
         element={user ? <DocumentosPage /> : <Navigate to="/login" replace />} 
       />
 
-    </Routes>
+      <Route
+        path="/reportes"
+        element={user ? <ReportesPage /> : <Navigate to="/login" replace />}
+      />
+      <Route 
+        path="/mi-perfil" 
+        element={user ? <MiPerfilPage /> : <Navigate to="/login" replace />} 
+      />
+
+      <Route 
+        path="/auditoria" 
+        element={user?.esAdminSyc ? <AuditoriaPage /> : <Navigate to="/dashboard" replace />} 
+      />
+
+      <Route
+        path="/proyectos/:proyectoId" 
+        element={user?.esAdminSyc ? <ProyectoWorkspacePage /> : <Navigate to="/dashboard" replace />} 
+      />
+      
+      <Route 
+        path="*" 
+        element={<Navigate to={user ? '/dashboard' : '/login'} replace />} 
+      />
+
+
+
+      </Routes>
     
   );
 }

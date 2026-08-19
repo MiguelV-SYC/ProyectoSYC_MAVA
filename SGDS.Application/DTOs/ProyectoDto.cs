@@ -10,6 +10,7 @@ public class ProyectoResponseDto
     public string? EstadoPersonalizado { get; set; }
     public int TotalTiposSolicitud { get; set; }
     public int TotalOperadores { get; set; }
+    public int TotalSolicitudes { get; set; }
 }
 
 public class CrearProyectoDto
@@ -49,4 +50,11 @@ public class OperadorProyectoDto
     public int UsuarioId { get; set; }
     public string NombreCompleto { get; set; } = string.Empty;
     public string RolNombre { get; set; } = string.Empty;
+}
+
+public class ProyectoResumenDto
+{
+    public double? TiempoPromedioResolucion { get; set; }
+    public int RadicadasHoy { get; set; }
+    public int AprobadasEsteMes { get; set; }
 }

@@ -9,6 +9,8 @@ public class DocumentoResponseDto
     public long? TamanoBytes { get; set; }
     public string? TipoArchivo { get; set; }
     public string Categoria { get; set; } = string.Empty;
+    public string? ProyectoNombre { get; set; }
+    
 }
 public class ConteoTipoArchivoDto
 {
