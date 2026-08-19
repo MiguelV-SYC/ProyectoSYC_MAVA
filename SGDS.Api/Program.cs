@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
 using SGDS.Application.Interfaces;
+using SGDS.Application.Helpers;
 using SGDS.Infrastructure.Services;
 using QuestPDF.Infrastructure;
 
@@ -69,6 +70,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.Configure<ConfiguracionEstampillas>(builder.Configuration.GetSection("Estampillas"));
 
 //adición de esta variable para enrutamiento para el almacenamiento de documentos.
 var rutaAlmacenamiento = Path.Combine(builder.Environment.ContentRootPath, "Almacenamiento");

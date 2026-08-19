@@ -27,6 +27,8 @@ import VehiculosListPage from './pages/VehiculosListPage';
 import FichaVehiculoPage from './pages/FichaVehiculoPage';
 import FormularioVehiculoPage from './pages/FormularioVehiculoPage';
 import PreliquidacionPage from './pages/PreliquidacionPage';
+import EditarSolicitudPage from './pages/EditarSolicitudPage';
+import PreliquidacionEstampillasPage from './pages/PreliquidacionEstampillasPage';
 
 function App() {
   const { user } = useAuth();
@@ -132,6 +134,16 @@ function App() {
       <Route
         path="/solicitudes/:id/preliquidacion"
         element={user ? <PreliquidacionPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/editar"
+        element={user ? <EditarSolicitudPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/preliquidacion-estampillas"
+        element={user ? <PreliquidacionEstampillasPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

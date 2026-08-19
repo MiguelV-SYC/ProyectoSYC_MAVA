@@ -12,6 +12,8 @@ import { getEmpresas, getEmpresaDetalle, type EmpresaResponseDto } from '../serv
 import { getVehiculos, getVehiculoDetalle, type VehiculoResponseDto } from '../services/vehiculoService';
 import { CAMPOS_POR_TIPO, CAMPO_FALLBACK } from '../config/camposPorTipoSolicitud';
 import { getColorProyecto } from '../config/colorPorProyecto';
+import { DATOS_CONTRATO_VACIOS, construirDatosAdicionalesEstampillas, type DatosContratoEstampillas } from '../config/estampillasConfig';
+import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -69,10 +71,14 @@ export default function NuevaSolicitudPage() {
   const [blindado, setBlindado] = useState(false);
   const [antiguoClasico, setAntiguoClasico] = useState(false);
 
+  // Datos específicos del trámite Estampillas — Datos del contrato
+  const [datosContrato, setDatosContrato] = useState<DatosContratoEstampillas>(DATOS_CONTRATO_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const esIUVA = proyecto?.nombre === 'IUVA';
+  const esEstampillas = proyecto?.nombre === 'Estampillas';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -225,6 +231,10 @@ export default function NuevaSolicitudPage() {
       setError('Ingresa el avalúo comercial del vehículo para continuar.');
       return;
     }
+    if (esEstampillas && !datosContrato.valorContratoBruto) {
+      setError('Ingresa el valor total del contrato para continuar.');
+      return;
+    }
 
     const datosAdicionales = esIUVA
       ? JSON.stringify({
@@ -237,9 +247,11 @@ export default function NuevaSolicitudPage() {
           blindado: blindado ? 'Sí' : 'No',
           antiguoClasico: antiguoClasico ? 'Sí' : 'No',
         })
-      : campos
-        ? JSON.stringify(datosTramite)
-        : JSON.stringify({ observaciones });
+      : esEstampillas
+        ? JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoSeleccionado.nombre))
+        : campos
+          ? JSON.stringify(datosTramite)
+          : JSON.stringify({ observaciones });
 
     setGuardando(true);
     try {
@@ -503,7 +515,9 @@ export default function NuevaSolicitudPage() {
           </div>
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
-            <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">2. Afiliado</h3>
+            <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
+              {esEstampillas ? '2. Contribuyente' : '2. Afiliado'}
+            </h3>
 
             {vehiculoVinculado && (
               <div className="flex items-center gap-3 bg-paper border border-line rounded-xl px-3.5 py-3 mb-3">
@@ -672,7 +686,14 @@ export default function NuevaSolicitudPage() {
           </div>
         )}
 
-        {!esIUVA && (
+        {esEstampillas && (
+          <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
+            <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos del contrato</h3>
+            <FormularioDatosContrato value={datosContrato} onChange={setDatosContrato} />
+          </div>
+        )}
+
+        {!esIUVA && !esEstampillas && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (

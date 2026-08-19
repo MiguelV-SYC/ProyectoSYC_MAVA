@@ -163,6 +163,7 @@ export interface SolicitudDetalleResponseDto {
   usuarioAsignadoNombre?: string;
   proyectoNombre?: string;
   proyectoId?: number;
+  tipoSolicitudId?: number;
   tipoSolicitudNombre?: string;
   estado: string;
   fechaCreacion: string;
@@ -182,6 +183,68 @@ export async function getSolicitudDetalle(id: number): Promise<SolicitudDetalleR
     headers: authHeader(),
   });
   return data;
+}
+
+export interface ActualizarSolicitudDto {
+  tipoSolicitudId?: number;
+  datosAdicionales?: string;
+}
+
+export async function actualizarSolicitud(id: number, dto: ActualizarSolicitudDto): Promise<void> {
+  await axios.put(`${API_URL}/Solicitudes/${id}`, dto, { headers: authHeader() });
+}
+
+export interface EstampillaItemResponseDto {
+  nombre: string;
+  aplica: boolean;
+  tarifa: number;
+  baseGravable: number;
+  valor: number;
+  motivo?: string;
+  distribucion?: Record<string, number>;
+}
+
+export interface LiquidacionEstampillasResponseDto {
+  numero: string;
+  contribuyenteNombre: string;
+  contribuyenteDocumento: string;
+  hechoGenerador?: string;
+  objetoContrato?: string;
+  fechaSuscripcion?: string;
+  valorContrato: number;
+  baseGravable: number;
+  items: EstampillaItemResponseDto[];
+  total: number;
+}
+
+export async function getLiquidacionEstampillas(id: number): Promise<LiquidacionEstampillasResponseDto> {
+  const { data } = await axios.get<LiquidacionEstampillasResponseDto>(`${API_URL}/Solicitudes/${id}/preliquidacion-estampillas`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function obtenerPreliquidacionEstampillasQrBlobUrl(id: number): Promise<string> {
+  const response = await axios.get(`${API_URL}/Solicitudes/${id}/preliquidacion-estampillas-qr.png`, {
+    headers: authHeader(),
+    responseType: 'blob',
+  });
+  return window.URL.createObjectURL(new Blob([response.data]));
+}
+
+export async function descargarPreliquidacionEstampillasPdf(id: number, nombreArchivo: string): Promise<void> {
+  const response = await axios.get(`${API_URL}/Solicitudes/${id}/preliquidacion-estampillas-pdf`, {
+    headers: authHeader(),
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', nombreArchivo);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 export async function obtenerPreliquidacionQrBlobUrl(id: number): Promise<string> {

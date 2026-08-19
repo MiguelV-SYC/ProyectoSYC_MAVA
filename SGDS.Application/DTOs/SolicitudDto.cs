@@ -109,6 +109,7 @@ public class SolicitudDetalleResponseDto
     public string? UsuarioAsignadoNombre { get; set; }
     public string? ProyectoNombre { get; set; }
     public int? ProyectoId { get; set; }
+    public int? TipoSolicitudId { get; set; }
     public string? TipoSolicitudNombre { get; set; }
     public string Estado { get; set; } = string.Empty;
     public DateTime FechaCreacion { get; set; }

@@ -5,6 +5,8 @@ using SGDS.Application.DTOs;
 using SGDS.Domain.Entities;
 using SGDS.Infrastructure.Data;
 using SGDS.Application.Interfaces;
+using SGDS.Application.Helpers;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -20,11 +22,13 @@ public class SolicitudesController : ControllerBase
 {
     private readonly SgdsDbContext _context;
 private readonly IAlmacenamientoService _almacenamiento;
+private readonly ConfiguracionEstampillas _configEstampillas;
 
-public SolicitudesController(SgdsDbContext context, IAlmacenamientoService almacenamiento)
+public SolicitudesController(SgdsDbContext context, IAlmacenamientoService almacenamiento, IOptions<ConfiguracionEstampillas> configEstampillas)
 {
     _context = context;
     _almacenamiento = almacenamiento;
+    _configEstampillas = configEstampillas.Value;
 }
 
     // GET: api/Solicitudes
@@ -129,6 +133,7 @@ public async Task<IActionResult> GetSolicitud(int id)
         UsuarioAsignadoNombre = solicitud.UsuarioAsignado?.NombreCompleto,
         ProyectoNombre = solicitud.Proyecto?.Nombre,
         ProyectoId = solicitud.ProyectoId,
+        TipoSolicitudId = solicitud.TipoSolicitudId,
         TipoSolicitudNombre = solicitud.TipoSolicitud?.Nombre,
         Estado = solicitud.Estado,
         FechaCreacion = solicitud.FechaCreacion,
@@ -456,7 +461,35 @@ public async Task<IActionResult> GetListadoSolicitudes(
         return CreatedAtAction(nameof(GetSolicitud), new { id = nuevaSolicitud.Id }, new { nuevaSolicitud.Id });
     }
 
-//Inicio metodo post para cargue de documentos 
+    // PUT: api/Solicitudes/5
+    [HttpPut("{id}")]
+    public async Task<IActionResult> ActualizarSolicitud(int id, ActualizarSolicitudDto dto)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var solicitud = await _context.Solicitudes.FindAsync(id);
+
+        if (solicitud == null)
+            return NotFound();
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+            return NotFound();
+
+        if (dto.TipoSolicitudId.HasValue)
+        {
+            solicitud.TipoSolicitudId = dto.TipoSolicitudId.Value;
+        }
+        solicitud.DatosAdicionales = dto.DatosAdicionales;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+//Inicio metodo post para cargue de documentos
     [HttpPost("{id}/documentos")]
 public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
 {
@@ -776,6 +809,193 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
 
                     col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
                     col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
+                });
+
+                pagina.Footer().AlignCenter().Text(texto =>
+                {
+                    texto.Span("Generado el ");
+                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
+                });
+            });
+        });
+
+        return documento.GeneratePdf();
+    }
+
+    // ===== Estampillas (Departamento de Santander) =====
+
+    // GET: api/Solicitudes/5/preliquidacion-estampillas
+    [HttpGet("{id}/preliquidacion-estampillas")]
+    public async Task<IActionResult> GetPreliquidacionEstampillas(int id)
+    {
+        var (error, _, dto) = await CalcularLiquidacionEstampillasAsync(id);
+        return error ?? Ok(dto);
+    }
+
+    // GET: api/Solicitudes/5/preliquidacion-estampillas-pdf
+    [HttpGet("{id}/preliquidacion-estampillas-pdf")]
+    public async Task<IActionResult> GetPreliquidacionEstampillasPdf(int id)
+    {
+        var (error, _, dto) = await CalcularLiquidacionEstampillasAsync(id);
+        if (error != null) return error;
+
+        var qrBytes = GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
+        var pdfBytes = GenerarEstampillasPdf(dto, qrBytes);
+        return File(pdfBytes, "application/pdf", $"Liquidacion_Estampillas_{dto.Numero}.pdf");
+    }
+
+    // GET: api/Solicitudes/5/preliquidacion-estampillas-qr.png
+    [HttpGet("{id}/preliquidacion-estampillas-qr.png")]
+    public async Task<IActionResult> GetPreliquidacionEstampillasQr(int id)
+    {
+        var (error, _, dto) = await CalcularLiquidacionEstampillasAsync(id);
+        if (error != null) return error;
+
+        var qrBytes = GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
+        return File(qrBytes, "image/png");
+    }
+
+    private async Task<(IActionResult? Error, Solicitud? Solicitud, LiquidacionEstampillasResponseDto? Dto)> CalcularLiquidacionEstampillasAsync(int id)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var solicitud = await _context.Solicitudes
+            .Include(s => s.Ciudadano)
+            .Include(s => s.Empresa)
+            .Include(s => s.Proyecto)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (solicitud == null)
+            return (NotFound(), null, null);
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
+            return (NotFound(), null, null);
+
+        var datos = LeerDatosAdicionales(solicitud.DatosAdicionales);
+        decimal LeerNumero(string clave) => decimal.TryParse(datos.GetValueOrDefault(clave), out var v) ? v : 0m;
+
+        var entrada = new CalculadoraEstampillas.Entrada(
+            ValorContratoBruto: LeerNumero("valorContratoBruto"),
+            IncluyeIva: datos.GetValueOrDefault("incluyeIva") == "Sí",
+            TarifaIva: LeerNumero("tarifaIva"),
+            TipoEntidad: datos.GetValueOrDefault("tipoEntidad", string.Empty),
+            RegimenContratista: datos.GetValueOrDefault("regimenContratista", string.Empty),
+            TipoContrato: datos.GetValueOrDefault("tipoContrato", string.Empty),
+            FuenteRecursos: datos.GetValueOrDefault("fuenteRecursos", string.Empty),
+            Municipio: datos.GetValueOrDefault("municipio", string.Empty)
+        );
+
+        CalculadoraEstampillas.Resultado resultado;
+        try
+        {
+            resultado = CalculadoraEstampillas.Calcular(entrada, _configEstampillas);
+        }
+        catch (ArgumentException ex)
+        {
+            return (BadRequest(new { mensaje = ex.Message }), null, null);
+        }
+
+        var numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString();
+
+        var dto = new LiquidacionEstampillasResponseDto
+        {
+            Numero = numero,
+            ContribuyenteNombre = solicitud.Ciudadano?.NombreCompleto ?? solicitud.Empresa?.RazonSocial ?? "—",
+            ContribuyenteDocumento = solicitud.Ciudadano != null
+                ? $"{solicitud.Ciudadano.TipoDocumento} {solicitud.Ciudadano.NumeroDocumento}"
+                : solicitud.Empresa?.Nit ?? "—",
+            HechoGenerador = datos.GetValueOrDefault("hechoGenerador"),
+            ObjetoContrato = datos.GetValueOrDefault("objetoContrato"),
+            FechaSuscripcion = datos.GetValueOrDefault("fechaSuscripcion"),
+            ValorContrato = entrada.ValorContratoBruto,
+            BaseGravable = resultado.BaseGravable,
+            Items = resultado.Items.Select(i => new EstampillaItemResponseDto
+            {
+                Nombre = i.Nombre,
+                Aplica = i.Aplica,
+                Tarifa = i.Tarifa,
+                BaseGravable = i.BaseGravable,
+                Valor = i.Valor,
+                Motivo = i.Motivo,
+                Distribucion = i.Distribucion
+            }).ToList(),
+            Total = resultado.Total
+        };
+
+        return (null, solicitud, dto);
+    }
+
+    private static string ContenidoQrEstampillas(string numero, decimal total) =>
+        $"SGDS-ESTAMPILLAS|{numero}|Total:{total:0}";
+
+    private byte[] GenerarEstampillasPdf(LiquidacionEstampillasResponseDto dto, byte[] qrBytes)
+    {
+        string Moneda(decimal v) => v.ToString("C0", new System.Globalization.CultureInfo("es-CO"));
+
+        var documento = Document.Create(contenedor =>
+        {
+            contenedor.Page(pagina =>
+            {
+                pagina.Size(PageSizes.A4);
+                pagina.Margin(30);
+                pagina.DefaultTextStyle(x => x.FontSize(10));
+
+                pagina.Header().Column(col =>
+                {
+                    col.Item().Text("Secretaría de Hacienda Departamental — Unidad de Rentas").FontSize(11);
+                    col.Item().Text("Liquidación de Estampillas Departamentales").FontSize(16).Bold();
+                    col.Item().PaddingTop(4).Text($"Referencia: {dto.Numero}").FontSize(10).Bold();
+                });
+
+                pagina.Content().PaddingTop(15).Column(col =>
+                {
+                    col.Spacing(12);
+
+                    col.Item().Text("Contribuyente").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
+                        t.Cell().Text("Nombre / Razón social"); t.Cell().Text(dto.ContribuyenteNombre);
+                        t.Cell().Text("Documento / NIT"); t.Cell().Text(dto.ContribuyenteDocumento);
+                    });
+
+                    col.Item().Text("Contrato").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
+                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
+                        Fila("Hecho generador", dto.HechoGenerador ?? "—");
+                        Fila("Objeto", dto.ObjetoContrato ?? "—");
+                        Fila("Fecha de suscripción", dto.FechaSuscripcion ?? "—");
+                        Fila("Valor del contrato", Moneda(dto.ValorContrato));
+                        Fila("Base gravable", Moneda(dto.BaseGravable));
+                    });
+
+                    col.Item().Text("Liquidación — Estampillas Departamentales (Santander)").Bold();
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(); c.RelativeColumn(); });
+                        t.Cell().Text("Estampilla").Bold(); t.Cell().Text("Tarifa").Bold(); t.Cell().Text("Valor").Bold();
+                        foreach (var item in dto.Items.Where(i => i.Aplica))
+                        {
+                            t.Cell().Text(item.Nombre);
+                            t.Cell().Text($"{item.Tarifa * 100:0.0}%");
+                            t.Cell().Text(Moneda(item.Valor));
+                        }
+                    });
+
+                    col.Item().PaddingTop(4).AlignRight().Text($"Total a pagar: {Moneda(dto.Total)}").FontSize(14).Bold();
+
+                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
+                    col.Item().AlignCenter().Text(dto.Numero).FontSize(8);
+
+                    col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
+                    col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
+
+                    col.Item().PaddingTop(10).Text("Tarifas de referencia — deben validarse contra el Estatuto de Rentas del Departamento de Santander vigente. No se aplica ningún recargo adicional sobre el total (Ordenanza 012/2005 anulada judicialmente).").FontSize(8).Italic();
                 });
 
                 pagina.Footer().AlignCenter().Text(texto =>

@@ -115,6 +115,13 @@ private static int? ObtenerProyectoId(object entidad)
         modelBuilder.Entity<Usuario>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<Vehiculo>().HasIndex(v => v.Placa).IsUnique();
 
+        // Catálogo de tipos de solicitud del proyecto Estampillas (id 10 en la BD real).
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 16, ProyectoId = 10, Nombre = "Contrato", Activo = true },
+            new TipoSolicitud { Id = 17, ProyectoId = 10, Nombre = "Convenio", Activo = true },
+            new TipoSolicitud { Id = 18, ProyectoId = 10, Nombre = "Acto sin cuantía", Activo = true }
+        );
+
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
 
