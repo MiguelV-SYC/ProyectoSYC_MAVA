@@ -4,6 +4,7 @@ import Sidebar from '../components/layout/Sidebar';
 import {
   getTornaguia,
   expedirTornaguia,
+  legalizarTornaguia,
   descargarTornaguiaPdf,
   obtenerTornaguiaQrBlobUrl,
   type TornaguiaResponseDto,
@@ -34,6 +35,7 @@ export default function TornaguiaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expidiendo, setExpidiendo] = useState(false);
+  const [legalizando, setLegalizando] = useState(false);
   const [exportando, setExportando] = useState(false);
 
   function cargar() {
@@ -72,6 +74,20 @@ export default function TornaguiaPage() {
       setError(err?.response?.data?.mensaje ?? 'No se pudo expedir la tornaguía.');
     } finally {
       setExpidiendo(false);
+    }
+  }
+
+  async function handleLegalizar() {
+    if (!id) return;
+    setLegalizando(true);
+    setError(null);
+    try {
+      await legalizarTornaguia(Number(id));
+      cargar();
+    } catch (err: any) {
+      setError(err?.response?.data?.mensaje ?? 'No se pudo legalizar la tornaguía.');
+    } finally {
+      setLegalizando(false);
     }
   }
 
@@ -263,6 +279,15 @@ export default function TornaguiaPage() {
                   <p className="text-[11.5px] text-ink-600 mb-4">
                     {tornaguia.tipoTramite === 'Tránsito' ? '10 días calendario' : '15 días calendario'} para legalización (Decreto 3071 de 1997).
                   </p>
+                  {tornaguia.estado === 'Expedida' && (
+                    <button
+                      onClick={handleLegalizar}
+                      disabled={legalizando}
+                      className="mb-4 flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60 mx-auto"
+                    >
+                      {legalizando ? 'Legalizando...' : 'Legalizar tornaguía'}
+                    </button>
+                  )}
                   {qrUrl ? (
                     <img src={qrUrl} alt="Código QR de la tornaguía" className="w-[160px] h-[160px] mx-auto" />
                   ) : (

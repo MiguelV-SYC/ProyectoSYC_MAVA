@@ -170,6 +170,15 @@ export default function WorkflowKanbanPage() {
   );
 }
 
+  if (!proyecto) {
+  return (
+    <div className="flex h-screen bg-paper">
+      <Sidebar active="workflow" />
+      <main className="flex-1 flex items-center justify-center text-sm text-ink-400">Cargando...</main>
+    </div>
+  );
+}
+
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
 
   const tiposDisponibles = [

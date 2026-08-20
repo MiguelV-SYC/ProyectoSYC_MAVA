@@ -13,6 +13,7 @@ import SelectorProyecto from '../components/shared/SelectorProyecto';
 import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada'];
+const ESTADOS_INFOCONSUMO = ['Elaborada', 'Expedida', 'Legalizada', 'Vencida'];
 
 function formatearFechaHora(iso: string) {
   const fecha = new Date(iso);
@@ -58,7 +59,11 @@ export default function ReportesPage() {
 
   useEffect(() => {
     if (!proyectoId) return;
-    getProyectosActivos().then((lista) => setProyecto(lista.find((p) => p.id === proyectoId) ?? null));
+    getProyectosActivos().then((lista) => {
+      const p = lista.find((x) => x.id === proyectoId) ?? null;
+      setProyecto(p);
+      setEstadosMarcados(new Set(p?.nombre === 'Infoconsumo' ? ESTADOS_INFOCONSUMO : ESTADOS));
+    });
     getTiposSolicitudPorProyecto(proyectoId).then(setTipos);
     getReportesRecientes(proyectoId).then(setRecientes).catch(() => setRecientes([]));
   }, [proyectoId]);
@@ -87,6 +92,8 @@ export default function ReportesPage() {
   }
 
   const rangoDias = Math.max(0, Math.round((new Date(hasta).getTime() - new Date(desde).getTime()) / 86400000));
+  const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
+  const estadosDisponibles = esInfoconsumo ? ESTADOS_INFOCONSUMO : ESTADOS;
   const color = getColorProyecto(proyecto?.nombre);
 
   async function handleGenerar() {
@@ -123,6 +130,15 @@ export default function ReportesPage() {
           onElegir={(id) => navigate(`/reportes?proyectoId=${id}`)}
         />
       </main>
+    </div>
+   );
+  }
+
+  if (!proyecto) {
+   return (
+    <div className="flex h-screen bg-paper">
+      <Sidebar active="reportes" />
+      <main className="flex-1 flex items-center justify-center text-sm text-ink-400">Cargando...</main>
     </div>
    );
   }
@@ -181,7 +197,7 @@ export default function ReportesPage() {
 
               <label className="block text-xs font-semibold text-ink-900 mb-2">Estados a incluir</label>
               <div className="grid grid-cols-2 gap-2.5">
-                {ESTADOS.map((estado) => (
+                {estadosDisponibles.map((estado) => (
                   <label
                     key={estado}
                     className="flex items-center gap-2.5 border border-line rounded-[9px] px-3.5 py-2.5 cursor-pointer"

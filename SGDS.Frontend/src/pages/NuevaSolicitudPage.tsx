@@ -17,6 +17,9 @@ import FormularioDatosContrato from '../components/estampillas/FormularioDatosCo
 import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
+import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
+import MapaRuta from '../components/infoconsumo/MapaRuta';
+import { CAPITALES_COLOMBIA } from '../config/geografiaColombia';
 import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
@@ -50,6 +53,9 @@ export default function NuevaSolicitudPage() {
   const [proyecto, setProyecto] = useState<ProyectoResponseDto | null>(null);
   const [tipos, setTipos] = useState<TipoSolicitudDto[]>([]);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoSolicitudDto | null>(null);
+  // Infoconsumo: mientras el usuario no elija el tipo de trámite a mano, se autosugiere
+  // según origen/destino (mismo departamento -> Tránsito local, distinto -> Movilización).
+  const [tipoTornaguiaManual, setTipoTornaguiaManual] = useState(false);
 
   const [tipoAfiliado, setTipoAfiliado] = useState<TipoAfiliado>('ciudadano');
   const [busquedaAfiliado, setBusquedaAfiliado] = useState('');
@@ -96,6 +102,17 @@ export default function NuevaSolicitudPage() {
       if (lista.length > 0) setTipoSeleccionado(lista[0]);
     });
   }, [proyectoId]);
+
+  useEffect(() => {
+    if (!esInfoconsumo || tipoTornaguiaManual) return;
+    const { departamentoOrigen, departamentoDestino } = datosTornaguia;
+    if (!departamentoOrigen || !departamentoDestino) return;
+    const nombreSugerido = departamentoOrigen === departamentoDestino ? 'Tránsito local' : 'Movilización';
+    const sugerido = tipos.find((t) => t.nombre === nombreSugerido);
+    if (sugerido && sugerido.id !== tipoSeleccionado?.id) {
+      setTipoSeleccionado(sugerido);
+    }
+  }, [esInfoconsumo, tipoTornaguiaManual, tipos, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino]);
 
   // Infoconsumo: el afiliado siempre es una empresa (registrada en RUT/cámara de comercio).
   useEffect(() => {
@@ -229,6 +246,17 @@ export default function NuevaSolicitudPage() {
     : [];
   const volverAActual = `/solicitudes/nueva?proyectoId=${proyectoId}${vehiculoIdUrl ? `&vehiculoId=${vehiculoIdUrl}` : ''}`;
   const color = getColorProyecto(proyecto?.nombre);
+  const capitalOrigen = CAPITALES_COLOMBIA[datosTornaguia.departamentoOrigen];
+  const capitalDestino = CAPITALES_COLOMBIA[datosTornaguia.departamentoDestino];
+
+  if (proyectoId && !proyecto) {
+    return (
+      <div className="flex min-h-screen bg-paper">
+        <Sidebar active="solicitudes" />
+        <main className="flex-1 flex items-center justify-center text-sm text-ink-400">Cargando...</main>
+      </div>
+    );
+  }
 
   async function handleSubmit() {
     setError(null);
@@ -460,17 +488,28 @@ export default function NuevaSolicitudPage() {
         <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
           <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">1. Tipo de solicitud</h3>
           {esInfoconsumo && (
-            <SelectorTipoTransporte
-              value={datosTornaguia.tipoTransporte}
-              onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
-            />
+            <>
+              <SelectorTipoTransporte
+                value={datosTornaguia.tipoTransporte}
+                onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
+              />
+              <CamposOrigenDestino
+                value={datosTornaguia}
+                onChange={setDatosTornaguia}
+                errorCoherencia={
+                  tipoSeleccionado
+                    ? validarCoherenciaOrigenDestino(tipoSeleccionado.nombre, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
+                    : null
+                }
+              />
+            </>
           )}
           <div className="grid grid-cols-2 gap-3">
             {tipos.map((t) => (
               <button
                 key={t.id}
                 type="button"
-                onClick={() => { setTipoSeleccionado(t); setDatosTramite({}); }}
+                onClick={() => { setTipoSeleccionado(t); setDatosTramite({}); setTipoTornaguiaManual(true); }}
                 className={`flex items-center gap-2.5 border-[1.5px] rounded-xl px-4 py-3.5 text-[13px] font-semibold text-left ${
                   tipoSeleccionado?.id === t.id ? 'border-[var(--color-accento)] bg-[var(--color-accento-claro)] text-[var(--color-accento)]' : 'border-line text-ink-900'
                 }`}
@@ -482,6 +521,23 @@ export default function NuevaSolicitudPage() {
               </button>
             ))}
           </div>
+
+          {esInfoconsumo && capitalOrigen && capitalDestino && (
+            <div className="mt-4">
+              <label className="block text-xs font-semibold text-ink-900 mb-1.5">Vista previa de la ruta</label>
+              <MapaRuta
+                latOrigen={capitalOrigen.lat}
+                lngOrigen={capitalOrigen.lng}
+                latDestino={capitalDestino.lat}
+                lngDestino={capitalDestino.lng}
+                labelOrigen={`${datosTornaguia.municipioOrigen || datosTornaguia.departamentoOrigen}, ${datosTornaguia.departamentoOrigen}`}
+                labelDestino={`${datosTornaguia.municipioDestino || datosTornaguia.departamentoDestino}, ${datosTornaguia.departamentoDestino}`}
+                tipoTransporte={datosTornaguia.tipoTransporte}
+                color={color.primario}
+                alturaPx={220}
+              />
+            </div>
+          )}
         </div>
 
         {esIUVA ? (
@@ -759,15 +815,7 @@ export default function NuevaSolicitudPage() {
         )}
 
         {esInfoconsumo && (
-          <FormularioTornaguia
-            value={datosTornaguia}
-            onChange={setDatosTornaguia}
-            errorCoherencia={
-              tipoSeleccionado
-                ? validarCoherenciaOrigenDestino(tipoSeleccionado.nombre, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
-                : null
-            }
-          />
+          <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} />
         )}
 
         {!esIUVA && !esEstampillas && !esInfoconsumo && (

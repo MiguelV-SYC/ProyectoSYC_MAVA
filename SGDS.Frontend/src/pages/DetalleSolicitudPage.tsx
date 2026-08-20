@@ -23,6 +23,10 @@ const ESTADO_STYLE: Record<string, string> = {
   Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
   Finalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Elaborada: 'bg-[#f1f5f9] text-[#64748b]',
+  Expedida: 'bg-blue-100 text-blue-600',
+  Legalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Vencida: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 function formatearFechaHora(iso?: string) {
@@ -146,6 +150,9 @@ export default function DetalleSolicitudPage() {
   }
 
   const color = getColorProyecto(solicitud.proyectoNombre);
+  // Infoconsumo: el estado "Vencida" nunca se persiste (se deriva de la vigencia de la
+  // tornaguía) — se muestra el efectivo que ya calcula el backend en getTornaguia.
+  const estadoMostrado = solicitud.proyectoNombre === 'Infoconsumo' && tornaguiaInfo ? tornaguiaInfo.estado : solicitud.estado;
 
   return (
     <div
@@ -274,9 +281,9 @@ export default function DetalleSolicitudPage() {
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Estado actual</div>
-                  <span className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-[10px] py-[5px] rounded-full ${ESTADO_STYLE[solicitud.estado] ?? 'bg-paper text-ink-600'}`}>
+                  <span className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-[10px] py-[5px] rounded-full ${ESTADO_STYLE[estadoMostrado] ?? 'bg-paper text-ink-600'}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                    {solicitud.estado}
+                    {estadoMostrado}
                   </span>
                 </div>
                 <div>

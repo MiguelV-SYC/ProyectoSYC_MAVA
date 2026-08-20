@@ -39,6 +39,7 @@ public class ReportesController : ControllerBase
             .Include(s => s.Proyecto)
             .Include(s => s.TipoSolicitud)
             .Include(s => s.UsuarioAsignado)
+            .Include(s => s.TornaguiaInfoconsumo)
             .AsQueryable();
 
         if (!esAdminSyc)
@@ -70,10 +71,26 @@ public class ReportesController : ControllerBase
 
         if (dto.EstadosIncluidos != null && dto.EstadosIncluidos.Count > 0)
         {
-            query = query.Where(s => dto.EstadosIncluidos.Contains(s.Estado));
+            // "Vencida" (Infoconsumo) nunca se persiste en Estado — se deriva de la vigencia
+            // de la tornaguía, igual que EstadoEfectivo en InfoconsumoController.
+            var estadosLiterales = dto.EstadosIncluidos.Where(e => e != "Vencida").ToList();
+            var incluyeVencida = dto.EstadosIncluidos.Contains("Vencida");
+            var ahora = DateTime.UtcNow;
+            query = query.Where(s =>
+                estadosLiterales.Contains(s.Estado) ||
+                (incluyeVencida && s.Estado == "Expedida" && s.TornaguiaInfoconsumo != null
+                    && s.TornaguiaInfoconsumo.FechaVigenciaLimite != null && s.TornaguiaInfoconsumo.FechaVigenciaLimite < ahora));
         }
 
         return await query.OrderByDescending(s => s.FechaCreacion).ToListAsync();
+    }
+
+    private static string EstadoEfectivoReporte(Solicitud s)
+    {
+        var t = s.TornaguiaInfoconsumo;
+        if (s.Estado == "Expedida" && t?.FechaVigenciaLimite != null && t.FechaVigenciaLimite < DateTime.UtcNow)
+            return "Vencida";
+        return s.Estado;
     }
 
     private byte[] GenerarExcel(List<Solicitud> solicitudes)
@@ -100,7 +117,7 @@ public class ReportesController : ControllerBase
             hoja.Cell(fila, 3).Value = s.TipoSolicitud?.Nombre ?? "";
             hoja.Cell(fila, 4).Value = nombreAfiliado;
             hoja.Cell(fila, 5).Value = documento;
-            hoja.Cell(fila, 6).Value = s.Estado;
+            hoja.Cell(fila, 6).Value = EstadoEfectivoReporte(s);
             hoja.Cell(fila, 7).Value = s.FechaCreacion.ToString("yyyy-MM-dd");
             hoja.Cell(fila, 8).Value = s.FechaCierre?.ToString("yyyy-MM-dd") ?? "";
             hoja.Cell(fila, 9).Value = s.UsuarioAsignado?.NombreCompleto ?? "Sin asignar";
@@ -158,7 +175,7 @@ public class ReportesController : ControllerBase
                         tabla.Cell().Text(numero);
                         tabla.Cell().Text(s.Proyecto?.Nombre ?? "");
                         tabla.Cell().Text(nombreAfiliado);
-                        tabla.Cell().Text(s.Estado);
+                        tabla.Cell().Text(EstadoEfectivoReporte(s));
                         tabla.Cell().Text(s.FechaCreacion.ToString("yyyy-MM-dd"));
                         tabla.Cell().Text(s.UsuarioAsignado?.NombreCompleto ?? "Sin asignar");
                     }

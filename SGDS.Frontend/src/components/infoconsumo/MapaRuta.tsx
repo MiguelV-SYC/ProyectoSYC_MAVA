@@ -61,9 +61,15 @@ export default function MapaRuta({
   const [rutaCarretera, setRutaCarretera] = useState<[number, number][] | null>(null);
   const [buscandoRuta, setBuscandoRuta] = useState(tipoTransporte === 'Terrestre');
 
+  // Tránsito local (origen y destino en el mismo departamento) resuelve ambos puntos a la
+  // misma capital, porque el mapa solo geocodifica a nivel de departamento, no de municipio
+  // (ver GeografiaColombia). Con coordenadas idénticas, bounds queda degenerado y OSRM no
+  // tiene nada que enrutar, así que se trata como caso aparte en vez de intentar dibujar ruta.
+  const mismoPunto = latOrigen === latDestino && lngOrigen === lngDestino;
+
   useEffect(() => {
     setRutaCarretera(null);
-    if (tipoTransporte !== 'Terrestre') {
+    if (tipoTransporte !== 'Terrestre' || mismoPunto) {
       setBuscandoRuta(false);
       return;
     }
@@ -75,7 +81,7 @@ export default function MapaRuta({
       setBuscandoRuta(false);
     });
     return () => { cancelado = true; };
-  }, [latOrigen, lngOrigen, latDestino, lngDestino, tipoTransporte]);
+  }, [latOrigen, lngOrigen, latDestino, lngDestino, tipoTransporte, mismoPunto]);
 
   const bounds: [[number, number], [number, number]] = [
     [latOrigen, lngOrigen],
@@ -88,29 +94,51 @@ export default function MapaRuta({
   return (
     <div>
       <div className="rounded-[14px] overflow-hidden border border-line" style={{ height: alturaPx }}>
-        <MapContainer
-          bounds={bounds}
-          boundsOptions={{ padding: [40, 40] }}
-          style={{ height: '100%', width: '100%' }}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Marker position={[latOrigen, lngOrigen]} icon={iconoMarcador}>
-            <Popup>Origen: {labelOrigen}</Popup>
-          </Marker>
-          <Marker position={[latDestino, lngDestino]} icon={iconoMarcador}>
-            <Popup>Destino: {labelDestino}</Popup>
-          </Marker>
-          <Polyline
-            positions={trazado}
-            pathOptions={esLineaRecta ? { color, weight: 3, dashArray: '6 6' } : { color, weight: 4 }}
-          />
-        </MapContainer>
+        {mismoPunto ? (
+          <MapContainer
+            center={[latOrigen, lngOrigen]}
+            zoom={12}
+            style={{ height: '100%', width: '100%' }}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[latOrigen, lngOrigen]} icon={iconoMarcador}>
+              <Popup>Origen: {labelOrigen}<br />Destino: {labelDestino}</Popup>
+            </Marker>
+          </MapContainer>
+        ) : (
+          <MapContainer
+            bounds={bounds}
+            boundsOptions={{ padding: [40, 40] }}
+            style={{ height: '100%', width: '100%' }}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[latOrigen, lngOrigen]} icon={iconoMarcador}>
+              <Popup>Origen: {labelOrigen}</Popup>
+            </Marker>
+            <Marker position={[latDestino, lngDestino]} icon={iconoMarcador}>
+              <Popup>Destino: {labelDestino}</Popup>
+            </Marker>
+            <Polyline
+              positions={trazado}
+              pathOptions={esLineaRecta ? { color, weight: 3, dashArray: '6 6' } : { color, weight: 4 }}
+            />
+          </MapContainer>
+        )}
       </div>
-      {tipoTransporte === 'Terrestre' && (
+      {mismoPunto && (
+        <p className="text-[10.5px] text-ink-400 mt-1.5">
+          Origen y destino están en el mismo departamento — el mapa solo ubica a nivel de capital departamental y no distingue municipios dentro del mismo departamento.
+        </p>
+      )}
+      {!mismoPunto && tipoTransporte === 'Terrestre' && (
         <p className="text-[10.5px] text-ink-400 mt-1.5">
           {buscandoRuta
             ? 'Calculando ruta por carretera...'
@@ -119,7 +147,7 @@ export default function MapaRuta({
               : 'No se pudo calcular la ruta por carretera — se muestra línea recta aproximada.'}
         </p>
       )}
-      {tipoTransporte !== 'Terrestre' && (
+      {!mismoPunto && tipoTransporte !== 'Terrestre' && (
         <p className="text-[10.5px] text-ink-400 mt-1.5">
           Transporte {tipoTransporte.toLowerCase()}: no hay motor de rutas disponible — se muestra línea recta de referencia.
         </p>

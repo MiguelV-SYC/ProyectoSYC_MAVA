@@ -120,6 +120,15 @@ useEffect(() => {
     );
   }
 
+  if (proyectoId && !proyecto) {
+    return (
+      <div className="flex min-h-screen bg-paper">
+        <Sidebar active="solicitudes" />
+        <main className="flex-1 flex items-center justify-center text-sm text-ink-400">Cargando...</main>
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex min-h-screen bg-paper"

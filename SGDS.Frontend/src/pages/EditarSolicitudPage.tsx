@@ -19,6 +19,7 @@ import FormularioDatosContrato from '../components/estampillas/FormularioDatosCo
 import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
+import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
 import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 export default function EditarSolicitudPage() {
@@ -172,10 +173,17 @@ export default function EditarSolicitudPage() {
             <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Tipo de solicitud</h3>
               {esInfoconsumo && (
-                <SelectorTipoTransporte
-                  value={datosTornaguia.tipoTransporte}
-                  onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
-                />
+                <>
+                  <SelectorTipoTransporte
+                    value={datosTornaguia.tipoTransporte}
+                    onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
+                  />
+                  <CamposOrigenDestino
+                    value={datosTornaguia}
+                    onChange={setDatosTornaguia}
+                    errorCoherencia={errorCoherencia}
+                  />
+                </>
               )}
               <select
                 value={tipoSolicitudId ?? ''}
@@ -192,7 +200,7 @@ export default function EditarSolicitudPage() {
             </div>
 
             {esInfoconsumo ? (
-              <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} errorCoherencia={errorCoherencia} />
+              <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} />
             ) : (
               <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>
