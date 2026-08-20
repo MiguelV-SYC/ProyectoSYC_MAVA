@@ -101,10 +101,73 @@ La generación de la liquidación del impuesto y los plazos legales para su pago
 - Plazo de legalización en destino: Toda tornaguía ordinaria de movilización debe ser físicamente recibida y "legalizada" en el sistema por el funcionario del departamento de destino dentro de los quince (15) días calendario siguientes a su expedición. Si es una tornaguía exclusivamente de Tránsito, el límite es de diez (10) días calendario.
 - Sanción por no legalizar: Si la tornaguía no se reporta como legalizada o devuelta en el sistema antes de 45 días, el software debe activar automáticamente un módulo de proceso sancionatorio, donde el contribuyente se expone a pagar una multa equivalente al 100% del impuesto que causaba esa mercancía
 
+Anotación para Impuesto de Cervezas y cigarrillos: 
+La razón por la cual tu backend debe arrojar "categoría no soportada" para cervezas y cigarrillos es que, en la legislación colombiana (Ley 223 de 1995 y Ley 1816 de 2016), estos productos se rigen bajo regímenes tributarios completamente diferentes al ICL (Impuesto al Consumo de Licores y Vinos):La Cerveza no es ICL: Tiene un impuesto unificado de tarifa única porcentual (nominalmente del 48% sobre el precio de venta) y su recaudo se distribuye con fórmulas específicas para el deporte y la salud departamental. No se le aplica el componente específico por grado de alcohol del ICL.Los Cigarrillos cambian de métrica: Se liquidan por específico por cajetilla de 20 unidades (o proporcional) más un componente Ad Valorem del 10%. El volumen en centímetros cúbicos (cc) de tu base de datos actual es incompatible con esta estructura de empaque.
+
+* ejemplo de implpementación en backend: 
+public decimal CalcularImpuestoConsumo(ProductoGravado producto, int unidadesTotales)
+{
+    // REGLA DE NEGOCIO: Validar categorías soportadas por el motor ICL
+    if (producto.Categoria != "LICOR" && producto.Categoria != "VINO")
+    {
+        // Enviar una excepción controlada que el front consumirá como "categoría no soportada"
+        throw new NotSupportedException($"Categoría '{producto.Categoria}' no soportada en el cálculo actual de ICL.");
+    }
+
+    // --- Lógica matemática exclusiva para Licores y Vinos ---
+    decimal componenteEspecifico = producto.GradosAlcohol * producto.TarifaBase * (producto.VolumenCc / 750m);
+    decimal componenteAdValorem = unidadesTotales * producto.PvpDane * (producto.PorcentajeAdValorem / 100m);
+
+    return componenteEspecifico + componenteAdValorem;
+}
 
 
+FRONT: 
+Revisar la siguiente información para la construcción de la logica en el front: 
+* Cómo manejarlo en tu Frontend (React + TS)Para que la interfaz de usuario de Infoconsumo refleje esta regla de forma limpia (sin romper la aplicación con un error de consola), debes interceptar el estado del formulario.Si el usuario selecciona una partida arancelaria de cervezas o cigarrillos en la sección 3. Producto gravado, la interfaz debe deshabilitar el botón de cálculo y mostrar una alerta informativa de Tailwind:
 
+import { useState, useEffect } from 'react';
 
+interface Producto {
+  id: string;
+  nombre: string;
+  categoria: 'LICOR' | 'VINO' | 'CERVEZA' | 'CIGARRILLO';
+}
+
+export default function SeccionLiquidacion({ producto }: { producto: Producto | null }) {
+  const [mensajeError, setMensajeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!producto) return;
+
+    // Validación en caliente según la regla de negocio
+    if (producto.categoria === 'CERVEZA' || producto.categoria === 'CIGARRILLO') {
+      setMensajeError('⚠️ Categoría no soportada por el motor de liquidación ICL en esta fase.');
+    } else {
+      setMensajeError(null);
+    }
+  }, [producto]);
+
+  return (
+    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 mt-4">
+      {mensajeError ? (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium">
+          {mensajeError}
+          <p className="text-xs text-amber-600 mt-1 font-normal">
+            Las cervezas y cigarrillos manejan un régimen de liquidación tributaria independiente.
+          </p>
+        </div>
+      ) : (
+        <button 
+          disabled={!producto}
+          className="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:bg-slate-300"
+        >
+          Calcular Liquidación de Impuesto
+        </button>
+      )}
+    </div>
+  );
+}
 
 
 

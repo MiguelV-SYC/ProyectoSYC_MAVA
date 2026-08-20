@@ -16,6 +16,7 @@ import { DATOS_CONTRATO_VACIOS, construirDatosAdicionalesEstampillas, type Datos
 import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
 import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
+import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
@@ -266,6 +267,7 @@ export default function NuevaSolicitudPage() {
           proyectoId,
           tipoSolicitudId: tipoSeleccionado.id,
           empresaId: empresaSeleccionada!.id,
+          tipoTransporte: datosTornaguia.tipoTransporte,
           categoriaProducto: datosTornaguia.categoriaProducto,
           gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
           unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
@@ -457,6 +459,12 @@ export default function NuevaSolicitudPage() {
 
         <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
           <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">1. Tipo de solicitud</h3>
+          {esInfoconsumo && (
+            <SelectorTipoTransporte
+              value={datosTornaguia.tipoTransporte}
+              onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
+            />
+          )}
           <div className="grid grid-cols-2 gap-3">
             {tipos.map((t) => (
               <button

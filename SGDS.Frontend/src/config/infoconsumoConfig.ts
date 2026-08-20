@@ -5,7 +5,19 @@ export const CATEGORIAS_PRODUCTO_INFOCONSUMO = [
   { value: 'Cigarrillos_Tabaco', label: 'Cigarrillos y tabaco elaborado' },
 ];
 
+// Categorías sin fórmula de ICL soportada — régimen tributario independiente
+// (Ley 223 de 1995 para cerveza, tarifa por cajetilla para cigarrillos).
+export const CATEGORIAS_SIN_ICL = ['Cervezas_Sifones_Refajos', 'Cigarrillos_Tabaco'];
+
+export const TIPOS_TRANSPORTE_INFOCONSUMO = [
+  { value: 'Terrestre', label: 'Terrestre' },
+  { value: 'Fluvial', label: 'Fluvial' },
+  { value: 'Marítimo', label: 'Marítimo' },
+  { value: 'Aéreo', label: 'Aéreo' },
+];
+
 export interface DatosTornaguia {
+  tipoTransporte: string;
   categoriaProducto: string;
   gradosAlcoholimetricos: string;
   unidadesFisicas: string;
@@ -24,6 +36,7 @@ export interface DatosTornaguia {
 }
 
 export const DATOS_TORNAGUIA_VACIOS: DatosTornaguia = {
+  tipoTransporte: 'Terrestre',
   categoriaProducto: CATEGORIAS_PRODUCTO_INFOCONSUMO[0].value,
   gradosAlcoholimetricos: '',
   unidadesFisicas: '',

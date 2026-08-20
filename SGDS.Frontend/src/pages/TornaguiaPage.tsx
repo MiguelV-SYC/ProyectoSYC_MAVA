@@ -221,6 +221,10 @@ export default function TornaguiaPage() {
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Movilización autorizada</h3>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
                     <div>
+                      <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Tipo de transporte</div>
+                      <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.tipoTransporte}</div>
+                    </div>
+                    <div>
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Origen</div>
                       <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.municipioOrigen}, {tornaguia.departamentoOrigen}</div>
                     </div>
@@ -238,6 +242,7 @@ export default function TornaguiaPage() {
                         lngDestino={tornaguia.lngDestino}
                         labelOrigen={`${tornaguia.municipioOrigen}, ${tornaguia.departamentoOrigen}`}
                         labelDestino={`${tornaguia.municipioDestino}, ${tornaguia.departamentoDestino}`}
+                        tipoTransporte={tornaguia.tipoTransporte}
                         color={color.primario}
                       />
                       {tornaguia.distanciaAproximadaKm != null && (

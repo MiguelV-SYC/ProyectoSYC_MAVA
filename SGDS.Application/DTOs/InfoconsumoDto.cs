@@ -6,6 +6,7 @@ public class CrearSolicitudInfoconsumoDto
     public int TipoSolicitudId { get; set; }
     public int EmpresaId { get; set; }
 
+    public string TipoTransporte { get; set; } = "Terrestre";
     public string CategoriaProducto { get; set; } = string.Empty;
     public decimal? GradosAlcoholimetricos { get; set; }
     public int UnidadesFisicas { get; set; }
@@ -27,6 +28,7 @@ public class CrearSolicitudInfoconsumoDto
 public class ActualizarSolicitudInfoconsumoDto
 {
     public int? TipoSolicitudId { get; set; }
+    public string TipoTransporte { get; set; } = "Terrestre";
     public string CategoriaProducto { get; set; } = string.Empty;
     public decimal? GradosAlcoholimetricos { get; set; }
     public int UnidadesFisicas { get; set; }
@@ -55,6 +57,7 @@ public class TornaguiaResponseDto
     public string EmpresaRazonSocial { get; set; } = string.Empty;
     public string EmpresaNit { get; set; } = string.Empty;
 
+    public string TipoTransporte { get; set; } = "Terrestre";
     public string CategoriaProducto { get; set; } = string.Empty;
     public decimal? GradosAlcoholimetricos { get; set; }
     public int UnidadesFisicas { get; set; }
@@ -119,4 +122,15 @@ public class SolicitudHistorialEmpresaDto
     public string? TipoSolicitudNombre { get; set; }
     public string Estado { get; set; } = string.Empty;
     public DateTime FechaCreacion { get; set; }
+}
+
+public class TarjetaKanbanInfoconsumoDto
+{
+    public int Id { get; set; }
+    public string Numero { get; set; } = string.Empty;
+    public string? TipoTramite { get; set; }
+    public string? EmpresaNombre { get; set; }
+    public string Estado { get; set; } = string.Empty;
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaVigenciaLimite { get; set; }
 }

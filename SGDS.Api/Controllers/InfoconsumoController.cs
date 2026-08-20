@@ -58,6 +58,7 @@ public class InfoconsumoController : ControllerBase
             FechaCreacion = DateTime.UtcNow,
             TornaguiaInfoconsumo = new TornaguiaInfoconsumo
             {
+                TipoTransporte = dto.TipoTransporte,
                 CategoriaProducto = dto.CategoriaProducto,
                 GradosAlcoholimetricos = dto.GradosAlcoholimetricos,
                 UnidadesFisicas = dto.UnidadesFisicas,
@@ -109,6 +110,7 @@ public class InfoconsumoController : ControllerBase
             solicitud.TipoSolicitudId = dto.TipoSolicitudId.Value;
 
         var t = solicitud.TornaguiaInfoconsumo!;
+        t.TipoTransporte = dto.TipoTransporte;
         t.CategoriaProducto = dto.CategoriaProducto;
         t.GradosAlcoholimetricos = dto.GradosAlcoholimetricos;
         t.UnidadesFisicas = dto.UnidadesFisicas;
@@ -300,6 +302,46 @@ public class InfoconsumoController : ControllerBase
         return Ok(resultado);
     }
 
+    // ===== Kanban (estados propios de Infoconsumo — no reutiliza el workflow genérico) =====
+
+    // GET: api/Infoconsumo/kanban?proyectoId=8
+    [HttpGet("kanban")]
+    public async Task<IActionResult> GetKanban([FromQuery] int proyectoId)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        if (!esAdminSyc && !proyectosPermitidos.Contains(proyectoId))
+            return BadRequest(new { mensaje = "No tienes acceso a este proyecto." });
+
+        var solicitudes = await _context.Solicitudes
+            .Include(s => s.Empresa)
+            .Include(s => s.TipoSolicitud)
+            .Include(s => s.Proyecto)
+            .Include(s => s.TornaguiaInfoconsumo)
+            .Where(s => s.ProyectoId == proyectoId)
+            .OrderByDescending(s => s.FechaCreacion)
+            .ToListAsync();
+
+        var tarjetas = solicitudes
+            .Where(s => s.TornaguiaInfoconsumo != null)
+            .Select(s => new TarjetaKanbanInfoconsumoDto
+            {
+                Id = s.Id,
+                Numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString(),
+                TipoTramite = s.TipoSolicitud?.Nombre,
+                EmpresaNombre = s.Empresa?.RazonSocial,
+                Estado = EstadoEfectivo(s),
+                FechaCreacion = s.FechaCreacion,
+                FechaVigenciaLimite = s.TornaguiaInfoconsumo!.FechaVigenciaLimite,
+            })
+            .ToList();
+
+        return Ok(tarjetas);
+    }
+
     // ===== Helpers =====
 
     private static string? ValidarCoherenciaOrigenDestino(string tipoTramite, string depOrigen, string depDestino)
@@ -383,6 +425,7 @@ public class InfoconsumoController : ControllerBase
             EmpresaId = s.EmpresaId ?? 0,
             EmpresaRazonSocial = s.Empresa?.RazonSocial ?? string.Empty,
             EmpresaNit = s.Empresa?.Nit ?? string.Empty,
+            TipoTransporte = t.TipoTransporte,
             CategoriaProducto = t.CategoriaProducto,
             GradosAlcoholimetricos = t.GradosAlcoholimetricos,
             UnidadesFisicas = t.UnidadesFisicas,

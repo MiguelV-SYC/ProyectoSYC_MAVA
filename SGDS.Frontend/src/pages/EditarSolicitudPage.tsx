@@ -18,6 +18,7 @@ import {
 import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
 import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
+import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoconsumoService';
 
 export default function EditarSolicitudPage() {
@@ -50,6 +51,7 @@ export default function EditarSolicitudPage() {
           getTornaguia(s.id).then((t) => {
             setEstadoTornaguia(t.estado);
             setDatosTornaguia({
+              tipoTransporte: t.tipoTransporte,
               categoriaProducto: t.categoriaProducto,
               gradosAlcoholimetricos: t.gradosAlcoholimetricos != null ? String(t.gradosAlcoholimetricos) : '',
               unidadesFisicas: String(t.unidadesFisicas),
@@ -100,6 +102,7 @@ export default function EditarSolicitudPage() {
         }
         await actualizarSolicitudInfoconsumo(solicitud.id, {
           tipoSolicitudId: tipoSolicitudId ?? undefined,
+          tipoTransporte: datosTornaguia.tipoTransporte,
           categoriaProducto: datosTornaguia.categoriaProducto,
           gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
           unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
@@ -168,6 +171,12 @@ export default function EditarSolicitudPage() {
           <>
             <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Tipo de solicitud</h3>
+              {esInfoconsumo && (
+                <SelectorTipoTransporte
+                  value={datosTornaguia.tipoTransporte}
+                  onChange={(tipoTransporte) => setDatosTornaguia((d) => ({ ...d, tipoTransporte }))}
+                />
+              )}
               <select
                 value={tipoSolicitudId ?? ''}
                 onChange={(e) => setTipoSolicitudId(e.target.value ? Number(e.target.value) : null)}

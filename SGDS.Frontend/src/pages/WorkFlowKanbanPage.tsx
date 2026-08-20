@@ -9,8 +9,17 @@ import {
 import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from '../services/proyectoService';
 import SelectorProyecto from '../components/shared/SelectorProyecto';
 import { getColorProyecto } from '../config/colorPorProyecto';
+import { getKanbanInfoconsumo, type TarjetaKanbanInfoconsumoDto } from '../services/infoconsumoService';
 
-
+// Infoconsumo reemplaza el workflow genérico de 7 estados por su propio ciclo de vida
+// (sección 3 de las reglas de negocio) — se muestra en un tablero aparte, sin arrastrar
+// tarjetas: los cambios de estado exigen las validaciones de /expedir y /legalizar.
+const COLUMNAS_INFOCONSUMO = [
+  { estado: 'Elaborada', dot: 'bg-[#64748b]' },
+  { estado: 'Expedida', dot: 'bg-blue-600' },
+  { estado: 'Legalizada', dot: 'bg-[var(--color-accento)]' },
+  { estado: 'Vencida', dot: 'bg-[#dc2626]' },
+];
 
 const COLUMNAS = [
   { estado: 'Radicada', dot: 'bg-[#64748b]' },
@@ -67,6 +76,9 @@ export default function WorkflowKanbanPage() {
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroTiempo, setFiltroTiempo] = useState('7d');
 
+  const [tarjetasInfoconsumo, setTarjetasInfoconsumo] = useState<Record<string, TarjetaKanbanInfoconsumoDto[]>>({});
+  const [filtroTipoInfoconsumo, setFiltroTipoInfoconsumo] = useState('');
+
   async function cargar() {
     if (!proyectoId) return;
     setLoading(true);
@@ -86,10 +98,29 @@ export default function WorkflowKanbanPage() {
     setLoading(false);
   }
 
+  async function cargarInfoconsumo() {
+    if (!proyectoId) return;
+    setLoading(true);
+    const tarjetas = await getKanbanInfoconsumo(proyectoId);
+    const nuevasColumnas: Record<string, TarjetaKanbanInfoconsumoDto[]> = {};
+    COLUMNAS_INFOCONSUMO.forEach((c) => {
+      nuevasColumnas[c.estado] = tarjetas.filter((t) => t.estado === c.estado);
+    });
+    setTarjetasInfoconsumo(nuevasColumnas);
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!proyectoId) return;
-    getProyectosActivos().then((lista) => setProyecto(lista.find((p) => p.id === proyectoId) ?? null));
-    cargar();
+    getProyectosActivos().then((lista) => {
+      const p = lista.find((x) => x.id === proyectoId) ?? null;
+      setProyecto(p);
+      if (p?.nombre === 'Infoconsumo') {
+        cargarInfoconsumo();
+      } else {
+        cargar();
+      }
+    });
   }, [proyectoId]);
 
   function handleDragStart(s: SolicitudResponseDto) {
@@ -139,11 +170,22 @@ export default function WorkflowKanbanPage() {
   );
 }
 
+  const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
+
   const tiposDisponibles = [
     ...new Set(
       Object.values(columnas)
         .flat()
         .map((s) => s.tipoSolicitudNombre)
+        .filter(Boolean)
+    ),
+  ] as string[];
+
+  const tiposDisponiblesInfoconsumo = [
+    ...new Set(
+      Object.values(tarjetasInfoconsumo)
+        .flat()
+        .map((t) => t.tipoTramite)
         .filter(Boolean)
     ),
   ] as string[];
@@ -163,7 +205,11 @@ export default function WorkflowKanbanPage() {
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
               Workflow — {proyecto?.nombre ?? '...'}
             </h1>
-            <p className="text-ink-600 text-[12.5px] mt-[3px]">Arrastra una tarjeta para cambiar su estado</p>
+            <p className="text-ink-600 text-[12.5px] mt-[3px]">
+              {esInfoconsumo
+                ? 'Solo lectura — usa "Tornaguía" en cada solicitud para expedir/legalizar'
+                : 'Arrastra una tarjeta para cambiar su estado'}
+            </p>
           </div>
           <div className="flex bg-white border border-line rounded-[10px] p-1">
             <button
@@ -178,34 +224,97 @@ export default function WorkflowKanbanPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 mb-4">
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
-          >
-            <option value="">Todos los tipos</option>
-            {tiposDisponibles.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <select
-            value={filtroTiempo}
-            onChange={(e) => setFiltroTiempo(e.target.value)}
-            className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
-            title="Aplica solo a Aprobada, Rechazada y Finalizada"
-          >
-            {OPCIONES_TIEMPO.map((o) => (
-              <option key={o.valor} value={o.valor}>{o.label}</option>
-            ))}
-          </select>
-          <span className="text-[11px] text-ink-400">
-            El filtro de tiempo solo aplica a las columnas Aprobada, Rechazada y Finalizada
-          </span>
-        </div>
+        {esInfoconsumo ? (
+          <div className="flex items-center gap-2.5 mb-4">
+            <select
+              value={filtroTipoInfoconsumo}
+              onChange={(e) => setFiltroTipoInfoconsumo(e.target.value)}
+              className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+            >
+              <option value="">Todos los tipos de trámite</option>
+              {tiposDisponiblesInfoconsumo.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5 mb-4">
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+            >
+              <option value="">Todos los tipos</option>
+              {tiposDisponibles.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <select
+              value={filtroTiempo}
+              onChange={(e) => setFiltroTiempo(e.target.value)}
+              className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+              title="Aplica solo a Aprobada, Rechazada y Finalizada"
+            >
+              {OPCIONES_TIEMPO.map((o) => (
+                <option key={o.valor} value={o.valor}>{o.label}</option>
+              ))}
+            </select>
+            <span className="text-[11px] text-ink-400">
+              El filtro de tiempo solo aplica a las columnas Aprobada, Rechazada y Finalizada
+            </span>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando workflow...</div>
+        ) : esInfoconsumo ? (
+          <div className="flex gap-3.5 min-w-max pb-4">
+            {COLUMNAS_INFOCONSUMO.map((c) => {
+              let tarjetas = tarjetasInfoconsumo[c.estado] ?? [];
+              if (filtroTipoInfoconsumo) {
+                tarjetas = tarjetas.filter((t) => t.tipoTramite === filtroTipoInfoconsumo);
+              }
+              return (
+                <div key={c.estado} className="w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                  <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
+                    <span className={`w-2 h-2 rounded-full ${c.dot}`} />
+                    <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
+                    <span className="text-[11px] font-bold text-ink-600 bg-white rounded-full px-2 py-[2px]">
+                      {tarjetas.length}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {tarjetas.map((t) => (
+                      <div
+                        key={t.id}
+                        onClick={() => navigate(`/solicitudes/${t.id}`)}
+                        className="bg-white rounded-xl p-3.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="text-[11px] text-ink-400 font-semibold mb-1">#{t.numero}</div>
+                        <div className="text-[13px] font-semibold text-ink-900 mb-0.5">{t.tipoTramite}</div>
+                        <div className="text-[12px] text-ink-600 mb-2.5">{t.empresaNombre}</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-ink-300 text-xs">—</span>
+                          <span className="text-[11px] text-ink-400">{diasDesde(t.fechaCreacion)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {tarjetas.length === 0 && (
+                      <p className="text-[11.5px] text-ink-400 text-center py-4">Sin tornaguías en este estado.</p>
+                    )}
+                  </div>
+                  {c.estado === 'Elaborada' && (
+                    <button
+                      onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
+                      className="w-full mt-2.5 py-2.5 rounded-xl border-2 border-dashed border-line text-[12.5px] text-ink-400 font-medium"
+                    >
+                      + Nueva solicitud
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="flex gap-3.5 min-w-max pb-4">
             {COLUMNAS.map((c) => {

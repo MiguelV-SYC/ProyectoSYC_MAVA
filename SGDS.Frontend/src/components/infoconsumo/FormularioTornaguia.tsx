@@ -1,4 +1,4 @@
-import { CATEGORIAS_PRODUCTO_INFOCONSUMO, type DatosTornaguia } from '../../config/infoconsumoConfig';
+import { CATEGORIAS_PRODUCTO_INFOCONSUMO, CATEGORIAS_SIN_ICL, type DatosTornaguia } from '../../config/infoconsumoConfig';
 import { DEPARTAMENTOS_COLOMBIA } from '../../config/geografiaColombia';
 
 const inputClase = 'w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500';
@@ -39,6 +39,17 @@ export default function FormularioTornaguia({ value, onChange, errorCoherencia }
             />
           </div>
         </div>
+
+        {CATEGORIAS_SIN_ICL.includes(value.categoriaProducto) && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[12.5px] font-medium mb-3.5">
+            ⚠️ Categoría no soportada por el motor de liquidación ICL en esta fase.
+            <p className="text-[11px] text-amber-600 mt-1 font-normal">
+              Las cervezas y cigarrillos manejan un régimen de liquidación tributaria independiente (Ley 223 de 1995 /
+              tarifa por cajetilla) — la solicitud se puede radicar igual, pero la preliquidación de impuesto al
+              consumo mostrará "categoría no soportada".
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClase}>Unidades físicas (botellas)</label>

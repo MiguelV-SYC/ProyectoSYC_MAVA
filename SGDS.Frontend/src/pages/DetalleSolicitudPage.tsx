@@ -339,6 +339,7 @@ export default function DetalleSolicitudPage() {
                   lngDestino={tornaguiaInfo.lngDestino}
                   labelOrigen={`${tornaguiaInfo.municipioOrigen}, ${tornaguiaInfo.departamentoOrigen}`}
                   labelDestino={`${tornaguiaInfo.municipioDestino}, ${tornaguiaInfo.departamentoDestino}`}
+                  tipoTransporte={tornaguiaInfo.tipoTransporte}
                   color={color.primario}
                   alturaPx={260}
                 />
@@ -441,7 +442,7 @@ export default function DetalleSolicitudPage() {
       </main>
 
       {modalEstado && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-6">
           <div className="bg-white rounded-2xl p-7 w-full max-w-[380px]">
             <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Cambiar estado</h2>
             <select
@@ -468,7 +469,7 @@ export default function DetalleSolicitudPage() {
       )}
 
       {modalReasignar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-6">
           <div className="bg-white rounded-2xl p-7 w-full max-w-[380px]">
             <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Reasignar operador</h2>
             {operadores.length === 0 ? (
@@ -502,7 +503,7 @@ export default function DetalleSolicitudPage() {
       )}
 
       {modalDocumento && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-6">
           <div className="bg-white rounded-2xl p-7 w-full max-w-[380px]">
             <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Adjuntar documento</h2>
             <input

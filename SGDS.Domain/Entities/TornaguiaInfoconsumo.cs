@@ -9,6 +9,10 @@ public class TornaguiaInfoconsumo
     public int SolicitudId { get; set; }
     public Solicitud Solicitud { get; set; } = null!;
 
+    // Terrestre | Fluvial | Marítimo | Aéreo — determina si la ruta se traza por carretera
+    // (routing real) o como referencia en línea recta (agua/aire, sin motor de rutas disponible).
+    public string TipoTransporte { get; set; } = "Terrestre";
+
     // Producto gravado
     public string CategoriaProducto { get; set; } = string.Empty;
     public decimal? GradosAlcoholimetricos { get; set; }

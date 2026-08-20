@@ -12,6 +12,7 @@ export interface CrearSolicitudInfoconsumoDto {
   proyectoId: number;
   tipoSolicitudId: number;
   empresaId: number;
+  tipoTransporte: string;
   categoriaProducto: string;
   gradosAlcoholimetricos?: number;
   unidadesFisicas: number;
@@ -58,6 +59,7 @@ export interface TornaguiaResponseDto {
   empresaId: number;
   empresaRazonSocial: string;
   empresaNit: string;
+  tipoTransporte: string;
   categoriaProducto: string;
   gradosAlcoholimetricos?: number;
   unidadesFisicas: number;
@@ -179,6 +181,24 @@ export interface SolicitudHistorialEmpresaDto {
 
 export async function getHistorialEmpresa(empresaId: number): Promise<SolicitudHistorialEmpresaDto[]> {
   const { data } = await axios.get<SolicitudHistorialEmpresaDto[]>(`${API_URL}/Infoconsumo/empresas/${empresaId}/historial`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface TarjetaKanbanInfoconsumoDto {
+  id: number;
+  numero: string;
+  tipoTramite?: string;
+  empresaNombre?: string;
+  estado: string;
+  fechaCreacion: string;
+  fechaVigenciaLimite?: string;
+}
+
+export async function getKanbanInfoconsumo(proyectoId: number): Promise<TarjetaKanbanInfoconsumoDto[]> {
+  const { data } = await axios.get<TarjetaKanbanInfoconsumoDto[]>(`${API_URL}/Infoconsumo/kanban`, {
+    params: { proyectoId },
     headers: authHeader(),
   });
   return data;
