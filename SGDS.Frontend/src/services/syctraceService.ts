@@ -91,6 +91,11 @@ export interface EstampillaResponseDto {
   fechaPago?: string;
   fechaEntrega?: string;
   motivoAnulacion?: string;
+
+  loteGoTraceNumero?: string;
+  rangoUidGoTrace?: string;
+  cantidadUidsGoTrace?: number;
+  alertaDesajusteUid?: string;
 }
 
 export async function getEstampilla(id: number): Promise<EstampillaResponseDto> {
@@ -156,6 +161,8 @@ export interface TornaguiaInfoconsumoDisponibleDto {
   categoriaProducto: string;
   gradoAlcoholimetrico?: number;
   contenidoNetoCc?: number;
+  loteGoTraceNumero?: string;
+  rangoUidGoTrace?: string;
 }
 
 export async function getTornaguiasDisponibles(buscar?: string): Promise<TornaguiaInfoconsumoDisponibleDto[]> {

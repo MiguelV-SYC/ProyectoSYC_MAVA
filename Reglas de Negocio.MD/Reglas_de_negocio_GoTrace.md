@@ -1,0 +1,181 @@
+**LOGICA GOTRACE:**
+
+
+
+**Gotrace: es un servicio real de SYC para trazabilidad logística de licores y cervezas desde fábrica hasta el consumidor, con clientes como Diageo, ILV y ABInBev — es decir, no es gubernamental como SYCTrace, es una herramienta B2B para que las propias empresas productoras rastreen sus lotes.** 
+
+
+
+* **Flujo operativo de infoconsumo + syctrace**
+
+**Flujo operativo paso a paso**
+
+
+
+INFOCONSUMO
+
+1\. Nueva solicitud → tipo de trámite → Producto gravado + Movilización → Radicar
+
+&#x20;  Estado: Elaborada
+
+2\. Detalle → "Tornaguía" → "Expedir tornaguía"
+
+&#x20;  Estado: Expedida (genera QR + vigencia de legalización)
+
+3\. En la misma vista → "Confirmar pago" (del impuesto al consumo)
+
+&#x20;  PagoConfirmado = true   ← esto es lo que habilita el paso a SYCTrace
+
+&#x20;  (Legalizar tornaguía sigue siendo un eje aparte: confirma llegada física, no pago)
+
+
+
+&#x20;       │
+
+&#x20;       ▼  la tornaguía queda visible en el buscador de SYCTrace
+
+
+
+SYCTRACE
+
+4\. Nueva solicitud → paso 1 fijo ("Expedición de estampilla")
+
+5\. Paso 2: busca y elige la tornaguía de Infoconsumo con pago confirmado
+
+&#x20;  → hereda automáticamente empresa, categoría, grado, contenido neto
+
+6\. Paso 3-5: completa lo que Infoconsumo no captura (INVIMA, marca, lote,
+
+&#x20;  origen nacional/importado, rango de códigos) → "Autorizar expedición"
+
+&#x20;  Estado: Generada
+
+7\. Detalle → "Estampilla" → "Confirmar pago" (el de SYCTrace, costo de
+
+&#x20;  impresión — distinto al de Infoconsumo) → Estado: Pagada
+
+&#x20;  → "Marcar entregada" → Estado: Entregada  /  o "Anular"
+
+8\. "Visualizar estampilla" → arte con barcode real + QR real → Descargar PDF
+
+
+
+**CONTEXTO ADICIONAL:** 
+A diferencia de SycTrace (que responde al control fiscal de la Gobernación de Santander y frena trámites si no hay un pago tributario), GoTrace es un sistema puramente logístico y de protección de marca para gigantes como Diageo, ILV (Industria de Licores del Valle) o ABInBev. Su objetivo es evitar el contrabando técnico (adulteración, desvío de mercancía a departamentos donde no pagaron impuestos, o mercado negro).Aquí tienes la lógica de negocio y las integraciones que debes estructurar para GoTrace:
+
+
+
+1\. El Rol de GoTrace en el ecosistema
+
+
+
+* GoTrace no espera a que el gobierno actúe; GoTrace se anticipa desde la línea de producción (Fábrica/Emboteallado).
+* Mientras que SycTrace rastrea "Estampillas Oficiales", GoTrace rastrea "Códigos de Identificación Única (UID)" (impresos directamente en el vidrio, la etiqueta comercial o la tapa mediante láser o inyección de tinta en la fábrica).
+
+
+
+
+
+2\. Flujo Operativo e Integración (GoTrace + Infoconsumo + SycTrace)
+
+* Para que el sistema sea útil para las empresas (B2B), GoTrace debe alimentar a Infoconsumo y luego validar contra SycTrace. 
+* El flujo lógico funciona así:
+
+\[1. Línea de Fábrica / GoTrace] ──(Hereda Lotes y UIDs)──> \[2. Infoconsumo]
+
+&#x20;                                                               │
+
+&#x20;                                                        (Genera Tornaguía)
+
+&#x20;                                                               │
+
+\[3. SycTrace] <──(Cruza QR Oficial vs UID Comercial) <──────────┘
+
+
+
+Paso 1: Captura en Origen (GoTrace - B2B)En la fábrica de ABInBev o Diageo, el sistema GoTrace registra el nacimiento del producto:
+
+* Genera un ID de lote (ej: LOT-AGUARD-0092).
+* Asocia un rango de códigos comerciales individuales (UIDs del producto).
+* Define el destino logístico inicial (ej: Distribuidor Autorizado en Santander).
+
+
+
+Paso 2: Inyección de datos a Infoconsumo (La conexión)
+
+Cuando el despachador de la fábrica entra a Infoconsumo a radicar la "Nueva solicitud" (Paso 1 de tu flujo anterior), no debería digitar todo a mano.
+
+* Lógica de integración: Infoconsumo debe consumir una API de GoTrace enviando el ID del lote.
+* Resultado: Infoconsumo hereda instantáneamente: Categoría, marca, grado alcoholimétrico, contenido neto y, lo más importante, el rango de UIDs de botellas que van en ese camión.
+* Se expide la Tornaguía en Infoconsumo (Paso 2 y 3 tuyos).
+
+
+
+Paso 3: El Cruce de Datos en SycTrace
+
+Cuando llegas al paso de SycTrace (Paso 5 y 6 de tu flujo anterior), donde el funcionario completa los datos de INVIMA, marca y lote:
+
+* Lógica de control: El sistema de SycTrace hace un match de seguridad: Tornaguía Infoconsumo + Lote verificado por GoTrace.
+* Esto garantiza que las 1,000 estampillas(o N estampillas) físicas que emite la Gobernación corresponden exactamente a las 1,000 botellas con tecnología láser que GoTrace registró en la fábrica.
+
+
+
+
+
+3\. Reglas de Negocio Específicas de GoTrace (Backend \& Trazabilidad)
+
+
+
+**RN-GT01: Trazabilidad de "Caja Madre" (Agregación Logística)**
+
+En logística masiva (como cervezas de ABInBev), es imposible escanear botella por botella en el camión. GoTrace debe implementar la lógica de agregación:
+
+* Jerarquía: Código de Botella ➔ Código de Pack (Sixpack) ➔ Código de Caja (Master Case) ➔ Código de Pallet.
+* Regla: Al escanear el QR del Pallet o de la Caja en el módulo de despacho, el sistema automáticamente debe dar por movilizadas/asociadas todas las botellas contenidas en su interior dentro de la Tornaguía de Infoconsumo.
+
+
+
+**RN-GT02: Alerta de Desvío de Mercancía (Geofencing Fiscal)**
+
+Cada departamento en Colombia tiene un impuesto al consumo diferente. Si Diageo produce un Whiskey destinado a Bogotá (registrado en GoTrace), pero este termina siendo escaneado por un inspector o consumidor en Santander:
+
+* Regla: El backend de GoTrace debe disparar una Alerta de Desvío. El sistema cruza la geolocalización del escaneo actual versus el departamento de destino registrado originalmente en la Tornaguía de Infoconsumo.
+
+
+
+**RN-GT03: Estado de Producto en el Mercado (Ciclo de Vida B2B)**
+
+A diferencia del flujo de la estampilla de SycTrace, el UID de GoTrace vive más tiempo y pasa por los siguientes estados lógicos:
+
+* En Producción: Fabricado y marcado por láser.
+* En Tránsito: Vinculado a una Tornaguía Expedida en Infoconsumo.
+* Recibido en Distribuidor: Confirmado mediante la Legalización de la tornaguía.
+* Vendido / Consumido: Activado cuando el consumidor final escanea el QR en el bar o restaurante para verificar autenticidad.
+* Alerta de Duplicidad: Si un mismo UID es escaneado en dos ubicaciones geográficas distintas en un periodo de tiempo imposible (ej: Bucaramanga y Cali con 10 minutos de diferencia), el sistema marca el producto como Potencialmente Adulterado/Contrabando.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

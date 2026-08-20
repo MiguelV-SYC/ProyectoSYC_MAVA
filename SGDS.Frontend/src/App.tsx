@@ -32,6 +32,7 @@ import PreliquidacionEstampillasPage from './pages/PreliquidacionEstampillasPage
 import TornaguiaPage from './pages/TornaguiaPage';
 import EstampillaPage from './pages/EstampillaPage';
 import EstampillaArtePage from './pages/EstampillaArtePage';
+import CertificadoTrazabilidadPage from './pages/CertificadoTrazabilidadPage';
 import LiquidacionImpoConsumoPage from './pages/LiquidacionImpoConsumoPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 
@@ -164,6 +165,11 @@ function App() {
       <Route
         path="/solicitudes/:id/estampilla/arte"
         element={user ? <EstampillaArtePage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/certificado-trazabilidad"
+        element={user ? <CertificadoTrazabilidadPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

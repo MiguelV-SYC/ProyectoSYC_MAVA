@@ -266,6 +266,28 @@ export default function DetalleSolicitudPage() {
                 Estampilla
               </button>
             )}
+            {solicitud.proyectoNombre === 'Gotrace' && (
+              <>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/editar`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                  Editar solicitud
+                </button>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/certificado-trazabilidad`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <circle cx="6" cy="12" r="2" /><circle cx="18" cy="12" r="2" /><path d="M8 12h8" />
+                  </svg>
+                  Ver certificado de trazabilidad
+                </button>
+              </>
+            )}
             <button
               onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
               className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"

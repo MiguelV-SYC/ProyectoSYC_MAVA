@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SGDS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SGDS.Infrastructure.Data;
 namespace SGDS.Infrastructure.Migrations
 {
     [DbContext(typeof(SgdsDbContext))]
-    partial class SgdsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820211450_CrearModuloGoTrace")]
+    partial class CrearModuloGoTrace
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -899,10 +902,6 @@ namespace SGDS.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("grados_alcoholimetricos");
 
-                    b.Property<int?>("LoteGoTraceSolicitudId")
-                        .HasColumnType("integer")
-                        .HasColumnName("lote_go_trace_solicitud_id");
-
                     b.Property<string>("MunicipioDestino")
                         .IsRequired()
                         .HasColumnType("text")
@@ -953,9 +952,6 @@ namespace SGDS.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_tornaguias_infoconsumo");
-
-                    b.HasIndex("LoteGoTraceSolicitudId")
-                        .HasDatabaseName("ix_tornaguias_infoconsumo_lote_go_trace_solicitud_id");
 
                     b.HasIndex("SolicitudId")
                         .IsUnique()
@@ -1279,20 +1275,12 @@ namespace SGDS.Infrastructure.Migrations
 
             modelBuilder.Entity("SGDS.Domain.Entities.TornaguiaInfoconsumo", b =>
                 {
-                    b.HasOne("SGDS.Domain.Entities.Solicitud", "LoteGoTraceSolicitud")
-                        .WithMany()
-                        .HasForeignKey("LoteGoTraceSolicitudId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_tornaguias_infoconsumo_solicitudes_lote_go_trace_solicitud_");
-
                     b.HasOne("SGDS.Domain.Entities.Solicitud", "Solicitud")
                         .WithOne("TornaguiaInfoconsumo")
                         .HasForeignKey("SGDS.Domain.Entities.TornaguiaInfoconsumo", "SolicitudId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tornaguias_infoconsumo_solicitudes_solicitud_id");
-
-                    b.Navigation("LoteGoTraceSolicitud");
 
                     b.Navigation("Solicitud");
                 });

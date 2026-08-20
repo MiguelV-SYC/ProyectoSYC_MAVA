@@ -49,6 +49,9 @@ public class InfoconsumoController : ControllerBase
         if (conflicto.HasValue)
             return BadRequest(new { mensaje = $"La placa {dto.PlacaVehiculo} ya tiene una tornaguía activa (solicitud #{conflicto}) dentro del mismo rango de vigencia." });
 
+        var errorLoteGoTrace = await ValidarLoteGoTraceAsync(dto.LoteGoTraceSolicitudId, dto.EmpresaId);
+        if (errorLoteGoTrace != null) return BadRequest(new { mensaje = errorLoteGoTrace });
+
         var nuevaSolicitud = new Solicitud
         {
             EmpresaId = dto.EmpresaId,
@@ -74,6 +77,7 @@ public class InfoconsumoController : ControllerBase
                 CedulaConductor = dto.CedulaConductor,
                 TipoVehiculo = dto.TipoVehiculo,
                 Observaciones = dto.Observaciones,
+                LoteGoTraceSolicitudId = dto.LoteGoTraceSolicitudId,
             },
         };
 
@@ -326,6 +330,55 @@ public class InfoconsumoController : ControllerBase
         return Ok(resultado);
     }
 
+    // ===== Búsqueda de lotes de GoTrace aprobados (paso opcional del formulario) =====
+    // GoTrace rastrea el lote desde fábrica; si la empresa ya lo trazó allí, Infoconsumo hereda
+    // empresa y unidades físicas en vez de volver a digitarlas (puente GoTrace -> Infoconsumo).
+
+    // GET: api/Infoconsumo/lotes-gotrace-disponibles?buscar=GOTRACE-0012
+    [HttpGet("lotes-gotrace-disponibles")]
+    public async Task<IActionResult> GetLotesGoTraceDisponibles([FromQuery] string? buscar)
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var query = _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Include(s => s.Empresa)
+            .Include(s => s.LoteGoTrace)
+            .Where(s => s.Proyecto != null && s.Proyecto.Nombre == "Gotrace"
+                     && s.Estado == "Aprobada" && s.LoteGoTrace != null);
+
+        if (!esAdminSyc)
+            query = query.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
+
+        var solicitudes = await query.OrderByDescending(s => s.FechaCreacion).Take(200).ToListAsync();
+
+        var resultado = solicitudes
+            .Select(s => new LoteGoTraceDisponibleDto
+            {
+                Id = s.Id,
+                Numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString(),
+                EmpresaId = s.EmpresaId ?? 0,
+                EmpresaNombre = s.Empresa?.RazonSocial ?? string.Empty,
+                EmpresaNit = s.Empresa?.Nit ?? string.Empty,
+                Producto = s.LoteGoTrace!.Producto,
+                NumeroLote = s.LoteGoTrace.NumeroLote,
+                UnidadesLote = s.LoteGoTrace.UnidadesLote,
+                RangoUidCompleto = FormatearRangoUid(s.LoteGoTrace),
+            })
+            .Where(d => string.IsNullOrWhiteSpace(buscar)
+                     || d.Numero.Contains(buscar, StringComparison.OrdinalIgnoreCase)
+                     || d.EmpresaNombre.Contains(buscar, StringComparison.OrdinalIgnoreCase)
+                     || d.EmpresaNit.Contains(buscar, StringComparison.OrdinalIgnoreCase)
+                     || d.NumeroLote.Contains(buscar, StringComparison.OrdinalIgnoreCase)
+                     || d.Producto.Contains(buscar, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Ok(resultado);
+    }
+
     // ===== Kanban (estados propios de Infoconsumo — no reutiliza el workflow genérico) =====
 
     // GET: api/Infoconsumo/kanban?proyectoId=8
@@ -398,6 +451,37 @@ public class InfoconsumoController : ControllerBase
         return await query.Select(t => (int?)t.SolicitudId).FirstOrDefaultAsync();
     }
 
+    // El lote de GoTrace referenciado (si hay) debe existir, pertenecer al proyecto Gotrace,
+    // estar Aprobado y ser de la misma empresa que radica la tornaguía en Infoconsumo.
+    private async Task<string?> ValidarLoteGoTraceAsync(int? loteGoTraceSolicitudId, int empresaId)
+    {
+        if (!loteGoTraceSolicitudId.HasValue)
+            return null;
+
+        var lote = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .FirstOrDefaultAsync(s => s.Id == loteGoTraceSolicitudId.Value);
+
+        if (lote == null || lote.Proyecto == null || lote.Proyecto.Nombre != "Gotrace")
+            return "El lote de GoTrace referenciado no existe.";
+
+        if (lote.Estado != "Aprobada")
+            return "Solo se pueden heredar datos de lotes de GoTrace que estén Aprobados.";
+
+        if (lote.EmpresaId != empresaId)
+            return "El lote de GoTrace referenciado pertenece a una empresa distinta a la seleccionada.";
+
+        return null;
+    }
+
+    private static string? FormatearRangoUid(LoteGoTrace lote)
+    {
+        if (string.IsNullOrWhiteSpace(lote.PrefijoUid) || lote.UidInicial == null || lote.UidFinal == null)
+            return null;
+
+        return $"{lote.PrefijoUid}-{lote.UidInicial:00000} a {lote.PrefijoUid}-{lote.UidFinal:00000}";
+    }
+
     private async Task<(IActionResult? Error, Solicitud? Solicitud)> ObtenerSolicitudInfoconsumoAsync(int id, bool incluirTipo)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
@@ -408,7 +492,8 @@ public class InfoconsumoController : ControllerBase
         var query = _context.Solicitudes
             .Include(s => s.Empresa)
             .Include(s => s.Proyecto)
-            .Include(s => s.TornaguiaInfoconsumo)
+            .Include(s => s.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.Proyecto)
+            .Include(s => s.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.LoteGoTrace)
             .AsQueryable();
 
         if (incluirTipo)
@@ -477,6 +562,14 @@ public class InfoconsumoController : ControllerBase
             FechaLegalizacion = t.FechaLegalizacion,
             PagoConfirmado = t.PagoConfirmado,
             FechaPagoConfirmado = t.FechaPagoConfirmado,
+            LoteGoTraceSolicitudId = t.LoteGoTraceSolicitudId,
+            LoteGoTraceNumero = t.LoteGoTraceSolicitud?.Proyecto != null
+                ? $"{t.LoteGoTraceSolicitud.Proyecto.Codigo}-{t.LoteGoTraceSolicitud.Id:0000}"
+                : null,
+            LoteGoTraceProducto = t.LoteGoTraceSolicitud?.LoteGoTrace?.Producto,
+            LoteGoTraceRangoUid = t.LoteGoTraceSolicitud?.LoteGoTrace != null
+                ? FormatearRangoUid(t.LoteGoTraceSolicitud.LoteGoTrace)
+                : null,
         };
     }
 

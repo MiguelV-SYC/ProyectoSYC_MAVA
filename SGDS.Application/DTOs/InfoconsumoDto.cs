@@ -23,6 +23,10 @@ public class CrearSolicitudInfoconsumoDto
     public string? CedulaConductor { get; set; }
     public string? TipoVehiculo { get; set; }
     public string? Observaciones { get; set; }
+
+    // Puente GoTrace -> Infoconsumo (opcional): lote de trazabilidad ya Aprobado en GoTrace
+    // del que se heredan empresa y unidades físicas.
+    public int? LoteGoTraceSolicitudId { get; set; }
 }
 
 public class ActualizarSolicitudInfoconsumoDto
@@ -88,6 +92,26 @@ public class TornaguiaResponseDto
     public DateTime? FechaLegalizacion { get; set; }
     public bool PagoConfirmado { get; set; }
     public DateTime? FechaPagoConfirmado { get; set; }
+
+    public int? LoteGoTraceSolicitudId { get; set; }
+    public string? LoteGoTraceNumero { get; set; }
+    public string? LoteGoTraceProducto { get; set; }
+    public string? LoteGoTraceRangoUid { get; set; }
+}
+
+// Candidato del puente GoTrace -> Infoconsumo: un lote de trazabilidad ya Aprobado en
+// GoTrace, para heredar empresa y unidades físicas al radicar una tornaguía.
+public class LoteGoTraceDisponibleDto
+{
+    public int Id { get; set; }
+    public string Numero { get; set; } = string.Empty;
+    public int EmpresaId { get; set; }
+    public string EmpresaNombre { get; set; } = string.Empty;
+    public string EmpresaNit { get; set; } = string.Empty;
+    public string Producto { get; set; } = string.Empty;
+    public string NumeroLote { get; set; } = string.Empty;
+    public int UnidadesLote { get; set; }
+    public string? RangoUidCompleto { get; set; }
 }
 
 public class LiquidacionImpoConsumoResponseDto

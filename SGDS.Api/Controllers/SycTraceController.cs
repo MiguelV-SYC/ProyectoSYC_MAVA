@@ -273,7 +273,8 @@ public class SycTraceController : ControllerBase
         var query = _context.Solicitudes
             .Include(s => s.Proyecto)
             .Include(s => s.Empresa)
-            .Include(s => s.TornaguiaInfoconsumo)
+            .Include(s => s.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.Proyecto)
+            .Include(s => s.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.LoteGoTrace)
             .Where(s => s.Proyecto != null && s.Proyecto.Nombre == "Infoconsumo"
                      && s.TornaguiaInfoconsumo != null && s.TornaguiaInfoconsumo.PagoConfirmado);
 
@@ -294,6 +295,12 @@ public class SycTraceController : ControllerBase
                 CategoriaProducto = MapearCategoriaInfoconsumo(s.TornaguiaInfoconsumo!.CategoriaProducto),
                 GradoAlcoholimetrico = s.TornaguiaInfoconsumo.GradosAlcoholimetricos,
                 ContenidoNetoCc = (int)CalculadoraImpuestoConsumo.PresentacionEstandarCc,
+                LoteGoTraceNumero = s.TornaguiaInfoconsumo.LoteGoTraceSolicitud?.Proyecto != null
+                    ? $"{s.TornaguiaInfoconsumo.LoteGoTraceSolicitud.Proyecto.Codigo}-{s.TornaguiaInfoconsumo.LoteGoTraceSolicitud.Id:0000}"
+                    : null,
+                RangoUidGoTrace = s.TornaguiaInfoconsumo.LoteGoTraceSolicitud?.LoteGoTrace != null
+                    ? FormatearRangoUid(s.TornaguiaInfoconsumo.LoteGoTraceSolicitud.LoteGoTrace)
+                    : null,
             })
             .Where(d => string.IsNullOrWhiteSpace(buscar)
                      || d.Numero.Contains(buscar, StringComparison.OrdinalIgnoreCase)
@@ -399,6 +406,8 @@ public class SycTraceController : ControllerBase
             .Include(s => s.Empresa)
             .Include(s => s.Proyecto)
             .Include(s => s.EstampillaFisica!).ThenInclude(e => e.SolicitudInfoconsumo).ThenInclude(se => se.Proyecto)
+            .Include(s => s.EstampillaFisica!).ThenInclude(e => e.SolicitudInfoconsumo).ThenInclude(se => se.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.Proyecto)
+            .Include(s => s.EstampillaFisica!).ThenInclude(e => e.SolicitudInfoconsumo).ThenInclude(se => se.TornaguiaInfoconsumo!).ThenInclude(t => t.LoteGoTraceSolicitud!).ThenInclude(l => l.LoteGoTrace)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (solicitud == null || solicitud.EstampillaFisica == null)
@@ -425,6 +434,17 @@ public class SycTraceController : ControllerBase
     private static string ContenidoQr(EstampillaResponseDto dto) =>
         $"SGDS-SYCTRACE|{dto.Numero}|{dto.CodigoCompleto}|INVIMA:{dto.RegistroInvima}|Lote:{dto.LoteProduccion}|Para distribuir en el Departamento de Santander";
 
+    // Infoconsumo y SYCTrace clasifican el mismo tipo de producto con valores de categoría
+    // distintos — se reutiliza el mismo formato de rango que Infoconsumo para mostrar el
+    // tramo de UIDs heredado transitivamente desde GoTrace.
+    private static string? FormatearRangoUid(LoteGoTrace lote)
+    {
+        if (string.IsNullOrWhiteSpace(lote.PrefijoUid) || lote.UidInicial == null || lote.UidFinal == null)
+            return null;
+
+        return $"{lote.PrefijoUid}-{lote.UidInicial:00000} a {lote.PrefijoUid}-{lote.UidFinal:00000}";
+    }
+
     private static EstampillaResponseDto ConstruirEstampillaDto(Solicitud s)
     {
         var e = s.EstampillaFisica!;
@@ -432,6 +452,21 @@ public class SycTraceController : ControllerBase
         var solicitudInfoconsumoNumero = e.SolicitudInfoconsumo?.Proyecto != null
             ? $"{e.SolicitudInfoconsumo.Proyecto.Codigo}-{e.SolicitudInfoconsumo.Id:0000}"
             : e.SolicitudInfoconsumoId.ToString();
+
+        var loteGoTraceSolicitud = e.SolicitudInfoconsumo?.TornaguiaInfoconsumo?.LoteGoTraceSolicitud;
+        var loteGoTrace = loteGoTraceSolicitud?.LoteGoTrace;
+        var loteGoTraceNumero = loteGoTraceSolicitud?.Proyecto != null
+            ? $"{loteGoTraceSolicitud.Proyecto.Codigo}-{loteGoTraceSolicitud.Id:0000}"
+            : null;
+
+        // Alerta suave (no bloqueante): la cantidad de estampillas físicas expedidas no
+        // necesariamente coincide con la cantidad de UIDs trazados en fábrica — una misma
+        // botella puede consumir varias estampillas de presentación o el lote traer excedente.
+        string? alertaDesajusteUid = null;
+        if (loteGoTrace?.CantidadUids != null && loteGoTrace.CantidadUids.Value != e.CantidadEstampillas)
+        {
+            alertaDesajusteUid = $"La cantidad de estampillas ({e.CantidadEstampillas:N0}) no coincide con la cantidad de UIDs trazados en GoTrace ({loteGoTrace.CantidadUids.Value:N0}).";
+        }
 
         return new EstampillaResponseDto
         {
@@ -464,6 +499,10 @@ public class SycTraceController : ControllerBase
             FechaPago = e.FechaPago,
             FechaEntrega = e.FechaEntrega,
             MotivoAnulacion = e.MotivoAnulacion,
+            LoteGoTraceNumero = loteGoTraceNumero,
+            RangoUidGoTrace = loteGoTrace != null ? FormatearRangoUid(loteGoTrace) : null,
+            CantidadUidsGoTrace = loteGoTrace?.CantidadUids,
+            AlertaDesajusteUid = alertaDesajusteUid,
         };
     }
 

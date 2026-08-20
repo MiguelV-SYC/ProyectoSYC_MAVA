@@ -305,6 +305,33 @@ export default function EstampillaPage() {
               </div>
             </div>
 
+            {estampilla.loteGoTraceNumero && (
+              <div className="bg-white border border-line rounded-[14px] p-5">
+                <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Trazabilidad GoTrace</h3>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  <div>
+                    <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Lote de origen</div>
+                    <div className="text-[13.5px] font-semibold text-ink-900">{estampilla.loteGoTraceNumero}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">UIDs trazados</div>
+                    <div className="text-[13.5px] font-semibold text-ink-900">{estampilla.cantidadUidsGoTrace?.toLocaleString('es-CO') ?? '—'}</div>
+                  </div>
+                  {estampilla.rangoUidGoTrace && (
+                    <div className="col-span-2">
+                      <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Rango de UIDs</div>
+                      <div className="text-[13.5px] font-semibold text-ink-900 font-mono">{estampilla.rangoUidGoTrace}</div>
+                    </div>
+                  )}
+                </div>
+                {estampilla.alertaDesajusteUid && (
+                  <p className="text-[11.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3.5">
+                    ⚠ {estampilla.alertaDesajusteUid}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="bg-white border border-line rounded-[14px] p-6 text-center">
               <p className="text-[13px] font-semibold text-ink-900 mb-1">Código {estampilla.codigoCompleto}</p>
               <p className="text-[11.5px] text-ink-600 mb-1">

@@ -99,6 +99,8 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<Reporte> Reportes => Set<Reporte>();
     public DbSet<TornaguiaInfoconsumo> TornaguiasInfoconsumo => Set<TornaguiaInfoconsumo>();
     public DbSet<EstampillaFisica> EstampillasFisicas => Set<EstampillaFisica>();
+    public DbSet<LoteGoTrace> LotesGoTrace => Set<LoteGoTrace>();
+    public DbSet<PuntoControlGoTrace> PuntosControlGoTrace => Set<PuntoControlGoTrace>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -141,6 +143,11 @@ private static int? ObtenerProyectoId(object entidad)
             .WithOne(s => s.TornaguiaInfoconsumo)
             .HasForeignKey<TornaguiaInfoconsumo>(t => t.SolicitudId)
             .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<TornaguiaInfoconsumo>()
+            .HasOne(t => t.LoteGoTraceSolicitud)
+            .WithMany()
+            .HasForeignKey(t => t.LoteGoTraceSolicitudId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Catálogo de tipos de trámite del proyecto SYCTrace (id 7 en la BD real) — un único
         // tipo, coherente con el mockup ("SYCTrace solo maneja este único tipo de trámite").
@@ -161,6 +168,28 @@ private static int? ObtenerProyectoId(object entidad)
             .WithMany()
             .HasForeignKey(e => e.SolicitudInfoconsumoId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Catálogo de tipos de trámite del proyecto Gotrace (id 9 en la BD real) — un único
+        // tipo, coherente con el mockup ("Gotrace está en reingeniería — por ahora maneja un
+        // único tipo de solicitud").
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 26, ProyectoId = 9, Nombre = "Registro de trazabilidad de lote", Activo = true }
+        );
+
+        modelBuilder.Entity<LoteGoTrace>().ToTable("lotes_gotrace");
+        modelBuilder.Entity<LoteGoTrace>().HasIndex(l => l.SolicitudId).IsUnique();
+        modelBuilder.Entity<LoteGoTrace>()
+            .HasOne(l => l.Solicitud)
+            .WithOne(s => s.LoteGoTrace)
+            .HasForeignKey<LoteGoTrace>(l => l.SolicitudId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PuntoControlGoTrace>().ToTable("puntos_control_gotrace");
+        modelBuilder.Entity<PuntoControlGoTrace>()
+            .HasOne(p => p.LoteGoTrace)
+            .WithMany(l => l.PuntosControl)
+            .HasForeignKey(p => p.LoteGoTraceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });

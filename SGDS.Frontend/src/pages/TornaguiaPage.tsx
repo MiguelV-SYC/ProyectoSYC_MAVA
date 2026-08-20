@@ -231,6 +231,28 @@ export default function TornaguiaPage() {
                   </div>
                 </div>
 
+                {tornaguia.loteGoTraceSolicitudId && (
+                  <div className="bg-white border border-line rounded-[14px] p-5">
+                    <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Trazabilidad GoTrace</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                      <div>
+                        <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Lote de origen</div>
+                        <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.loteGoTraceNumero}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Producto trazado</div>
+                        <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.loteGoTraceProducto ?? '—'}</div>
+                      </div>
+                      {tornaguia.loteGoTraceRangoUid && (
+                        <div className="col-span-2">
+                          <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Rango de UIDs</div>
+                          <div className="text-[13.5px] font-semibold text-ink-900 font-mono">{tornaguia.loteGoTraceRangoUid}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white border border-line rounded-[14px] p-5">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Transportador</h3>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-3">

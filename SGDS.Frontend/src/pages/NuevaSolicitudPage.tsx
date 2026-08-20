@@ -21,10 +21,14 @@ import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
 import MapaRuta from '../components/infoconsumo/MapaRuta';
 import { CAPITALES_COLOMBIA } from '../config/geografiaColombia';
 import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
+import BuscadorLoteGoTrace from '../components/infoconsumo/BuscadorLoteGoTrace';
 import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
 import BuscadorTornaguiaInfoconsumo from '../components/syctrace/BuscadorTornaguiaInfoconsumo';
 import FormularioEstampilla from '../components/syctrace/FormularioEstampilla';
 import { crearSolicitudSycTrace } from '../services/syctraceService';
+import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
+import FormularioLoteGoTrace from '../components/gotrace/FormularioLoteGoTrace';
+import { crearSolicitudGoTrace } from '../services/gotraceService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -94,6 +98,9 @@ export default function NuevaSolicitudPage() {
   // Datos específicos del trámite SYCTrace — Solicitud de Estampillas + producto + rango
   const [datosEstampilla, setDatosEstampilla] = useState<DatosEstampilla>(DATOS_ESTAMPILLA_VACIOS);
 
+  // Datos específicos del trámite Gotrace — Datos del lote + cadena de custodia
+  const [datosLoteGoTrace, setDatosLoteGoTrace] = useState<DatosLoteGoTrace>(DATOS_LOTE_GOTRACE_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +108,7 @@ export default function NuevaSolicitudPage() {
   const esEstampillas = proyecto?.nombre === 'Estampillas';
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
   const esSycTrace = proyecto?.nombre === 'SYCTrace';
+  const esGoTrace = proyecto?.nombre === 'Gotrace';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -122,10 +130,10 @@ export default function NuevaSolicitudPage() {
     }
   }, [esInfoconsumo, tipoTornaguiaManual, tipos, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino]);
 
-  // Infoconsumo: el afiliado siempre es una empresa (registrada en RUT/cámara de comercio).
+  // Infoconsumo/Gotrace: el afiliado siempre es una empresa (registrada en RUT/cámara de comercio).
   useEffect(() => {
-    if (esInfoconsumo) setTipoAfiliado('empresa');
-  }, [esInfoconsumo]);
+    if (esInfoconsumo || esGoTrace) setTipoAfiliado('empresa');
+  }, [esInfoconsumo, esGoTrace]);
 
   // Afiliado que llega ya resuelto por la URL — ya sea del gancho de ficha,
   // o de volver de "crear nuevo ciudadano/empresa" a mitad del formulario
@@ -294,6 +302,12 @@ export default function NuevaSolicitudPage() {
         return;
       }
     }
+    if (esGoTrace) {
+      if (!datosLoteGoTrace.producto || !datosLoteGoTrace.numeroLote || !datosLoteGoTrace.fechaProduccion || !datosLoteGoTrace.unidadesLote) {
+        setError('Completa producto, número de lote, fecha de producción y unidades del lote para continuar.');
+        return;
+      }
+    }
     if (esIUVA && !avaluoComercial) {
       setError('Ingresa el avalúo comercial del vehículo para continuar.');
       return;
@@ -312,6 +326,31 @@ export default function NuevaSolicitudPage() {
         setError(errorCoherencia);
         return;
       }
+    }
+
+    if (esGoTrace) {
+      setGuardando(true);
+      try {
+        const creada = await crearSolicitudGoTrace({
+          proyectoId,
+          tipoSolicitudId: tipoSeleccionado.id,
+          empresaId: empresaSeleccionada!.id,
+          producto: datosLoteGoTrace.producto,
+          numeroLote: datosLoteGoTrace.numeroLote,
+          fechaProduccion: datosLoteGoTrace.fechaProduccion,
+          unidadesLote: Number(datosLoteGoTrace.unidadesLote) || 0,
+          prefijoUid: datosLoteGoTrace.prefijoUid || undefined,
+          cantidadUids: datosLoteGoTrace.cantidadUids ? Number(datosLoteGoTrace.cantidadUids) : undefined,
+          uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
+          puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
+        });
+        navigate(`/solicitudes/${creada.id}`);
+      } catch (err: any) {
+        setError(err?.response?.data?.mensaje ?? 'No se pudo radicar la solicitud. Intenta de nuevo.');
+      } finally {
+        setGuardando(false);
+      }
+      return;
     }
 
     if (esSycTrace) {
@@ -369,6 +408,7 @@ export default function NuevaSolicitudPage() {
           cedulaConductor: datosTornaguia.cedulaConductor || undefined,
           tipoVehiculo: datosTornaguia.tipoVehiculo || undefined,
           observaciones: datosTornaguia.observaciones || undefined,
+          loteGoTraceSolicitudId: datosTornaguia.loteGoTraceSolicitudId ?? undefined,
         });
         navigate(`/solicitudes/${creada.id}`);
       } catch (err: any) {
@@ -695,7 +735,7 @@ export default function NuevaSolicitudPage() {
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
-              {esInfoconsumo ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
+              {esInfoconsumo || esGoTrace ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
             </h3>
 
             {vehiculoVinculado && (
@@ -718,6 +758,15 @@ export default function NuevaSolicitudPage() {
 
             {esSycTrace ? (
               <BuscadorTornaguiaInfoconsumo value={datosEstampilla} onChange={setDatosEstampilla} />
+            ) : esInfoconsumo && !afiliadoResueltoPorUrl ? (
+              <>
+                <BuscadorLoteGoTrace
+                  value={datosTornaguia}
+                  onChange={setDatosTornaguia}
+                  onEmpresaResuelta={setEmpresaSeleccionada}
+                />
+                {!datosTornaguia.loteGoTraceSolicitudId && renderBuscadorAfiliado()}
+              </>
             ) : afiliadoResueltoPorUrl ? (
               <div className="flex items-center gap-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-xl px-3.5 py-3">
                 <div className="w-8 h-8 rounded-lg bg-[var(--color-accento)] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -882,7 +931,11 @@ export default function NuevaSolicitudPage() {
           <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
         )}
 
-        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && (
+        {esGoTrace && (
+          <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
+        )}
+
+        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (

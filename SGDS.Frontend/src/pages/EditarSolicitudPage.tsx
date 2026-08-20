@@ -24,6 +24,9 @@ import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoco
 import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
 import FormularioEstampilla from '../components/syctrace/FormularioEstampilla';
 import { getEstampilla, actualizarSolicitudSycTrace } from '../services/syctraceService';
+import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
+import FormularioLoteGoTrace from '../components/gotrace/FormularioLoteGoTrace';
+import { getCertificado, actualizarSolicitudGoTrace } from '../services/gotraceService';
 
 export default function EditarSolicitudPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +40,8 @@ export default function EditarSolicitudPage() {
   const [estadoTornaguia, setEstadoTornaguia] = useState<string | null>(null);
   const [datosEstampilla, setDatosEstampilla] = useState<DatosEstampilla>(DATOS_ESTAMPILLA_VACIOS);
   const [estadoEstampilla, setEstadoEstampilla] = useState<string | null>(null);
+  const [datosLoteGoTrace, setDatosLoteGoTrace] = useState<DatosLoteGoTrace>(DATOS_LOTE_GOTRACE_VACIOS);
+  const [empresaGoTrace, setEmpresaGoTrace] = useState<{ nombre: string; nit: string } | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -73,6 +78,12 @@ export default function EditarSolicitudPage() {
               cedulaConductor: t.cedulaConductor ?? '',
               tipoVehiculo: t.tipoVehiculo ?? '',
               observaciones: t.observaciones ?? '',
+              loteGoTraceSolicitudId: t.loteGoTraceSolicitudId ?? null,
+              loteGoTraceNumero: t.loteGoTraceNumero ?? '',
+              loteGoTraceEmpresaNombre: '',
+              loteGoTraceEmpresaNit: '',
+              loteGoTraceProducto: t.loteGoTraceProducto ?? '',
+              loteGoTraceNumeroLote: '',
             });
           });
         } else if (s.proyectoNombre === 'SYCTrace') {
@@ -100,6 +111,20 @@ export default function EditarSolicitudPage() {
               codigoInicial: String(e.codigoInicial),
             });
           });
+        } else if (s.proyectoNombre === 'Gotrace') {
+          getCertificado(s.id).then((c) => {
+            setEmpresaGoTrace({ nombre: c.empresaRazonSocial, nit: c.empresaNit });
+            setDatosLoteGoTrace({
+              producto: c.producto,
+              numeroLote: c.numeroLote,
+              fechaProduccion: c.fechaProduccion.slice(0, 10),
+              unidadesLote: String(c.unidadesLote),
+              prefijoUid: c.prefijoUid ?? '',
+              cantidadUids: c.cantidadUids != null ? String(c.cantidadUids) : '',
+              uidInicial: c.uidInicial != null ? String(c.uidInicial) : '',
+              puntosControlHabilitados: c.puntosControl.filter((p) => p.habilitado).map((p) => p.nombre),
+            });
+          });
         } else {
           let datos: Record<string, string> = {};
           try {
@@ -117,6 +142,7 @@ export default function EditarSolicitudPage() {
   const esEstampillas = solicitud?.proyectoNombre === 'Estampillas';
   const esInfoconsumo = solicitud?.proyectoNombre === 'Infoconsumo';
   const esSycTrace = solicitud?.proyectoNombre === 'SYCTrace';
+  const esGoTrace = solicitud?.proyectoNombre === 'Gotrace';
   const tipoTramiteSeleccionado = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? '';
   const errorCoherencia = esInfoconsumo
     ? validarCoherenciaOrigenDestino(tipoTramiteSeleccionado, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
@@ -173,6 +199,17 @@ export default function EditarSolicitudPage() {
           cantidadEstampillas: Number(datosEstampilla.cantidadEstampillas) || 0,
           codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
         });
+      } else if (esGoTrace) {
+        await actualizarSolicitudGoTrace(solicitud.id, {
+          producto: datosLoteGoTrace.producto,
+          numeroLote: datosLoteGoTrace.numeroLote,
+          fechaProduccion: datosLoteGoTrace.fechaProduccion,
+          unidadesLote: Number(datosLoteGoTrace.unidadesLote) || 0,
+          prefijoUid: datosLoteGoTrace.prefijoUid || undefined,
+          cantidadUids: datosLoteGoTrace.cantidadUids ? Number(datosLoteGoTrace.cantidadUids) : undefined,
+          uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
+          puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
+        });
       } else {
         const tipoBase = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? solicitud.tipoSolicitudNombre ?? '';
         const datosAdicionales = JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoBase));
@@ -217,9 +254,9 @@ export default function EditarSolicitudPage() {
         </h1>
         <p className="text-ink-600 text-[12.5px] mb-5">{solicitud.proyectoNombre}</p>
 
-        {!esEstampillas && !esInfoconsumo && !esSycTrace ? (
+        {!esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
-            La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo y SYCTrace.
+            La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo, SYCTrace y Gotrace.
           </div>
         ) : esSycTrace && estadoEstampilla !== 'Generada' ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
@@ -240,6 +277,19 @@ export default function EditarSolicitudPage() {
                     onChange={setDatosTornaguia}
                     errorCoherencia={errorCoherencia}
                   />
+                  {datosTornaguia.loteGoTraceSolicitudId && (
+                    <div className="flex items-center gap-3 bg-paper border border-line rounded-xl px-3.5 py-3 mt-3.5">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[var(--color-accento)]">
+                          <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[13px] font-semibold text-ink-900">Lote de GoTrace {datosTornaguia.loteGoTraceNumero}</div>
+                        <div className="text-[11px] text-ink-600">{datosTornaguia.loteGoTraceProducto} (no editable)</div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
               {esSycTrace && (
@@ -257,7 +307,20 @@ export default function EditarSolicitudPage() {
                   </div>
                 </div>
               )}
-              {!esSycTrace && (
+              {esGoTrace && empresaGoTrace && (
+                <div className="flex items-center gap-3 bg-paper border border-line rounded-xl px-3.5 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[var(--color-accento)]">
+                      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold text-ink-900">{empresaGoTrace.nombre}</div>
+                    <div className="text-[11px] text-ink-600">NIT {empresaGoTrace.nit} (no editable)</div>
+                  </div>
+                </div>
+              )}
+              {!esSycTrace && !esGoTrace && (
                 <select
                   value={tipoSolicitudId ?? ''}
                   onChange={(e) => setTipoSolicitudId(e.target.value ? Number(e.target.value) : null)}
@@ -277,6 +340,8 @@ export default function EditarSolicitudPage() {
               <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} />
             ) : esSycTrace ? (
               <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
+            ) : esGoTrace ? (
+              <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
             ) : (
               <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>

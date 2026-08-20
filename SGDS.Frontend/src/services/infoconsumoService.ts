@@ -28,9 +28,10 @@ export interface CrearSolicitudInfoconsumoDto {
   cedulaConductor?: string;
   tipoVehiculo?: string;
   observaciones?: string;
+  loteGoTraceSolicitudId?: number;
 }
 
-export type ActualizarSolicitudInfoconsumoDto = Omit<CrearSolicitudInfoconsumoDto, 'proyectoId' | 'empresaId' | 'tipoSolicitudId'> & {
+export type ActualizarSolicitudInfoconsumoDto = Omit<CrearSolicitudInfoconsumoDto, 'proyectoId' | 'empresaId' | 'tipoSolicitudId' | 'loteGoTraceSolicitudId'> & {
   tipoSolicitudId?: number;
 };
 
@@ -91,6 +92,31 @@ export interface TornaguiaResponseDto {
   fechaLegalizacion?: string;
   pagoConfirmado: boolean;
   fechaPagoConfirmado?: string;
+
+  loteGoTraceSolicitudId?: number;
+  loteGoTraceNumero?: string;
+  loteGoTraceProducto?: string;
+  loteGoTraceRangoUid?: string;
+}
+
+export interface LoteGoTraceDisponibleDto {
+  id: number;
+  numero: string;
+  empresaId: number;
+  empresaNombre: string;
+  empresaNit: string;
+  producto: string;
+  numeroLote: string;
+  unidadesLote: number;
+  rangoUidCompleto?: string;
+}
+
+export async function getLotesGoTraceDisponibles(buscar?: string): Promise<LoteGoTraceDisponibleDto[]> {
+  const { data } = await axios.get<LoteGoTraceDisponibleDto[]>(`${API_URL}/Infoconsumo/lotes-gotrace-disponibles`, {
+    params: { buscar: buscar || undefined },
+    headers: authHeader(),
+  });
+  return data;
 }
 
 export async function getTornaguia(id: number): Promise<TornaguiaResponseDto> {

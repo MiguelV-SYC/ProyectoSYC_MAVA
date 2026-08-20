@@ -43,4 +43,11 @@ public class TornaguiaInfoconsumo
     // expedición de estampilla física (puente Infoconsumo -> SYCTrace).
     public bool PagoConfirmado { get; set; }
     public DateTime? FechaPagoConfirmado { get; set; }
+
+    // Lote de GoTrace (Solicitud del proyecto Gotrace, ya Aprobada) del que se heredan
+    // empresa y unidades físicas — puente GoTrace -> Infoconsumo (Reglas_de_negocio_GoTrace.md,
+    // "Paso 2: Inyección de datos a Infoconsumo"). Opcional: solo aplica a empresas que ya
+    // trazan sus lotes en GoTrace; el resto sigue radicando directamente como hoy.
+    public int? LoteGoTraceSolicitudId { get; set; }
+    public Solicitud? LoteGoTraceSolicitud { get; set; }
 }

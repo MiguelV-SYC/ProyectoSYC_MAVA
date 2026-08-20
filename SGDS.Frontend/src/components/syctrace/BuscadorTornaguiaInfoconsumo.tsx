@@ -102,6 +102,9 @@ export default function BuscadorTornaguiaInfoconsumo({ value, onChange }: Props)
           <div className="flex-1">
             <div className="text-[13px] font-semibold text-ink-900">{t.empresaNombre || 'Sin empresa asociada'}</div>
             <div className="text-[11px] text-ink-400">NIT {t.empresaNit || '—'} · Tornaguía {t.numero}</div>
+            {t.loteGoTraceNumero && (
+              <div className="text-[10.5px] text-emerald-700 mt-0.5">Trazado en GoTrace — Lote {t.loteGoTraceNumero}</div>
+            )}
           </div>
         </button>
       ))}

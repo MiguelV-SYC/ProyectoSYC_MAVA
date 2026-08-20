@@ -66,6 +66,11 @@ public class TornaguiaInfoconsumoDisponibleDto
     public string CategoriaProducto { get; set; } = string.Empty;
     public decimal? GradoAlcoholimetrico { get; set; }
     public int? ContenidoNetoCc { get; set; }
+
+    // Trazabilidad GoTrace (Paso 3, "cruce de datos" del documento) — solo informativo,
+    // presente cuando la tornaguía de Infoconsumo a su vez heredó un lote de GoTrace.
+    public string? LoteGoTraceNumero { get; set; }
+    public string? RangoUidGoTrace { get; set; }
 }
 
 public class EstampillaResponseDto
@@ -105,4 +110,10 @@ public class EstampillaResponseDto
     public DateTime? FechaPago { get; set; }
     public DateTime? FechaEntrega { get; set; }
     public string? MotivoAnulacion { get; set; }
+
+    // Trazabilidad GoTrace, heredada transitivamente vía la tornaguía de Infoconsumo.
+    public string? LoteGoTraceNumero { get; set; }
+    public string? RangoUidGoTrace { get; set; }
+    public int? CantidadUidsGoTrace { get; set; }
+    public string? AlertaDesajusteUid { get; set; }
 }

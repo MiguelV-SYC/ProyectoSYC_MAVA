@@ -33,6 +33,15 @@ export interface DatosTornaguia {
   cedulaConductor: string;
   tipoVehiculo: string;
   observaciones: string;
+
+  // Puente GoTrace -> Infoconsumo (opcional): lote ya Aprobado en GoTrace del que se
+  // heredan empresa y unidades físicas.
+  loteGoTraceSolicitudId: number | null;
+  loteGoTraceNumero: string;
+  loteGoTraceEmpresaNombre: string;
+  loteGoTraceEmpresaNit: string;
+  loteGoTraceProducto: string;
+  loteGoTraceNumeroLote: string;
 }
 
 export const DATOS_TORNAGUIA_VACIOS: DatosTornaguia = {
@@ -52,6 +61,13 @@ export const DATOS_TORNAGUIA_VACIOS: DatosTornaguia = {
   cedulaConductor: '',
   tipoVehiculo: '',
   observaciones: '',
+
+  loteGoTraceSolicitudId: null,
+  loteGoTraceNumero: '',
+  loteGoTraceEmpresaNombre: '',
+  loteGoTraceEmpresaNit: '',
+  loteGoTraceProducto: '',
+  loteGoTraceNumeroLote: '',
 };
 
 // Reglas de negocio, sección 2.1: coherencia origen/destino según el tipo de trámite.
