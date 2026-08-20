@@ -25,6 +25,7 @@ public class Solicitud
     public Vehiculo? Vehiculo { get; set;}
 
     public TornaguiaInfoconsumo? TornaguiaInfoconsumo { get; set; }
+    public EstampillaFisica? EstampillaFisica { get; set; }
 // fin
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();

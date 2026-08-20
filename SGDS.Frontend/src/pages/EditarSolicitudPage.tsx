@@ -21,6 +21,9 @@ import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
 import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoconsumoService';
+import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
+import FormularioEstampilla from '../components/syctrace/FormularioEstampilla';
+import { getEstampilla, actualizarSolicitudSycTrace } from '../services/syctraceService';
 
 export default function EditarSolicitudPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +35,8 @@ export default function EditarSolicitudPage() {
   const [datosContrato, setDatosContrato] = useState<DatosContratoEstampillas>(DATOS_CONTRATO_VACIOS);
   const [datosTornaguia, setDatosTornaguia] = useState<DatosTornaguia>(DATOS_TORNAGUIA_VACIOS);
   const [estadoTornaguia, setEstadoTornaguia] = useState<string | null>(null);
+  const [datosEstampilla, setDatosEstampilla] = useState<DatosEstampilla>(DATOS_ESTAMPILLA_VACIOS);
+  const [estadoEstampilla, setEstadoEstampilla] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -70,6 +75,31 @@ export default function EditarSolicitudPage() {
               observaciones: t.observaciones ?? '',
             });
           });
+        } else if (s.proyectoNombre === 'SYCTrace') {
+          getEstampilla(s.id).then((e) => {
+            setEstadoEstampilla(e.estado);
+            setDatosEstampilla({
+              solicitudInfoconsumoId: e.solicitudInfoconsumoId,
+              solicitudInfoconsumoNumero: e.solicitudInfoconsumoNumero,
+              empresaNombre: e.empresaRazonSocial,
+              empresaNit: e.empresaNit,
+              categoriaProducto: e.categoriaProducto,
+              nombreProducto: e.nombreProducto,
+              marca: e.marca ?? '',
+              gradoAlcoholimetrico: e.gradoAlcoholimetrico != null ? String(e.gradoAlcoholimetrico) : '',
+              contenidoNetoCc: e.contenidoNetoCc != null ? String(e.contenidoNetoCc) : '',
+              unidadesPorCajetilla: e.unidadesPorCajetilla != null ? String(e.unidadesPorCajetilla) : '',
+              registroInvima: e.registroInvima,
+              loteProduccion: e.loteProduccion,
+              origenProducto: e.origenProducto,
+              numeroTornaguia: e.numeroTornaguia ?? '',
+              numeroDeclaracionImportacion: e.numeroDeclaracionImportacion ?? '',
+              registroIntroduccion: e.registroIntroduccion ?? '',
+              prefijo: e.prefijo,
+              cantidadEstampillas: String(e.cantidadEstampillas),
+              codigoInicial: String(e.codigoInicial),
+            });
+          });
         } else {
           let datos: Record<string, string> = {};
           try {
@@ -86,6 +116,7 @@ export default function EditarSolicitudPage() {
   const color = getColorProyecto(solicitud?.proyectoNombre);
   const esEstampillas = solicitud?.proyectoNombre === 'Estampillas';
   const esInfoconsumo = solicitud?.proyectoNombre === 'Infoconsumo';
+  const esSycTrace = solicitud?.proyectoNombre === 'SYCTrace';
   const tipoTramiteSeleccionado = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? '';
   const errorCoherencia = esInfoconsumo
     ? validarCoherenciaOrigenDestino(tipoTramiteSeleccionado, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
@@ -119,6 +150,28 @@ export default function EditarSolicitudPage() {
           cedulaConductor: datosTornaguia.cedulaConductor || undefined,
           tipoVehiculo: datosTornaguia.tipoVehiculo || undefined,
           observaciones: datosTornaguia.observaciones || undefined,
+        });
+      } else if (esSycTrace) {
+        if (datosEstampilla.categoriaProducto === CATEGORIA_SIN_ESTAMPILLA_FISICA) {
+          setError('Cervezas, sifones y refajos no están sujetos a estampilla de señalización física en este flujo.');
+          return;
+        }
+        await actualizarSolicitudSycTrace(solicitud.id, {
+          categoriaProducto: datosEstampilla.categoriaProducto,
+          nombreProducto: datosEstampilla.nombreProducto,
+          marca: datosEstampilla.marca || undefined,
+          gradoAlcoholimetrico: datosEstampilla.gradoAlcoholimetrico ? Number(datosEstampilla.gradoAlcoholimetrico) : undefined,
+          contenidoNetoCc: datosEstampilla.contenidoNetoCc ? Number(datosEstampilla.contenidoNetoCc) : undefined,
+          unidadesPorCajetilla: datosEstampilla.unidadesPorCajetilla ? Number(datosEstampilla.unidadesPorCajetilla) : undefined,
+          registroInvima: datosEstampilla.registroInvima,
+          loteProduccion: datosEstampilla.loteProduccion,
+          origenProducto: datosEstampilla.origenProducto,
+          numeroTornaguia: datosEstampilla.numeroTornaguia || undefined,
+          numeroDeclaracionImportacion: datosEstampilla.numeroDeclaracionImportacion || undefined,
+          registroIntroduccion: datosEstampilla.registroIntroduccion || undefined,
+          prefijo: datosEstampilla.prefijo,
+          cantidadEstampillas: Number(datosEstampilla.cantidadEstampillas) || 0,
+          codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
         });
       } else {
         const tipoBase = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? solicitud.tipoSolicitudNombre ?? '';
@@ -164,9 +217,13 @@ export default function EditarSolicitudPage() {
         </h1>
         <p className="text-ink-600 text-[12.5px] mb-5">{solicitud.proyectoNombre}</p>
 
-        {!esEstampillas && !esInfoconsumo ? (
+        {!esEstampillas && !esInfoconsumo && !esSycTrace ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
-            La edición todavía solo está disponible para solicitudes de Estampillas e Infoconsumo.
+            La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo y SYCTrace.
+          </div>
+        ) : esSycTrace && estadoEstampilla !== 'Generada' ? (
+          <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
+            Esta expedición ya está en estado <b>{estadoEstampilla}</b> — solo se puede editar mientras esté Generada.
           </div>
         ) : (
           <>
@@ -185,13 +242,30 @@ export default function EditarSolicitudPage() {
                   />
                 </>
               )}
-              <select
-                value={tipoSolicitudId ?? ''}
-                onChange={(e) => setTipoSolicitudId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-              >
-                {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-              </select>
+              {esSycTrace && (
+                <div className="flex items-center gap-3 bg-paper border border-line rounded-xl px-3.5 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[var(--color-accento)]">
+                      <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 12l2.5 2.5L16 9" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold text-ink-900">{datosEstampilla.empresaNombre}</div>
+                    <div className="text-[11px] text-ink-600">
+                      NIT {datosEstampilla.empresaNit} · Tornaguía Infoconsumo #{datosEstampilla.solicitudInfoconsumoNumero} (no editable)
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!esSycTrace && (
+                <select
+                  value={tipoSolicitudId ?? ''}
+                  onChange={(e) => setTipoSolicitudId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 mt-3.5"
+                >
+                  {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+                </select>
+              )}
               {esInfoconsumo && estadoTornaguia && estadoTornaguia !== 'Elaborada' && (
                 <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
                   Esta tornaguía ya está en estado <b>{estadoTornaguia}</b> — edítala con cuidado, los cambios no revierten lo ya expedido/legalizado.
@@ -201,6 +275,8 @@ export default function EditarSolicitudPage() {
 
             {esInfoconsumo ? (
               <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} />
+            ) : esSycTrace ? (
+              <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
             ) : (
               <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>

@@ -51,6 +51,10 @@ export async function legalizarTornaguia(id: number): Promise<void> {
   await axios.put(`${API_URL}/Infoconsumo/solicitudes/${id}/legalizar`, {}, { headers: authHeader() });
 }
 
+export async function confirmarPagoTornaguia(id: number): Promise<void> {
+  await axios.put(`${API_URL}/Infoconsumo/solicitudes/${id}/confirmar-pago`, {}, { headers: authHeader() });
+}
+
 export interface TornaguiaResponseDto {
   solicitudId: number;
   numero: string;
@@ -85,6 +89,8 @@ export interface TornaguiaResponseDto {
   fechaExpedicion?: string;
   fechaVigenciaLimite?: string;
   fechaLegalizacion?: string;
+  pagoConfirmado: boolean;
+  fechaPagoConfirmado?: string;
 }
 
 export async function getTornaguia(id: number): Promise<TornaguiaResponseDto> {

@@ -21,6 +21,16 @@ const COLUMNAS_INFOCONSUMO = [
   { estado: 'Vencida', dot: 'bg-[#dc2626]' },
 ];
 
+// SYCTrace reemplaza el workflow genérico por el ciclo de vida de la estampilla física
+// (RN-04) — igual que Infoconsumo, se muestra en tablero de solo lectura sin arrastrar
+// tarjetas: los cambios de estado exigen las validaciones de /confirmar-pago, /entregar y /anular.
+const COLUMNAS_SYCTRACE = [
+  { estado: 'Generada', dot: 'bg-[#64748b]' },
+  { estado: 'Pagada', dot: 'bg-blue-600' },
+  { estado: 'Entregada', dot: 'bg-[var(--color-accento)]' },
+  { estado: 'Anulada', dot: 'bg-[#dc2626]' },
+];
+
 const COLUMNAS = [
   { estado: 'Radicada', dot: 'bg-[#64748b]' },
   { estado: 'En revisión', dot: 'bg-blue-600' },
@@ -79,17 +89,17 @@ export default function WorkflowKanbanPage() {
   const [tarjetasInfoconsumo, setTarjetasInfoconsumo] = useState<Record<string, TarjetaKanbanInfoconsumoDto[]>>({});
   const [filtroTipoInfoconsumo, setFiltroTipoInfoconsumo] = useState('');
 
-  async function cargar() {
+  async function cargar(cols: typeof COLUMNAS = COLUMNAS) {
     if (!proyectoId) return;
     setLoading(true);
     const resultados = await Promise.all(
-      COLUMNAS.map((c) =>
+      cols.map((c) =>
         getSolicitudesListado({ proyectoId, estado: c.estado, pagina: 1, tamanoPagina: 20 })
       )
     );
     const nuevasColumnas: Record<string, SolicitudResponseDto[]> = {};
     const nuevosTotales: Record<string, number> = {};
-    COLUMNAS.forEach((c, i) => {
+    cols.forEach((c, i) => {
       nuevasColumnas[c.estado] = resultados[i].pagina.datos;
       nuevosTotales[c.estado] = resultados[i].pagina.totalRegistros;
     });
@@ -117,6 +127,8 @@ export default function WorkflowKanbanPage() {
       setProyecto(p);
       if (p?.nombre === 'Infoconsumo') {
         cargarInfoconsumo();
+      } else if (p?.nombre === 'SYCTrace') {
+        cargar(COLUMNAS_SYCTRACE);
       } else {
         cargar();
       }
@@ -180,6 +192,7 @@ export default function WorkflowKanbanPage() {
 }
 
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
+  const esSycTrace = proyecto?.nombre === 'SYCTrace';
 
   const tiposDisponibles = [
     ...new Set(
@@ -217,7 +230,9 @@ export default function WorkflowKanbanPage() {
             <p className="text-ink-600 text-[12.5px] mt-[3px]">
               {esInfoconsumo
                 ? 'Solo lectura — usa "Tornaguía" en cada solicitud para expedir/legalizar'
-                : 'Arrastra una tarjeta para cambiar su estado'}
+                : esSycTrace
+                  ? 'Solo lectura — usa "Estampilla" en cada solicitud para confirmar pago/entregar/anular'
+                  : 'Arrastra una tarjeta para cambiar su estado'}
             </p>
           </div>
           <div className="flex bg-white border border-line rounded-[10px] p-1">
@@ -242,6 +257,19 @@ export default function WorkflowKanbanPage() {
             >
               <option value="">Todos los tipos de trámite</option>
               {tiposDisponiblesInfoconsumo.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+        ) : esSycTrace ? (
+          <div className="flex items-center gap-2.5 mb-4">
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+            >
+              <option value="">Todos los tipos</option>
+              {tiposDisponibles.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
@@ -313,6 +341,54 @@ export default function WorkflowKanbanPage() {
                     )}
                   </div>
                   {c.estado === 'Elaborada' && (
+                    <button
+                      onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
+                      className="w-full mt-2.5 py-2.5 rounded-xl border-2 border-dashed border-line text-[12.5px] text-ink-400 font-medium"
+                    >
+                      + Nueva solicitud
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : esSycTrace ? (
+          <div className="flex gap-3.5 min-w-max pb-4">
+            {COLUMNAS_SYCTRACE.map((c) => {
+              let tarjetas = columnas[c.estado] ?? [];
+              if (filtroTipo) {
+                tarjetas = tarjetas.filter((s) => s.tipoSolicitudNombre === filtroTipo);
+              }
+              return (
+                <div key={c.estado} className="w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                  <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
+                    <span className={`w-2 h-2 rounded-full ${c.dot}`} />
+                    <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
+                    <span className="text-[11px] font-bold text-ink-600 bg-white rounded-full px-2 py-[2px]">
+                      {totales[c.estado] ?? 0}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {tarjetas.map((s) => (
+                      <div
+                        key={s.id}
+                        onClick={() => navigate(`/solicitudes/${s.id}`)}
+                        className="bg-white rounded-xl p-3.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="text-[11px] text-ink-400 font-semibold mb-1">#{s.numero}</div>
+                        <div className="text-[13px] font-semibold text-ink-900 mb-0.5">{s.tipoSolicitudNombre}</div>
+                        <div className="text-[12px] text-ink-600 mb-2.5">{s.ciudadanoNombre ?? s.empresaNombre}</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-ink-300 text-xs">—</span>
+                          <span className="text-[11px] text-ink-400">{diasDesde(s.fechaCreacion)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {tarjetas.length === 0 && (
+                      <p className="text-[11.5px] text-ink-400 text-center py-4">Sin expediciones en este estado.</p>
+                    )}
+                  </div>
+                  {c.estado === 'Generada' && (
                     <button
                       onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
                       className="w-full mt-2.5 py-2.5 rounded-xl border-2 border-dashed border-line text-[12.5px] text-ink-400 font-medium"

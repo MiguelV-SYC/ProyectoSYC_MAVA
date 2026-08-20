@@ -86,6 +86,8 @@ public class TornaguiaResponseDto
     public DateTime? FechaExpedicion { get; set; }
     public DateTime? FechaVigenciaLimite { get; set; }
     public DateTime? FechaLegalizacion { get; set; }
+    public bool PagoConfirmado { get; set; }
+    public DateTime? FechaPagoConfirmado { get; set; }
 }
 
 public class LiquidacionImpoConsumoResponseDto

@@ -98,6 +98,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
     public DbSet<Reporte> Reportes => Set<Reporte>();
     public DbSet<TornaguiaInfoconsumo> TornaguiasInfoconsumo => Set<TornaguiaInfoconsumo>();
+    public DbSet<EstampillaFisica> EstampillasFisicas => Set<EstampillaFisica>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,6 +141,26 @@ private static int? ObtenerProyectoId(object entidad)
             .WithOne(s => s.TornaguiaInfoconsumo)
             .HasForeignKey<TornaguiaInfoconsumo>(t => t.SolicitudId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Catálogo de tipos de trámite del proyecto SYCTrace (id 7 en la BD real) — un único
+        // tipo, coherente con el mockup ("SYCTrace solo maneja este único tipo de trámite").
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 25, ProyectoId = 7, Nombre = "Expedición de estampilla", Activo = true }
+        );
+
+        modelBuilder.Entity<EstampillaFisica>().ToTable("estampillas_fisicas");
+        modelBuilder.Entity<EstampillaFisica>().HasIndex(e => e.SolicitudId).IsUnique();
+        modelBuilder.Entity<EstampillaFisica>().HasIndex(e => e.SolicitudInfoconsumoId);
+        modelBuilder.Entity<EstampillaFisica>()
+            .HasOne(e => e.Solicitud)
+            .WithOne(s => s.EstampillaFisica)
+            .HasForeignKey<EstampillaFisica>(e => e.SolicitudId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<EstampillaFisica>()
+            .HasOne(e => e.SolicitudInfoconsumo)
+            .WithMany()
+            .HasForeignKey(e => e.SolicitudInfoconsumoId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });

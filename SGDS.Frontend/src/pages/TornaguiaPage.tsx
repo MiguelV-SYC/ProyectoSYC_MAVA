@@ -5,6 +5,7 @@ import {
   getTornaguia,
   expedirTornaguia,
   legalizarTornaguia,
+  confirmarPagoTornaguia,
   descargarTornaguiaPdf,
   obtenerTornaguiaQrBlobUrl,
   type TornaguiaResponseDto,
@@ -36,6 +37,7 @@ export default function TornaguiaPage() {
   const [error, setError] = useState<string | null>(null);
   const [expidiendo, setExpidiendo] = useState(false);
   const [legalizando, setLegalizando] = useState(false);
+  const [confirmandoPago, setConfirmandoPago] = useState(false);
   const [exportando, setExportando] = useState(false);
 
   function cargar() {
@@ -88,6 +90,20 @@ export default function TornaguiaPage() {
       setError(err?.response?.data?.mensaje ?? 'No se pudo legalizar la tornaguía.');
     } finally {
       setLegalizando(false);
+    }
+  }
+
+  async function handleConfirmarPago() {
+    if (!id) return;
+    setConfirmandoPago(true);
+    setError(null);
+    try {
+      await confirmarPagoTornaguia(Number(id));
+      cargar();
+    } catch (err: any) {
+      setError(err?.response?.data?.mensaje ?? 'No se pudo confirmar el pago.');
+    } finally {
+      setConfirmandoPago(false);
     }
   }
 
@@ -283,9 +299,25 @@ export default function TornaguiaPage() {
                     <button
                       onClick={handleLegalizar}
                       disabled={legalizando}
-                      className="mb-4 flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60 mx-auto"
+                      className="mb-3 flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60 mx-auto"
                     >
                       {legalizando ? 'Legalizando...' : 'Legalizar tornaguía'}
+                    </button>
+                  )}
+                  {tornaguia.pagoConfirmado ? (
+                    <p className="mb-4 flex items-center justify-center gap-1.5 text-[12.5px] font-semibold text-emerald-700">
+                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" className="w-[14px] h-[14px] stroke-emerald-700">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                      Pago confirmado el {formatearFecha(tornaguia.fechaPagoConfirmado)} — disponible en SYCTrace
+                    </p>
+                  ) : (
+                    <button
+                      onClick={handleConfirmarPago}
+                      disabled={confirmandoPago}
+                      className="mb-4 flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60 mx-auto hover:bg-paper"
+                    >
+                      {confirmandoPago ? 'Confirmando...' : 'Confirmar pago'}
                     </button>
                   )}
                   {qrUrl ? (

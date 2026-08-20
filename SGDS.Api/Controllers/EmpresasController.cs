@@ -24,20 +24,16 @@ public class EmpresasController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetEmpresas([FromQuery] string? buscar, [FromQuery] int pagina = 1, [FromQuery] int tamanoPagina = 20)
     {
-        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-        var proyectosPermitidos = User.FindAll("proyecto")
-            .Select(c => int.Parse(c.Value.Split(':')[0]))
-            .ToList();
-
         var query = _context.Empresas
             .Include(e => e.Solicitudes)
                 .ThenInclude(s => s.Proyecto)
             .AsQueryable();
 
-        if (!esAdminSyc)
-        {
-            query = query.Where(e => e.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)));
-        }
+        // Empresa es un catálogo compartido entre proyectos (no scoped como Solicitud) —
+        // restringir la búsqueda a empresas con actividad previa en un proyecto permitido
+        // impedía vincular una empresa nueva (o sin trámites aún) al primer trámite de un
+        // operador. GetEmpresa(id) ya no restringe el acceso, solo qué actividad muestra;
+        // este listado ahora es consistente con eso.
 
         if (!string.IsNullOrWhiteSpace(buscar))
         {

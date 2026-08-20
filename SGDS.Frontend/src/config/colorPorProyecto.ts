@@ -9,6 +9,7 @@ export const COLOR_POR_PROYECTO: Record<string, ColorProyecto> = {
   IUVA: { primario: '#c2410c', primarioClaro: '#fed7aa', primarioOscuro: '#9a3412' },
   Estampillas: { primario: '#3f3f46', primarioClaro: '#f4f4f5', primarioOscuro: '#27272a' },
   Infoconsumo: { primario: '#a21caf', primarioClaro: '#fae8ff', primarioOscuro: '#86198f' },
+  SYCTrace: { primario: '#ea580c', primarioClaro: '#ffedd5', primarioOscuro: '#c2410c' },
 };
 
 export const COLOR_DEFAULT: ColorProyecto = { primario: '#0d9488', primarioClaro: '#e3f7f4', primarioOscuro: '#0f766e' };

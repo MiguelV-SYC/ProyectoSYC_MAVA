@@ -196,6 +196,30 @@ public class InfoconsumoController : ControllerBase
         return NoContent();
     }
 
+    // PUT: api/Infoconsumo/solicitudes/5/confirmar-pago
+    // Independiente del ciclo Elaborada/Expedida/Legalizada/Vencida (que sigue midiendo la
+    // movilización física) — marca que se pagó el impuesto al consumo, habilitando el puente
+    // hacia SYCTrace para la expedición de la estampilla física (RN-03 de SYCTrace).
+    [HttpPut("solicitudes/{id}/confirmar-pago")]
+    public async Task<IActionResult> ConfirmarPago(int id)
+    {
+        var (error, solicitud) = await ObtenerSolicitudInfoconsumoAsync(id, incluirTipo: false);
+        if (error != null) return error;
+
+        if (solicitud!.Estado == "Elaborada")
+            return BadRequest(new { mensaje = "Solo se puede confirmar el pago de una tornaguía ya expedida." });
+
+        var t = solicitud.TornaguiaInfoconsumo!;
+        if (t.PagoConfirmado)
+            return BadRequest(new { mensaje = "El pago de esta tornaguía ya estaba confirmado." });
+
+        t.PagoConfirmado = true;
+        t.FechaPagoConfirmado = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
     // ===== Tornaguía =====
 
     // GET: api/Infoconsumo/solicitudes/5/tornaguia
@@ -451,6 +475,8 @@ public class InfoconsumoController : ControllerBase
             FechaExpedicion = t.FechaExpedicion,
             FechaVigenciaLimite = t.FechaVigenciaLimite,
             FechaLegalizacion = t.FechaLegalizacion,
+            PagoConfirmado = t.PagoConfirmado,
+            FechaPagoConfirmado = t.FechaPagoConfirmado,
         };
     }
 

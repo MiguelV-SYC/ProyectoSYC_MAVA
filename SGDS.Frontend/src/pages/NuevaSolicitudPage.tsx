@@ -21,6 +21,10 @@ import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
 import MapaRuta from '../components/infoconsumo/MapaRuta';
 import { CAPITALES_COLOMBIA } from '../config/geografiaColombia';
 import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
+import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
+import BuscadorTornaguiaInfoconsumo from '../components/syctrace/BuscadorTornaguiaInfoconsumo';
+import FormularioEstampilla from '../components/syctrace/FormularioEstampilla';
+import { crearSolicitudSycTrace } from '../services/syctraceService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -87,12 +91,16 @@ export default function NuevaSolicitudPage() {
   // Datos específicos del trámite Infoconsumo — Producto gravado y Movilización
   const [datosTornaguia, setDatosTornaguia] = useState<DatosTornaguia>(DATOS_TORNAGUIA_VACIOS);
 
+  // Datos específicos del trámite SYCTrace — Solicitud de Estampillas + producto + rango
+  const [datosEstampilla, setDatosEstampilla] = useState<DatosEstampilla>(DATOS_ESTAMPILLA_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const esIUVA = proyecto?.nombre === 'IUVA';
   const esEstampillas = proyecto?.nombre === 'Estampillas';
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
+  const esSycTrace = proyecto?.nombre === 'SYCTrace';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -264,9 +272,27 @@ export default function NuevaSolicitudPage() {
       setError('Selecciona un tipo de solicitud.');
       return;
     }
-    if (!ciudadanoSeleccionado && !empresaSeleccionada) {
+    if (!esSycTrace && !ciudadanoSeleccionado && !empresaSeleccionada) {
       setError('Selecciona un afiliado para continuar.');
       return;
+    }
+    if (esSycTrace) {
+      if (!datosEstampilla.solicitudInfoconsumoId) {
+        setError('Busca y selecciona una tornaguía de Infoconsumo con pago confirmado para continuar.');
+        return;
+      }
+      if (datosEstampilla.categoriaProducto === CATEGORIA_SIN_ESTAMPILLA_FISICA) {
+        setError('Cervezas, sifones y refajos no están sujetos a estampilla de señalización física en este flujo.');
+        return;
+      }
+      if (!datosEstampilla.nombreProducto || !datosEstampilla.registroInvima || !datosEstampilla.loteProduccion) {
+        setError('Ingresa el nombre del producto, el registro INVIMA y el lote de producción para continuar.');
+        return;
+      }
+      if (!datosEstampilla.prefijo || !datosEstampilla.cantidadEstampillas || !datosEstampilla.codigoInicial) {
+        setError('Completa el rango de expedición (prefijo, cantidad y código inicial) para continuar.');
+        return;
+      }
     }
     if (esIUVA && !avaluoComercial) {
       setError('Ingresa el avalúo comercial del vehículo para continuar.');
@@ -286,6 +312,38 @@ export default function NuevaSolicitudPage() {
         setError(errorCoherencia);
         return;
       }
+    }
+
+    if (esSycTrace) {
+      setGuardando(true);
+      try {
+        const creada = await crearSolicitudSycTrace({
+          proyectoId,
+          tipoSolicitudId: tipoSeleccionado.id,
+          solicitudInfoconsumoId: datosEstampilla.solicitudInfoconsumoId!,
+          categoriaProducto: datosEstampilla.categoriaProducto,
+          nombreProducto: datosEstampilla.nombreProducto,
+          marca: datosEstampilla.marca || undefined,
+          gradoAlcoholimetrico: datosEstampilla.gradoAlcoholimetrico ? Number(datosEstampilla.gradoAlcoholimetrico) : undefined,
+          contenidoNetoCc: datosEstampilla.contenidoNetoCc ? Number(datosEstampilla.contenidoNetoCc) : undefined,
+          unidadesPorCajetilla: datosEstampilla.unidadesPorCajetilla ? Number(datosEstampilla.unidadesPorCajetilla) : undefined,
+          registroInvima: datosEstampilla.registroInvima,
+          loteProduccion: datosEstampilla.loteProduccion,
+          origenProducto: datosEstampilla.origenProducto,
+          numeroTornaguia: datosEstampilla.numeroTornaguia || undefined,
+          numeroDeclaracionImportacion: datosEstampilla.numeroDeclaracionImportacion || undefined,
+          registroIntroduccion: datosEstampilla.registroIntroduccion || undefined,
+          prefijo: datosEstampilla.prefijo,
+          cantidadEstampillas: Number(datosEstampilla.cantidadEstampillas) || 0,
+          codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
+        });
+        navigate(`/solicitudes/${creada.id}`);
+      } catch (err: any) {
+        setError(err?.response?.data?.mensaje ?? 'No se pudo radicar la solicitud. Intenta de nuevo.');
+      } finally {
+        setGuardando(false);
+      }
+      return;
     }
 
     if (esInfoconsumo) {
@@ -637,7 +695,7 @@ export default function NuevaSolicitudPage() {
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
-              {esInfoconsumo ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : '2. Afiliado'}
+              {esInfoconsumo ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
             </h3>
 
             {vehiculoVinculado && (
@@ -658,7 +716,9 @@ export default function NuevaSolicitudPage() {
               </div>
             )}
 
-            {afiliadoResueltoPorUrl ? (
+            {esSycTrace ? (
+              <BuscadorTornaguiaInfoconsumo value={datosEstampilla} onChange={setDatosEstampilla} />
+            ) : afiliadoResueltoPorUrl ? (
               <div className="flex items-center gap-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-xl px-3.5 py-3">
                 <div className="w-8 h-8 rounded-lg bg-[var(--color-accento)] text-white flex items-center justify-center text-xs font-bold shrink-0">
                   {(ciudadanoSeleccionado?.nombreCompleto ?? empresaSeleccionada?.razonSocial ?? '')
@@ -818,7 +878,11 @@ export default function NuevaSolicitudPage() {
           <FormularioTornaguia value={datosTornaguia} onChange={setDatosTornaguia} />
         )}
 
-        {!esIUVA && !esEstampillas && !esInfoconsumo && (
+        {esSycTrace && (
+          <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
+        )}
+
+        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (
@@ -882,7 +946,7 @@ export default function NuevaSolicitudPage() {
             disabled={guardando}
             className="flex items-center gap-1.5 py-2.5 px-5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
           >
-            {guardando ? 'Radicando...' : 'Radicar solicitud'}
+            {esSycTrace ? (guardando ? 'Autorizando...' : 'Autorizar expedición') : (guardando ? 'Radicando...' : 'Radicar solicitud')}
             {!guardando && (
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.2" className="w-3.5 h-3.5 stroke-white">
                 <path d="M5 12h14M13 5l7 7-7 7" />

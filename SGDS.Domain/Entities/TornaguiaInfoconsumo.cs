@@ -36,4 +36,11 @@ public class TornaguiaInfoconsumo
     public DateTime? FechaExpedicion { get; set; }
     public DateTime? FechaVigenciaLimite { get; set; }
     public DateTime? FechaLegalizacion { get; set; }
+
+    // Confirmación de pago del impuesto al consumo — independiente del ciclo de legalización
+    // (Elaborada/Expedida/Legalizada/Vencida sigue significando movilización física). Una vez
+    // pagada, la tornaguía queda disponible para que SYCTrace la use como origen de una
+    // expedición de estampilla física (puente Infoconsumo -> SYCTrace).
+    public bool PagoConfirmado { get; set; }
+    public DateTime? FechaPagoConfirmado { get; set; }
 }

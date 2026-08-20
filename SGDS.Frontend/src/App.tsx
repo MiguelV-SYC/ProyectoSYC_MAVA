@@ -30,6 +30,8 @@ import PreliquidacionPage from './pages/PreliquidacionPage';
 import EditarSolicitudPage from './pages/EditarSolicitudPage';
 import PreliquidacionEstampillasPage from './pages/PreliquidacionEstampillasPage';
 import TornaguiaPage from './pages/TornaguiaPage';
+import EstampillaPage from './pages/EstampillaPage';
+import EstampillaArtePage from './pages/EstampillaArtePage';
 import LiquidacionImpoConsumoPage from './pages/LiquidacionImpoConsumoPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 
@@ -152,6 +154,16 @@ function App() {
       <Route
         path="/solicitudes/:id/tornaguia"
         element={user ? <TornaguiaPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/estampilla"
+        element={user ? <EstampillaPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/estampilla/arte"
+        element={user ? <EstampillaArtePage /> : <Navigate to="/login" replace />}
       />
 
       <Route

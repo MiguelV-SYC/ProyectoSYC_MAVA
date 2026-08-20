@@ -13,6 +13,10 @@ const ESTADO_STYLE: Record<string, string> = {
   Aprobada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Rechazada: 'bg-[#fdeaea] text-[#dc2626]',
   Finalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Generada: 'bg-[#f1f5f9] text-[#64748b]',
+  Pagada: 'bg-blue-100 text-blue-600',
+  Entregada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Anulada: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 const ICONOS: Record<string, React.ReactNode> = {

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SGDS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SGDS.Infrastructure.Data;
 namespace SGDS.Infrastructure.Migrations
 {
     [DbContext(typeof(SgdsDbContext))]
-    partial class SgdsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820165030_CrearModuloSycTrace")]
+    partial class CrearModuloSycTrace
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -306,13 +309,13 @@ namespace SGDS.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("registro_invima");
 
+                    b.Property<int>("SolicitudEstampillasId")
+                        .HasColumnType("integer")
+                        .HasColumnName("solicitud_estampillas_id");
+
                     b.Property<int>("SolicitudId")
                         .HasColumnType("integer")
                         .HasColumnName("solicitud_id");
-
-                    b.Property<int>("SolicitudInfoconsumoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("solicitud_infoconsumo_id");
 
                     b.Property<int?>("UnidadesPorCajetilla")
                         .HasColumnType("integer")
@@ -321,12 +324,12 @@ namespace SGDS.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_estampillas_fisicas");
 
+                    b.HasIndex("SolicitudEstampillasId")
+                        .HasDatabaseName("ix_estampillas_fisicas_solicitud_estampillas_id");
+
                     b.HasIndex("SolicitudId")
                         .IsUnique()
                         .HasDatabaseName("ix_estampillas_fisicas_solicitud_id");
-
-                    b.HasIndex("SolicitudInfoconsumoId")
-                        .HasDatabaseName("ix_estampillas_fisicas_solicitud_infoconsumo_id");
 
                     b.ToTable("estampillas_fisicas", (string)null);
                 });
@@ -780,10 +783,6 @@ namespace SGDS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_legalizacion");
 
-                    b.Property<DateTime?>("FechaPagoConfirmado")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_pago_confirmado");
-
                     b.Property<DateTime?>("FechaVigenciaLimite")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_vigencia_limite");
@@ -809,10 +808,6 @@ namespace SGDS.Infrastructure.Migrations
                     b.Property<string>("Observaciones")
                         .HasColumnType("text")
                         .HasColumnName("observaciones");
-
-                    b.Property<bool>("PagoConfirmado")
-                        .HasColumnType("boolean")
-                        .HasColumnName("pago_confirmado");
 
                     b.Property<string>("PlacaVehiculo")
                         .IsRequired()
@@ -1006,6 +1001,13 @@ namespace SGDS.Infrastructure.Migrations
 
             modelBuilder.Entity("SGDS.Domain.Entities.EstampillaFisica", b =>
                 {
+                    b.HasOne("SGDS.Domain.Entities.Solicitud", "SolicitudEstampillas")
+                        .WithMany()
+                        .HasForeignKey("SolicitudEstampillasId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_estampillas_fisicas_solicitudes_solicitud_estampillas_id");
+
                     b.HasOne("SGDS.Domain.Entities.Solicitud", "Solicitud")
                         .WithOne("EstampillaFisica")
                         .HasForeignKey("SGDS.Domain.Entities.EstampillaFisica", "SolicitudId")
@@ -1013,16 +1015,9 @@ namespace SGDS.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_estampillas_fisicas_solicitudes_solicitud_id");
 
-                    b.HasOne("SGDS.Domain.Entities.Solicitud", "SolicitudInfoconsumo")
-                        .WithMany()
-                        .HasForeignKey("SolicitudInfoconsumoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_estampillas_fisicas_solicitudes_solicitud_infoconsumo_id");
-
                     b.Navigation("Solicitud");
 
-                    b.Navigation("SolicitudInfoconsumo");
+                    b.Navigation("SolicitudEstampillas");
                 });
 
             modelBuilder.Entity("SGDS.Domain.Entities.HistorialEstado", b =>

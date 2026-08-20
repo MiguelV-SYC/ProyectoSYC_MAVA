@@ -27,6 +27,10 @@ const ESTADO_STYLE: Record<string, string> = {
   Expedida: 'bg-blue-100 text-blue-600',
   Legalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Vencida: 'bg-[#fdeaea] text-[#dc2626]',
+  Generada: 'bg-[#f1f5f9] text-[#64748b]',
+  Pagada: 'bg-blue-100 text-blue-600',
+  Entregada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Anulada: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 function formatearFechaHora(iso?: string) {
@@ -251,6 +255,17 @@ export default function DetalleSolicitudPage() {
                 </button>
               </>
             )}
+            {solicitud.proyectoNombre === 'SYCTrace' && (
+              <button
+                onClick={() => navigate(`/solicitudes/${solicitud.id}/estampilla`)}
+                className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+              >
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                  <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 12l2.5 2.5L16 9" />
+                </svg>
+                Estampilla
+              </button>
+            )}
             <button
               onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
               className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"
@@ -260,7 +275,7 @@ export default function DetalleSolicitudPage() {
               </svg>
               Adjuntar documento
             </button>
-            {solicitud.proyectoNombre !== 'Infoconsumo' && (
+            {solicitud.proyectoNombre !== 'Infoconsumo' && solicitud.proyectoNombre !== 'SYCTrace' && (
               <button
                 onClick={() => { setNuevoEstado(solicitud.estado); setModalEstado(true); }}
                 className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"

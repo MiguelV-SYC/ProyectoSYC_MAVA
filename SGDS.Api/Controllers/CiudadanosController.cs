@@ -24,20 +24,16 @@ public class CiudadanosController : ControllerBase
     [HttpGet]
 public async Task<IActionResult> GetCiudadanos([FromQuery] string? buscar, [FromQuery] int? proyectoId, [FromQuery] int pagina = 1, [FromQuery] int tamanoPagina = 20)
 {
-    var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-    var proyectosPermitidos = User.FindAll("proyecto")
-        .Select(c => int.Parse(c.Value.Split(':')[0]))
-        .ToList();
-
     var query = _context.Ciudadanos
         .Include(c => c.Solicitudes)
             .ThenInclude(s => s.Proyecto)
         .AsQueryable();
 
-    if (!esAdminSyc)
-    {
-        query = query.Where(c => c.Solicitudes.Any(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value)));
-    }
+    // Ciudadano es un catálogo compartido entre proyectos (no scoped como Solicitud) —
+    // restringir la búsqueda a ciudadanos con actividad previa en un proyecto permitido
+    // impedía vincular un ciudadano nuevo (o sin trámites aún) al primer trámite de un
+    // operador. El filtro explícito por proyectoId (abajo) sigue disponible para quien
+    // lo necesite.
 
     if (proyectoId.HasValue)
     {

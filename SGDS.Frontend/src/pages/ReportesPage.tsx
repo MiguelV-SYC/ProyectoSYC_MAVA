@@ -14,6 +14,13 @@ import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada'];
 const ESTADOS_INFOCONSUMO = ['Elaborada', 'Expedida', 'Legalizada', 'Vencida'];
+const ESTADOS_SYCTRACE = ['Generada', 'Pagada', 'Entregada', 'Anulada'];
+
+function estadosPorProyecto(nombreProyecto?: string) {
+  if (nombreProyecto === 'Infoconsumo') return ESTADOS_INFOCONSUMO;
+  if (nombreProyecto === 'SYCTrace') return ESTADOS_SYCTRACE;
+  return ESTADOS;
+}
 
 function formatearFechaHora(iso: string) {
   const fecha = new Date(iso);
@@ -62,7 +69,7 @@ export default function ReportesPage() {
     getProyectosActivos().then((lista) => {
       const p = lista.find((x) => x.id === proyectoId) ?? null;
       setProyecto(p);
-      setEstadosMarcados(new Set(p?.nombre === 'Infoconsumo' ? ESTADOS_INFOCONSUMO : ESTADOS));
+      setEstadosMarcados(new Set(estadosPorProyecto(p?.nombre)));
     });
     getTiposSolicitudPorProyecto(proyectoId).then(setTipos);
     getReportesRecientes(proyectoId).then(setRecientes).catch(() => setRecientes([]));
@@ -92,8 +99,7 @@ export default function ReportesPage() {
   }
 
   const rangoDias = Math.max(0, Math.round((new Date(hasta).getTime() - new Date(desde).getTime()) / 86400000));
-  const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
-  const estadosDisponibles = esInfoconsumo ? ESTADOS_INFOCONSUMO : ESTADOS;
+  const estadosDisponibles = estadosPorProyecto(proyecto?.nombre);
   const color = getColorProyecto(proyecto?.nombre);
 
   async function handleGenerar() {
