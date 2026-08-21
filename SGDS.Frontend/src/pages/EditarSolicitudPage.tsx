@@ -27,6 +27,9 @@ import { getEstampilla, actualizarSolicitudSycTrace } from '../services/syctrace
 import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
 import FormularioLoteGoTrace from '../components/gotrace/FormularioLoteGoTrace';
 import { getCertificado, actualizarSolicitudGoTrace } from '../services/gotraceService';
+import { DATOS_INSTRUMENTO_PASIVO_VACIOS, TIPO_CONSULTA_EXPEDIENTE, totalMeses, aniosYMeses, type DatosInstrumentoPasivo } from '../config/pasivosLaboralesConfig';
+import FormularioInstrumentoPasivo from '../components/pasivosLaborales/FormularioInstrumentoPasivo';
+import { getInstrumento, actualizarSolicitudPasivosLaborales } from '../services/pasivosLaboralesService';
 
 export default function EditarSolicitudPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +45,8 @@ export default function EditarSolicitudPage() {
   const [estadoEstampilla, setEstadoEstampilla] = useState<string | null>(null);
   const [datosLoteGoTrace, setDatosLoteGoTrace] = useState<DatosLoteGoTrace>(DATOS_LOTE_GOTRACE_VACIOS);
   const [empresaGoTrace, setEmpresaGoTrace] = useState<{ nombre: string; nit: string } | null>(null);
+  const [datosInstrumentoPasivo, setDatosInstrumentoPasivo] = useState<DatosInstrumentoPasivo>(DATOS_INSTRUMENTO_PASIVO_VACIOS);
+  const [empresaPasivosLaborales, setEmpresaPasivosLaborales] = useState<{ nombre: string; nit: string } | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -125,6 +130,26 @@ export default function EditarSolicitudPage() {
               puntosControlHabilitados: c.puntosControl.filter((p) => p.habilitado).map((p) => p.nombre),
             });
           });
+        } else if (s.proyectoNombre === 'Pasivos Laborales') {
+          getInstrumento(s.id).then((i) => {
+            setEmpresaPasivosLaborales({ nombre: i.empresaRazonSocial, nit: i.empresaNit });
+            const tl = aniosYMeses(i.tiempoLaboradoMeses);
+            const ta = aniosYMeses(i.tiempoTotalAportesMeses);
+            setDatosInstrumentoPasivo({
+              instrumento: i.instrumento ?? '',
+              servidorNombre: i.servidorNombre ?? '',
+              servidorDocumento: i.servidorDocumento ?? '',
+              regimenPensional: i.regimenPensional ?? DATOS_INSTRUMENTO_PASIVO_VACIOS.regimenPensional,
+              tiempoLaboradoAnios: tl.anios,
+              tiempoLaboradoMesesAdicionales: tl.meses,
+              tiempoTotalAportesAnios: ta.anios,
+              tiempoTotalAportesMesesAdicionales: ta.meses,
+              valorMesadaPensional: i.valorMesadaPensional != null ? String(i.valorMesadaPensional) : '',
+              observaciones: i.observaciones ?? '',
+              solicitudColpensionesId: i.solicitudColpensionesId ?? null,
+              solicitudColpensionesNumero: i.solicitudColpensionesNumero ?? '',
+            });
+          });
         } else {
           let datos: Record<string, string> = {};
           try {
@@ -143,6 +168,7 @@ export default function EditarSolicitudPage() {
   const esInfoconsumo = solicitud?.proyectoNombre === 'Infoconsumo';
   const esSycTrace = solicitud?.proyectoNombre === 'SYCTrace';
   const esGoTrace = solicitud?.proyectoNombre === 'Gotrace';
+  const esPasivosLaborales = solicitud?.proyectoNombre === 'Pasivos Laborales';
   const tipoTramiteSeleccionado = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? '';
   const errorCoherencia = esInfoconsumo
     ? validarCoherenciaOrigenDestino(tipoTramiteSeleccionado, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
@@ -210,6 +236,17 @@ export default function EditarSolicitudPage() {
           uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
           puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
         });
+      } else if (esPasivosLaborales) {
+        await actualizarSolicitudPasivosLaborales(solicitud.id, {
+          instrumento: datosInstrumentoPasivo.instrumento || undefined,
+          servidorNombre: datosInstrumentoPasivo.servidorNombre || undefined,
+          servidorDocumento: datosInstrumentoPasivo.servidorDocumento || undefined,
+          regimenPensional: datosInstrumentoPasivo.regimenPensional || undefined,
+          tiempoLaboradoMeses: totalMeses(datosInstrumentoPasivo.tiempoLaboradoAnios, datosInstrumentoPasivo.tiempoLaboradoMesesAdicionales),
+          tiempoTotalAportesMeses: totalMeses(datosInstrumentoPasivo.tiempoTotalAportesAnios, datosInstrumentoPasivo.tiempoTotalAportesMesesAdicionales),
+          valorMesadaPensional: datosInstrumentoPasivo.valorMesadaPensional ? Number(datosInstrumentoPasivo.valorMesadaPensional) : undefined,
+          observaciones: datosInstrumentoPasivo.observaciones || undefined,
+        });
       } else {
         const tipoBase = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? solicitud.tipoSolicitudNombre ?? '';
         const datosAdicionales = JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoBase));
@@ -254,9 +291,9 @@ export default function EditarSolicitudPage() {
         </h1>
         <p className="text-ink-600 text-[12.5px] mb-5">{solicitud.proyectoNombre}</p>
 
-        {!esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace ? (
+        {!esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
-            La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo, SYCTrace y Gotrace.
+            La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo, SYCTrace, Gotrace y Pasivos Laborales.
           </div>
         ) : esSycTrace && estadoEstampilla !== 'Generada' ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
@@ -320,6 +357,19 @@ export default function EditarSolicitudPage() {
                   </div>
                 </div>
               )}
+              {esPasivosLaborales && empresaPasivosLaborales && (
+                <div className="flex items-center gap-3 bg-paper border border-line rounded-xl px-3.5 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-[var(--color-accento)]">
+                      <path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold text-ink-900">{empresaPasivosLaborales.nombre}</div>
+                    <div className="text-[11px] text-ink-600">NIT {empresaPasivosLaborales.nit} (no editable)</div>
+                  </div>
+                </div>
+              )}
               {!esSycTrace && !esGoTrace && (
                 <select
                   value={tipoSolicitudId ?? ''}
@@ -342,6 +392,12 @@ export default function EditarSolicitudPage() {
               <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
             ) : esGoTrace ? (
               <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
+            ) : esPasivosLaborales ? (
+              <FormularioInstrumentoPasivo
+                value={datosInstrumentoPasivo}
+                onChange={setDatosInstrumentoPasivo}
+                tipoTramiteNombre={tipoTramiteSeleccionado || TIPO_CONSULTA_EXPEDIENTE}
+              />
             ) : (
               <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del contrato</h3>

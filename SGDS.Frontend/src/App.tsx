@@ -34,6 +34,7 @@ import EstampillaPage from './pages/EstampillaPage';
 import EstampillaArtePage from './pages/EstampillaArtePage';
 import CertificadoTrazabilidadPage from './pages/CertificadoTrazabilidadPage';
 import LiquidacionImpoConsumoPage from './pages/LiquidacionImpoConsumoPage';
+import LiquidacionPasivoLaboralPage from './pages/LiquidacionPasivoLaboralPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 
 function App() {
@@ -175,6 +176,11 @@ function App() {
       <Route
         path="/solicitudes/:id/liquidacion-impoconsumo"
         element={user ? <LiquidacionImpoConsumoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/liquidacion-pasivo-laboral"
+        element={user ? <LiquidacionPasivoLaboralPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

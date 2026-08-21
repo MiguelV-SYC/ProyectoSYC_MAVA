@@ -29,6 +29,9 @@ import { crearSolicitudSycTrace } from '../services/syctraceService';
 import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
 import FormularioLoteGoTrace from '../components/gotrace/FormularioLoteGoTrace';
 import { crearSolicitudGoTrace } from '../services/gotraceService';
+import { DATOS_INSTRUMENTO_PASIVO_VACIOS, TIPO_CONSULTA_EXPEDIENTE, totalMeses, type DatosInstrumentoPasivo } from '../config/pasivosLaboralesConfig';
+import FormularioInstrumentoPasivo from '../components/pasivosLaborales/FormularioInstrumentoPasivo';
+import { crearSolicitudPasivosLaborales } from '../services/pasivosLaboralesService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -36,6 +39,9 @@ const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de desempleo': <path d="M12 5v14M5 12h14" />,
   'Créditos': <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18" /></>,
   'Carné virtual': <rect x="6" y="3" width="12" height="18" rx="2" />,
+  'Gestión de pasivo pensional': <><path d="M12 3v18M5 7l7-4 7 4" /></>,
+  'Gestión de pasivo laboral': <><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></>,
+  'Consulta de expediente digital': <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></>,
 };
 
 type TipoAfiliado = 'ciudadano' | 'empresa';
@@ -101,6 +107,9 @@ export default function NuevaSolicitudPage() {
   // Datos específicos del trámite Gotrace — Datos del lote + cadena de custodia
   const [datosLoteGoTrace, setDatosLoteGoTrace] = useState<DatosLoteGoTrace>(DATOS_LOTE_GOTRACE_VACIOS);
 
+  // Datos específicos del trámite Pasivos Laborales — Servidor/pensionado + instrumento
+  const [datosInstrumentoPasivo, setDatosInstrumentoPasivo] = useState<DatosInstrumentoPasivo>(DATOS_INSTRUMENTO_PASIVO_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,6 +118,7 @@ export default function NuevaSolicitudPage() {
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
   const esSycTrace = proyecto?.nombre === 'SYCTrace';
   const esGoTrace = proyecto?.nombre === 'Gotrace';
+  const esPasivosLaborales = proyecto?.nombre === 'Pasivos Laborales';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -130,10 +140,11 @@ export default function NuevaSolicitudPage() {
     }
   }, [esInfoconsumo, tipoTornaguiaManual, tipos, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino]);
 
-  // Infoconsumo/Gotrace: el afiliado siempre es una empresa (registrada en RUT/cámara de comercio).
+  // Infoconsumo/Gotrace/Pasivos Laborales: el afiliado siempre es una empresa (RUT/cámara de
+  // comercio, o entidad territorial en el caso de Pasivos Laborales).
   useEffect(() => {
-    if (esInfoconsumo || esGoTrace) setTipoAfiliado('empresa');
-  }, [esInfoconsumo, esGoTrace]);
+    if (esInfoconsumo || esGoTrace || esPasivosLaborales) setTipoAfiliado('empresa');
+  }, [esInfoconsumo, esGoTrace, esPasivosLaborales]);
 
   // Afiliado que llega ya resuelto por la URL — ya sea del gancho de ficha,
   // o de volver de "crear nuevo ciudadano/empresa" a mitad del formulario
@@ -308,6 +319,16 @@ export default function NuevaSolicitudPage() {
         return;
       }
     }
+    if (esPasivosLaborales && tipoSeleccionado.nombre !== TIPO_CONSULTA_EXPEDIENTE) {
+      if (!datosInstrumentoPasivo.instrumento) {
+        setError('Selecciona el instrumento a tramitar para continuar.');
+        return;
+      }
+      if (!datosInstrumentoPasivo.servidorNombre || !datosInstrumentoPasivo.servidorDocumento) {
+        setError('Ingresa el nombre y el documento del servidor o pensionado para continuar.');
+        return;
+      }
+    }
     if (esIUVA && !avaluoComercial) {
       setError('Ingresa el avalúo comercial del vehículo para continuar.');
       return;
@@ -343,6 +364,32 @@ export default function NuevaSolicitudPage() {
           cantidadUids: datosLoteGoTrace.cantidadUids ? Number(datosLoteGoTrace.cantidadUids) : undefined,
           uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
           puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
+        });
+        navigate(`/solicitudes/${creada.id}`);
+      } catch (err: any) {
+        setError(err?.response?.data?.mensaje ?? 'No se pudo radicar la solicitud. Intenta de nuevo.');
+      } finally {
+        setGuardando(false);
+      }
+      return;
+    }
+
+    if (esPasivosLaborales) {
+      setGuardando(true);
+      try {
+        const creada = await crearSolicitudPasivosLaborales({
+          proyectoId,
+          tipoSolicitudId: tipoSeleccionado.id,
+          empresaId: empresaSeleccionada!.id,
+          instrumento: datosInstrumentoPasivo.instrumento || undefined,
+          servidorNombre: datosInstrumentoPasivo.servidorNombre || undefined,
+          servidorDocumento: datosInstrumentoPasivo.servidorDocumento || undefined,
+          regimenPensional: datosInstrumentoPasivo.regimenPensional || undefined,
+          tiempoLaboradoMeses: totalMeses(datosInstrumentoPasivo.tiempoLaboradoAnios, datosInstrumentoPasivo.tiempoLaboradoMesesAdicionales),
+          tiempoTotalAportesMeses: totalMeses(datosInstrumentoPasivo.tiempoTotalAportesAnios, datosInstrumentoPasivo.tiempoTotalAportesMesesAdicionales),
+          valorMesadaPensional: datosInstrumentoPasivo.valorMesadaPensional ? Number(datosInstrumentoPasivo.valorMesadaPensional) : undefined,
+          observaciones: datosInstrumentoPasivo.observaciones || undefined,
+          solicitudColpensionesId: datosInstrumentoPasivo.solicitudColpensionesId ?? undefined,
         });
         navigate(`/solicitudes/${creada.id}`);
       } catch (err: any) {
@@ -735,7 +782,7 @@ export default function NuevaSolicitudPage() {
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
-              {esInfoconsumo || esGoTrace ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
+              {esPasivosLaborales ? '2. Entidad territorial' : esInfoconsumo || esGoTrace ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
             </h3>
 
             {vehiculoVinculado && (
@@ -935,7 +982,15 @@ export default function NuevaSolicitudPage() {
           <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
         )}
 
-        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && (
+        {esPasivosLaborales && (
+          <FormularioInstrumentoPasivo
+            value={datosInstrumentoPasivo}
+            onChange={setDatosInstrumentoPasivo}
+            tipoTramiteNombre={tipoSeleccionado?.nombre ?? ''}
+          />
+        )}
+
+        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (

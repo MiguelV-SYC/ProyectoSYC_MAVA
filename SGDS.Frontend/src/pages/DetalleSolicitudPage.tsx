@@ -288,6 +288,28 @@ export default function DetalleSolicitudPage() {
                 </button>
               </>
             )}
+            {solicitud.proyectoNombre === 'Pasivos Laborales' && (
+              <>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/editar`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                  Editar solicitud
+                </button>
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/liquidacion-pasivo-laboral`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h1M8 12h1M8 16h1M12 8h4M12 12h4M12 16h4" />
+                  </svg>
+                  Ver liquidación
+                </button>
+              </>
+            )}
             <button
               onClick={() => { setArchivoElegido(null); setErrorDocumento(null); setModalDocumento(true); }}
               className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"

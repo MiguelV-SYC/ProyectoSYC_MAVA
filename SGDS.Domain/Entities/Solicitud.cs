@@ -27,6 +27,7 @@ public class Solicitud
     public TornaguiaInfoconsumo? TornaguiaInfoconsumo { get; set; }
     public EstampillaFisica? EstampillaFisica { get; set; }
     public LoteGoTrace? LoteGoTrace { get; set; }
+    public InstrumentoPasivoLaboral? InstrumentoPasivoLaboral { get; set; }
 // fin
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();

@@ -101,6 +101,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<EstampillaFisica> EstampillasFisicas => Set<EstampillaFisica>();
     public DbSet<LoteGoTrace> LotesGoTrace => Set<LoteGoTrace>();
     public DbSet<PuntoControlGoTrace> PuntosControlGoTrace => Set<PuntoControlGoTrace>();
+    public DbSet<InstrumentoPasivoLaboral> InstrumentosPasivoLaboral => Set<InstrumentoPasivoLaboral>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -190,6 +191,26 @@ private static int? ObtenerProyectoId(object entidad)
             .WithMany(l => l.PuntosControl)
             .HasForeignKey(p => p.LoteGoTraceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Catálogo de tipos de trámite del proyecto Pasivos Laborales (id 6 en la BD real).
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 27, ProyectoId = 6, Nombre = "Gestión de pasivo pensional", Activo = true },
+            new TipoSolicitud { Id = 28, ProyectoId = 6, Nombre = "Gestión de pasivo laboral", Activo = true },
+            new TipoSolicitud { Id = 29, ProyectoId = 6, Nombre = "Consulta de expediente digital", Activo = true }
+        );
+
+        modelBuilder.Entity<InstrumentoPasivoLaboral>().ToTable("instrumentos_pasivo_laboral");
+        modelBuilder.Entity<InstrumentoPasivoLaboral>().HasIndex(i => i.SolicitudId).IsUnique();
+        modelBuilder.Entity<InstrumentoPasivoLaboral>()
+            .HasOne(i => i.Solicitud)
+            .WithOne(s => s.InstrumentoPasivoLaboral)
+            .HasForeignKey<InstrumentoPasivoLaboral>(i => i.SolicitudId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<InstrumentoPasivoLaboral>()
+            .HasOne(i => i.SolicitudColpensiones)
+            .WithMany()
+            .HasForeignKey(i => i.SolicitudColpensionesId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
