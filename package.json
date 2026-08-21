@@ -1,0 +1,23 @@
+{
+  "name": "proyectosyc_mava",
+  "version": "1.0.0",
+  "description": "<div align=\"center\"> \r <img src=\"./Assets/Readme/LogoSGDS.png\" alt=\"LogoSGDS\" width=\"200\" />\r </div>",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MiguelV-SYC/ProyectoSYC_MAVA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MiguelV-SYC/ProyectoSYC_MAVA/issues"
+  },
+  "homepage": "https://github.com/MiguelV-SYC/ProyectoSYC_MAVA#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0"
+  }
+}
