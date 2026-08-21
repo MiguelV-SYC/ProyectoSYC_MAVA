@@ -35,6 +35,10 @@ import EstampillaArtePage from './pages/EstampillaArtePage';
 import CertificadoTrazabilidadPage from './pages/CertificadoTrazabilidadPage';
 import LiquidacionImpoConsumoPage from './pages/LiquidacionImpoConsumoPage';
 import LiquidacionPasivoLaboralPage from './pages/LiquidacionPasivoLaboralPage';
+import SedesPage from './pages/SedesPage';
+import SedeDetallePage from './pages/SedeDetallePage';
+import ConsultaConsolidadaPage from './pages/ConsultaConsolidadaPage';
+import EstadoCuentaConsolidadoPage from './pages/EstadoCuentaConsolidadoPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 
 function App() {
@@ -181,6 +185,31 @@ function App() {
       <Route
         path="/solicitudes/:id/liquidacion-pasivo-laboral"
         element={user ? <LiquidacionPasivoLaboralPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/librototal/sedes"
+        element={user ? <SedesPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/librototal/sedes/:id"
+        element={user ? <SedeDetallePage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/librototal/consulta-consolidada"
+        element={user ? <ConsultaConsolidadaPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/librototal/estado-cuenta"
+        element={user ? <EstadoCuentaConsolidadoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/solicitudes/:id/estado-cuenta"
+        element={user ? <EstadoCuentaConsolidadoPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

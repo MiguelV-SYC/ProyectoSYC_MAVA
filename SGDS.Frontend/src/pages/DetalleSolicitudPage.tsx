@@ -12,6 +12,7 @@ import { subirDocumento } from '../services/documentoService';
 import { getColorProyecto } from '../config/colorPorProyecto';
 import { getTornaguia, type TornaguiaResponseDto } from '../services/infoconsumoService';
 import MapaRuta from '../components/infoconsumo/MapaRuta';
+import { llamarTurno, finalizarTurno, marcarNoAsistio } from '../services/libroTotalService';
 
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada', 'Finalizada'];
 
@@ -31,6 +32,10 @@ const ESTADO_STYLE: Record<string, string> = {
   Pagada: 'bg-blue-100 text-blue-600',
   Entregada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   Anulada: 'bg-[#fdeaea] text-[#dc2626]',
+  Agendado: 'bg-[#f1f5f9] text-[#64748b]',
+  'En atención': 'bg-blue-100 text-blue-600',
+  Atendido: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  'No asistió': 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 function formatearFechaHora(iso?: string) {
@@ -68,6 +73,10 @@ export default function DetalleSolicitudPage() {
   const [archivoElegido, setArchivoElegido] = useState<File | null>(null);
   const [subiendoDocumento, setSubiendoDocumento] = useState(false);
   const [errorDocumento, setErrorDocumento] = useState<string | null>(null);
+
+  const [procesandoTurno, setProcesandoTurno] = useState(false);
+  const [modalTipificacion, setModalTipificacion] = useState(false);
+  const [tipificacionTexto, setTipificacionTexto] = useState('');
 
   async function cargar() {
     if (!id) return;
@@ -125,6 +134,47 @@ export default function DetalleSolicitudPage() {
       alert(err?.response?.data?.mensaje ?? 'No se pudo reasignar.');
     } finally {
       setGuardandoReasignar(false);
+    }
+  }
+
+  async function handleLlamarTurno() {
+    if (!solicitud) return;
+    setProcesandoTurno(true);
+    try {
+      await llamarTurno(solicitud.id);
+      await cargar();
+    } catch (err: any) {
+      alert(err?.response?.data?.mensaje ?? 'No se pudo llamar el turno.');
+    } finally {
+      setProcesandoTurno(false);
+    }
+  }
+
+  async function handleFinalizarTurno() {
+    if (!solicitud || !tipificacionTexto.trim()) return;
+    setProcesandoTurno(true);
+    try {
+      await finalizarTurno(solicitud.id, tipificacionTexto.trim());
+      setModalTipificacion(false);
+      setTipificacionTexto('');
+      await cargar();
+    } catch (err: any) {
+      alert(err?.response?.data?.mensaje ?? 'No se pudo finalizar el turno.');
+    } finally {
+      setProcesandoTurno(false);
+    }
+  }
+
+  async function handleMarcarNoAsistio() {
+    if (!solicitud) return;
+    setProcesandoTurno(true);
+    try {
+      await marcarNoAsistio(solicitud.id);
+      await cargar();
+    } catch (err: any) {
+      alert(err?.response?.data?.mensaje ?? 'No se pudo marcar el turno como No asistió.');
+    } finally {
+      setProcesandoTurno(false);
     }
   }
 
@@ -288,6 +338,51 @@ export default function DetalleSolicitudPage() {
                 </button>
               </>
             )}
+            {solicitud.proyectoNombre === 'Libro Total' && (
+              <>
+                {solicitud.estado === 'Agendado' && (
+                  <button
+                    onClick={handleLlamarTurno}
+                    disabled={procesandoTurno}
+                    className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold disabled:opacity-60"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-white">
+                      <circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" />
+                    </svg>
+                    Llamar turno
+                  </button>
+                )}
+                {solicitud.estado === 'Agendado' && (
+                  <button
+                    onClick={handleMarcarNoAsistio}
+                    disabled={procesandoTurno}
+                    className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper disabled:opacity-60"
+                  >
+                    No asistió
+                  </button>
+                )}
+                {solicitud.estado === 'En atención' && (
+                  <button
+                    onClick={() => { setTipificacionTexto(''); setModalTipificacion(true); }}
+                    className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-white">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    Finalizar atención
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate(`/solicitudes/${solicitud.id}/estado-cuenta`)}
+                  className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-3.5 py-2 text-[12.5px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[13px] h-[13px] stroke-ink-600">
+                    <rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h1M8 12h1M8 16h1M12 8h4M12 12h4M12 16h4" />
+                  </svg>
+                  Consulta consolidada
+                </button>
+              </>
+            )}
             {solicitud.proyectoNombre === 'Pasivos Laborales' && (
               <>
                 <button
@@ -319,7 +414,7 @@ export default function DetalleSolicitudPage() {
               </svg>
               Adjuntar documento
             </button>
-            {solicitud.proyectoNombre !== 'Infoconsumo' && solicitud.proyectoNombre !== 'SYCTrace' && (
+            {solicitud.proyectoNombre !== 'Infoconsumo' && solicitud.proyectoNombre !== 'SYCTrace' && solicitud.proyectoNombre !== 'Libro Total' && (
               <button
                 onClick={() => { setNuevoEstado(solicitud.estado); setModalEstado(true); }}
                 className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2 text-[12.5px] font-semibold"
@@ -562,6 +657,34 @@ export default function DetalleSolicitudPage() {
                 className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
               >
                 {guardandoReasignar ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalTipificacion && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-6">
+          <div className="bg-white rounded-2xl p-7 w-full max-w-[380px]">
+            <h2 className="font-display text-lg font-semibold text-ink-900 mb-4">Tipificar y finalizar atención</h2>
+            <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipificación de la atención</label>
+            <textarea
+              value={tipificacionTexto}
+              onChange={(e) => setTipificacionTexto(e.target.value)}
+              rows={3}
+              placeholder="Ej: Trámite informativo de vehículos exitoso"
+              className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none resize-none mb-5"
+            />
+            <div className="flex gap-2.5">
+              <button onClick={() => setModalTipificacion(false)} className="flex-1 py-2.5 rounded-[9px] border border-line text-ink-600 text-sm font-medium">
+                Cancelar
+              </button>
+              <button
+                onClick={handleFinalizarTurno}
+                disabled={procesandoTurno || !tipificacionTexto.trim()}
+                className="flex-1 py-2.5 rounded-[9px] bg-[var(--color-accento)] text-white text-sm font-semibold disabled:opacity-60"
+              >
+                {procesandoTurno ? 'Guardando...' : 'Finalizar'}
               </button>
             </div>
           </div>

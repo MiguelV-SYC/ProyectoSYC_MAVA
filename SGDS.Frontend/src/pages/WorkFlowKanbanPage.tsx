@@ -10,6 +10,7 @@ import { getProyectosActivos, getProyectosAdmin, type ProyectoResponseDto } from
 import SelectorProyecto from '../components/shared/SelectorProyecto';
 import { getColorProyecto } from '../config/colorPorProyecto';
 import { getKanbanInfoconsumo, type TarjetaKanbanInfoconsumoDto } from '../services/infoconsumoService';
+import { getKanbanLibroTotal, getSedes, type TarjetaKanbanTurnoDto, type SedeResponseDto } from '../services/libroTotalService';
 
 // Infoconsumo reemplaza el workflow genérico de 7 estados por su propio ciclo de vida
 // (sección 3 de las reglas de negocio) — se muestra en un tablero aparte, sin arrastrar
@@ -29,6 +30,17 @@ const COLUMNAS_SYCTRACE = [
   { estado: 'Pagada', dot: 'bg-blue-600' },
   { estado: 'Entregada', dot: 'bg-[var(--color-accento)]' },
   { estado: 'Anulada', dot: 'bg-[#dc2626]' },
+];
+
+// Libro Total sustituye el workflow genérico por el tablero de Turnos de una sede (RN:
+// "en vez de un Kanban de solicitudes, el operador ve una lista priorizada de personas
+// esperando en su sede actual") — tablero de solo lectura, las transiciones de estado
+// exigen las validaciones de /llamar, /finalizar y /marcar-no-asistio.
+const COLUMNAS_LIBROTOTAL = [
+  { estado: 'Agendado', dot: 'bg-[#64748b]' },
+  { estado: 'En atención', dot: 'bg-blue-600' },
+  { estado: 'Atendido', dot: 'bg-[var(--color-accento)]' },
+  { estado: 'No asistió', dot: 'bg-[#dc2626]' },
 ];
 
 const COLUMNAS = [
@@ -89,6 +101,10 @@ export default function WorkflowKanbanPage() {
   const [tarjetasInfoconsumo, setTarjetasInfoconsumo] = useState<Record<string, TarjetaKanbanInfoconsumoDto[]>>({});
   const [filtroTipoInfoconsumo, setFiltroTipoInfoconsumo] = useState('');
 
+  const [sedesLibroTotal, setSedesLibroTotal] = useState<SedeResponseDto[]>([]);
+  const [sedeSeleccionada, setSedeSeleccionada] = useState<number | null>(null);
+  const [tarjetasLibroTotal, setTarjetasLibroTotal] = useState<Record<string, TarjetaKanbanTurnoDto[]>>({});
+
   async function cargar(cols: typeof COLUMNAS = COLUMNAS) {
     if (!proyectoId) return;
     setLoading(true);
@@ -120,6 +136,17 @@ export default function WorkflowKanbanPage() {
     setLoading(false);
   }
 
+  async function cargarLibroTotal(sedeId: number) {
+    setLoading(true);
+    const tarjetas = await getKanbanLibroTotal(sedeId);
+    const nuevasColumnas: Record<string, TarjetaKanbanTurnoDto[]> = {};
+    COLUMNAS_LIBROTOTAL.forEach((c) => {
+      nuevasColumnas[c.estado] = tarjetas.filter((t) => t.estado === c.estado);
+    });
+    setTarjetasLibroTotal(nuevasColumnas);
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!proyectoId) return;
     getProyectosActivos().then((lista) => {
@@ -129,6 +156,15 @@ export default function WorkflowKanbanPage() {
         cargarInfoconsumo();
       } else if (p?.nombre === 'SYCTrace') {
         cargar(COLUMNAS_SYCTRACE);
+      } else if (p?.nombre === 'Libro Total') {
+        getSedes().then((sedes) => {
+          setSedesLibroTotal(sedes);
+          const sedeIdUrl = Number(searchParams.get('sedeId'));
+          const sedeInicial = sedes.find((s) => s.id === sedeIdUrl)?.id ?? sedes[0]?.id ?? null;
+          setSedeSeleccionada(sedeInicial);
+          if (sedeInicial) cargarLibroTotal(sedeInicial);
+          else setLoading(false);
+        });
       } else {
         cargar();
       }
@@ -193,6 +229,8 @@ export default function WorkflowKanbanPage() {
 
   const esInfoconsumo = proyecto?.nombre === 'Infoconsumo';
   const esSycTrace = proyecto?.nombre === 'SYCTrace';
+  const esLibroTotal = proyecto?.nombre === 'Libro Total';
+  const nombreSedeSeleccionada = sedesLibroTotal.find((s) => s.id === sedeSeleccionada)?.nombre ?? '';
 
   const tiposDisponibles = [
     ...new Set(
@@ -225,14 +263,16 @@ export default function WorkflowKanbanPage() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
-              Workflow — {proyecto?.nombre ?? '...'}
+              {esLibroTotal ? `Turnos — Sede ${nombreSedeSeleccionada}` : `Workflow — ${proyecto?.nombre ?? '...'}`}
             </h1>
             <p className="text-ink-600 text-[12.5px] mt-[3px]">
               {esInfoconsumo
                 ? 'Solo lectura — usa "Tornaguía" en cada solicitud para expedir/legalizar'
                 : esSycTrace
                   ? 'Solo lectura — usa "Estampilla" en cada solicitud para confirmar pago/entregar/anular'
-                  : 'Arrastra una tarjeta para cambiar su estado'}
+                  : esLibroTotal
+                    ? 'Solo lectura — usa "Llamar turno"/"Finalizar atención" en cada turno; fila del día de hoy'
+                    : 'Arrastra una tarjeta para cambiar su estado'}
             </p>
           </div>
           <div className="flex bg-white border border-line rounded-[10px] p-1">
@@ -247,6 +287,24 @@ export default function WorkflowKanbanPage() {
             </button>
           </div>
         </div>
+
+        {esLibroTotal && (
+          <div className="flex items-center gap-2.5 mb-4">
+            <select
+              value={sedeSeleccionada ?? ''}
+              onChange={(e) => {
+                const id = Number(e.target.value);
+                setSedeSeleccionada(id);
+                cargarLibroTotal(id);
+              }}
+              className="bg-white border border-line rounded-[9px] px-3 py-2 text-xs text-ink-600 font-medium outline-none"
+            >
+              {sedesLibroTotal.map((s) => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {esInfoconsumo ? (
           <div className="flex items-center gap-2.5 mb-4">
@@ -274,7 +332,7 @@ export default function WorkflowKanbanPage() {
               ))}
             </select>
           </div>
-        ) : (
+        ) : esLibroTotal ? null : (
           <div className="flex items-center gap-2.5 mb-4">
             <select
               value={filtroTipo}
@@ -394,6 +452,53 @@ export default function WorkflowKanbanPage() {
                       className="w-full mt-2.5 py-2.5 rounded-xl border-2 border-dashed border-line text-[12.5px] text-ink-400 font-medium"
                     >
                       + Nueva solicitud
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : esLibroTotal ? (
+          <div className="flex gap-3.5 min-w-max pb-4">
+            {COLUMNAS_LIBROTOTAL.map((c) => {
+              const tarjetas = tarjetasLibroTotal[c.estado] ?? [];
+              return (
+                <div key={c.estado} className="w-[250px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                  <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
+                    <span className={`w-2 h-2 rounded-full ${c.dot}`} />
+                    <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
+                    <span className="text-[11px] font-bold text-ink-600 bg-white rounded-full px-2 py-[2px]">
+                      {tarjetas.length}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {tarjetas.map((t) => (
+                      <div
+                        key={t.id}
+                        onClick={() => navigate(`/solicitudes/${t.id}`)}
+                        className="bg-white rounded-xl p-3.5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="text-[10.5px] text-ink-400 font-semibold mb-1">Turno {t.numeroTurno}</div>
+                        <div className="text-[12.5px] font-semibold text-ink-900 mb-0.5">{t.ciudadanoNombre}</div>
+                        <div className="text-[11px] text-ink-600 mb-2.5">{t.motivo}</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-ink-300 text-xs">—</span>
+                          <span className="text-[10.5px] text-ink-400 font-semibold">
+                            {new Date(t.fechaHoraCita).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {tarjetas.length === 0 && (
+                      <p className="text-[11.5px] text-ink-400 text-center py-4">Sin turnos en este estado hoy.</p>
+                    )}
+                  </div>
+                  {c.estado === 'Agendado' && (
+                    <button
+                      onClick={() => navigate(`/solicitudes/nueva?proyectoId=${proyectoId}`)}
+                      className="w-full mt-2.5 py-2.5 rounded-xl border-2 border-dashed border-line text-[12.5px] text-ink-400 font-medium"
+                    >
+                      + Agendar turno
                     </button>
                   )}
                 </div>

@@ -12,6 +12,7 @@ export const COLOR_POR_PROYECTO: Record<string, ColorProyecto> = {
   SYCTrace: { primario: '#ea580c', primarioClaro: '#ffedd5', primarioOscuro: '#c2410c' },
   Gotrace: { primario: '#d97706', primarioClaro: '#fef3c7', primarioOscuro: '#92400e' },
   'Pasivos Laborales': { primario: '#0891b2', primarioClaro: '#cffafe', primarioOscuro: '#155e75' },
+  'Libro Total': { primario: '#854d0e', primarioClaro: '#fef9c3', primarioOscuro: '#5c3409' },
 };
 
 export const COLOR_DEFAULT: ColorProyecto = { primario: '#0d9488', primarioClaro: '#e3f7f4', primarioOscuro: '#0f766e' };

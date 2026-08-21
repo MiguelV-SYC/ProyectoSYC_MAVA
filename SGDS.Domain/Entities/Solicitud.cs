@@ -28,6 +28,7 @@ public class Solicitud
     public EstampillaFisica? EstampillaFisica { get; set; }
     public LoteGoTrace? LoteGoTrace { get; set; }
     public InstrumentoPasivoLaboral? InstrumentoPasivoLaboral { get; set; }
+    public TurnoLibroTotal? TurnoLibroTotal { get; set; }
 // fin
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();

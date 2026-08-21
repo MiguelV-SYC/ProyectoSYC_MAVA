@@ -170,6 +170,28 @@ export default function ProyectoWorkspacePage() {
                 Vehículos
               </button>
             )}
+            {proyecto.nombre === 'Libro Total' && (
+              <>
+                <button
+                  onClick={() => navigate('/librototal/sedes')}
+                  className="flex items-center gap-[7px] bg-white border border-line text-ink-600 rounded-[10px] px-4 py-[10px] text-[13px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[15px] h-[15px] stroke-ink-600">
+                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                  </svg>
+                  Sedes
+                </button>
+                <button
+                  onClick={() => navigate('/librototal/consulta-consolidada')}
+                  className="flex items-center gap-[7px] bg-white border border-line text-ink-600 rounded-[10px] px-4 py-[10px] text-[13px] font-semibold hover:bg-paper"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-[15px] h-[15px] stroke-ink-600">
+                    <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
+                  </svg>
+                  Consulta consolidada
+                </button>
+              </>
+            )}
             <button
               onClick={() => navigate(`/solicitudes/nueva?proyectoId=${id}`)}
               className="flex items-center gap-[7px] bg-[var(--color-accento)] text-white rounded-[10px] px-4 py-[10px] text-[13px] font-semibold shadow-[0_8px_18px_-6px_var(--color-accento)]"

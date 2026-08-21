@@ -15,10 +15,12 @@ import { getColorProyecto } from '../config/colorPorProyecto';
 const ESTADOS = ['Radicada', 'En revisión', 'Pendiente', 'Requiere información', 'Aprobada', 'Rechazada'];
 const ESTADOS_INFOCONSUMO = ['Elaborada', 'Expedida', 'Legalizada', 'Vencida'];
 const ESTADOS_SYCTRACE = ['Generada', 'Pagada', 'Entregada', 'Anulada'];
+const ESTADOS_LIBROTOTAL = ['Agendado', 'En atención', 'Atendido', 'No asistió'];
 
 function estadosPorProyecto(nombreProyecto?: string) {
   if (nombreProyecto === 'Infoconsumo') return ESTADOS_INFOCONSUMO;
   if (nombreProyecto === 'SYCTrace') return ESTADOS_SYCTRACE;
+  if (nombreProyecto === 'Libro Total') return ESTADOS_LIBROTOTAL;
   return ESTADOS;
 }
 

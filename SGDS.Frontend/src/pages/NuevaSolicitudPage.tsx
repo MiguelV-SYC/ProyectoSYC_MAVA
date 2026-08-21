@@ -32,6 +32,9 @@ import { crearSolicitudGoTrace } from '../services/gotraceService';
 import { DATOS_INSTRUMENTO_PASIVO_VACIOS, TIPO_CONSULTA_EXPEDIENTE, totalMeses, type DatosInstrumentoPasivo } from '../config/pasivosLaboralesConfig';
 import FormularioInstrumentoPasivo from '../components/pasivosLaborales/FormularioInstrumentoPasivo';
 import { crearSolicitudPasivosLaborales } from '../services/pasivosLaboralesService';
+import { DATOS_TURNO_VACIOS, fechaHoraCitaISO, type DatosTurno } from '../config/libroTotalConfig';
+import FormularioTurno from '../components/librototal/FormularioTurno';
+import { agendarTurno } from '../services/libroTotalService';
 
 const ICONOS_TIPO: Record<string, React.ReactNode> = {
   'Subsidio de vivienda': <path d="M3 11l9-8 9 8M5 10v10h14V10" />,
@@ -110,6 +113,9 @@ export default function NuevaSolicitudPage() {
   // Datos específicos del trámite Pasivos Laborales — Servidor/pensionado + instrumento
   const [datosInstrumentoPasivo, setDatosInstrumentoPasivo] = useState<DatosInstrumentoPasivo>(DATOS_INSTRUMENTO_PASIVO_VACIOS);
 
+  // Datos específicos del trámite Libro Total — Agendamiento de turno (sede + trámite + horario)
+  const [datosTurno, setDatosTurno] = useState<DatosTurno>(DATOS_TURNO_VACIOS);
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -119,6 +125,7 @@ export default function NuevaSolicitudPage() {
   const esSycTrace = proyecto?.nombre === 'SYCTrace';
   const esGoTrace = proyecto?.nombre === 'Gotrace';
   const esPasivosLaborales = proyecto?.nombre === 'Pasivos Laborales';
+  const esLibroTotal = proyecto?.nombre === 'Libro Total';
 
   useEffect(() => {
     if (!proyectoId) return;
@@ -329,6 +336,16 @@ export default function NuevaSolicitudPage() {
         return;
       }
     }
+    if (esLibroTotal) {
+      if (!datosTurno.sedeId) {
+        setError('Selecciona la sede donde se atenderá al ciudadano.');
+        return;
+      }
+      if (!fechaHoraCitaISO(datosTurno.fecha, datosTurno.hora)) {
+        setError('Selecciona la fecha y la hora del turno.');
+        return;
+      }
+    }
     if (esIUVA && !avaluoComercial) {
       setError('Ingresa el avalúo comercial del vehículo para continuar.');
       return;
@@ -394,6 +411,27 @@ export default function NuevaSolicitudPage() {
         navigate(`/solicitudes/${creada.id}`);
       } catch (err: any) {
         setError(err?.response?.data?.mensaje ?? 'No se pudo radicar la solicitud. Intenta de nuevo.');
+      } finally {
+        setGuardando(false);
+      }
+      return;
+    }
+
+    if (esLibroTotal) {
+      setGuardando(true);
+      try {
+        const fechaHoraCita = fechaHoraCitaISO(datosTurno.fecha, datosTurno.hora)!;
+        const creada = await agendarTurno({
+          proyectoId,
+          tipoSolicitudId: tipoSeleccionado.id,
+          ciudadanoId: ciudadanoSeleccionado!.id,
+          sedeId: datosTurno.sedeId!,
+          motivo: datosTurno.motivo,
+          fechaHoraCita,
+        });
+        navigate(`/solicitudes/${creada.id}`);
+      } catch (err: any) {
+        setError(err?.response?.data?.mensaje ?? 'No se pudo agendar el turno. Intenta de nuevo.');
       } finally {
         setGuardando(false);
       }
@@ -782,7 +820,7 @@ export default function NuevaSolicitudPage() {
         ) : (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
-              {esPasivosLaborales ? '2. Entidad territorial' : esInfoconsumo || esGoTrace ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
+              {esPasivosLaborales ? '2. Entidad territorial' : esLibroTotal ? '2. Ciudadano' : esInfoconsumo || esGoTrace ? '2. Empresa productora' : esEstampillas ? '2. Contribuyente' : esSycTrace ? '2. Tornaguía de Infoconsumo (pago confirmado)' : '2. Afiliado'}
             </h3>
 
             {vehiculoVinculado && (
@@ -990,7 +1028,11 @@ export default function NuevaSolicitudPage() {
           />
         )}
 
-        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales && (
+        {esLibroTotal && (
+          <FormularioTurno value={datosTurno} onChange={setDatosTurno} />
+        )}
+
+        {!esIUVA && !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales && !esLibroTotal && (
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Datos específicos del trámite</h3>
             {campos ? (

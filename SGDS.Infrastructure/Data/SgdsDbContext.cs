@@ -102,6 +102,8 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<LoteGoTrace> LotesGoTrace => Set<LoteGoTrace>();
     public DbSet<PuntoControlGoTrace> PuntosControlGoTrace => Set<PuntoControlGoTrace>();
     public DbSet<InstrumentoPasivoLaboral> InstrumentosPasivoLaboral => Set<InstrumentoPasivoLaboral>();
+    public DbSet<Sede> Sedes => Set<Sede>();
+    public DbSet<TurnoLibroTotal> TurnosLibroTotal => Set<TurnoLibroTotal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -210,6 +212,43 @@ private static int? ObtenerProyectoId(object entidad)
             .HasOne(i => i.SolicitudColpensiones)
             .WithMany()
             .HasForeignKey(i => i.SolicitudColpensionesId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Catálogo de tipos de trámite del proyecto Libro Total (id 11 en la BD real) — un
+        // único tipo ("la solicitud nace cuando el ciudadano llega a la sede"), coherente con
+        // el patrón ya usado en SYCTrace/Gotrace para proyectos de un solo tipo de trámite.
+        modelBuilder.Entity<TipoSolicitud>().HasData(
+            new TipoSolicitud { Id = 30, ProyectoId = 11, Nombre = "Atención en sede", Activo = true }
+        );
+
+        modelBuilder.Entity<Sede>().ToTable("sedes");
+        modelBuilder.Entity<Sede>().HasData(
+            new Sede { Id = 1, Nombre = "Bucaramanga", Ciudad = "Santander", EsPrincipal = true, Activo = true },
+            new Sede { Id = 2, Nombre = "San Gil", Ciudad = "Santander", EsPrincipal = false, Activo = true },
+            new Sede { Id = 3, Nombre = "Barrancabermeja", Ciudad = "Santander", EsPrincipal = false, Activo = true },
+            new Sede { Id = 4, Nombre = "Sincelejo", Ciudad = "Sucre", EsPrincipal = false, Activo = true },
+            // Florencia se retira de la red de sedes activas (novedad: la red pasa de 6 a 9
+            // sedes, sumando Arauca/Armenia/Mocoa/Riohacha y descontinuando Florencia) — se
+            // inactiva en vez de eliminarse para no romper turnos históricos que la referencian.
+            new Sede { Id = 5, Nombre = "Florencia", Ciudad = "Caquetá", EsPrincipal = false, Activo = false },
+            new Sede { Id = 6, Nombre = "Neiva", Ciudad = "Huila", EsPrincipal = false, Activo = true },
+            new Sede { Id = 7, Nombre = "Arauca", Ciudad = "Arauca", EsPrincipal = false, Activo = true },
+            new Sede { Id = 8, Nombre = "Armenia", Ciudad = "Quindío", EsPrincipal = false, Activo = true },
+            new Sede { Id = 9, Nombre = "Mocoa", Ciudad = "Putumayo", EsPrincipal = false, Activo = true },
+            new Sede { Id = 10, Nombre = "Riohacha", Ciudad = "La Guajira", EsPrincipal = false, Activo = true }
+        );
+
+        modelBuilder.Entity<TurnoLibroTotal>().ToTable("turnos_libro_total");
+        modelBuilder.Entity<TurnoLibroTotal>().HasIndex(t => t.SolicitudId).IsUnique();
+        modelBuilder.Entity<TurnoLibroTotal>()
+            .HasOne(t => t.Solicitud)
+            .WithOne(s => s.TurnoLibroTotal)
+            .HasForeignKey<TurnoLibroTotal>(t => t.SolicitudId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<TurnoLibroTotal>()
+            .HasOne(t => t.Sede)
+            .WithMany(s => s.Turnos)
+            .HasForeignKey(t => t.SedeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UsuarioProyecto>()

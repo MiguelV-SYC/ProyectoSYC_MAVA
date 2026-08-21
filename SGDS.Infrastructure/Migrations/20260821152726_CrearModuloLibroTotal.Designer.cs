@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SGDS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SGDS.Infrastructure.Data;
 namespace SGDS.Infrastructure.Migrations
 {
     [DbContext(typeof(SgdsDbContext))]
-    partial class SgdsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821152726_CrearModuloLibroTotal")]
+    partial class CrearModuloLibroTotal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -720,7 +723,7 @@ namespace SGDS.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            Activo = false,
+                            Activo = true,
                             Ciudad = "Caquetá",
                             EsPrincipal = false,
                             Nombre = "Florencia"
@@ -732,38 +735,6 @@ namespace SGDS.Infrastructure.Migrations
                             Ciudad = "Huila",
                             EsPrincipal = false,
                             Nombre = "Neiva"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Activo = true,
-                            Ciudad = "Arauca",
-                            EsPrincipal = false,
-                            Nombre = "Arauca"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Activo = true,
-                            Ciudad = "Quindío",
-                            EsPrincipal = false,
-                            Nombre = "Armenia"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Activo = true,
-                            Ciudad = "Putumayo",
-                            EsPrincipal = false,
-                            Nombre = "Mocoa"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Activo = true,
-                            Ciudad = "La Guajira",
-                            EsPrincipal = false,
-                            Nombre = "Riohacha"
                         });
                 });
 
