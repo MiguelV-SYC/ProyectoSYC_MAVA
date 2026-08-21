@@ -23,6 +23,10 @@ public class UsuariosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUsuarios()
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var usuarios = await _context.Usuarios
             .Include(u => u.UsuarioProyectos)
                 .ThenInclude(up => up.Proyecto)
@@ -52,6 +56,10 @@ public class UsuariosController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUsuario(int id)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var usuario = await _context.Usuarios.FindAsync(id);
 
         if (usuario == null)
@@ -69,9 +77,17 @@ public class UsuariosController : ControllerBase
     }
 
     // POST: api/Usuarios
+    // Único punto de creación de usuarios con asignación de rol/proyecto (incluye Gerencial y
+    // Administrador SYC) — por eso exige esAdminSyc, igual que PUT {id}/proyectos. El flujo de
+    // solicitar-acceso público nunca llega aquí directamente: pasa por su propia aprobación
+    // (SolicitudesAccesoController), que ya bloquea el rol Gerencial explícitamente.
     [HttpPost]
     public async Task<IActionResult> CrearUsuario(CrearUsuarioDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var nuevoUsuario = new Usuario
         {
             NombreCompleto = dto.NombreCompleto,
@@ -122,6 +138,10 @@ public class UsuariosController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> ActualizarUsuario(int id, ActualizarUsuarioDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var usuario = await _context.Usuarios.FindAsync(id);
 
         if (usuario == null)
@@ -182,6 +202,10 @@ public class UsuariosController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> InactivarUsuario(int id)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var usuario = await _context.Usuarios.FindAsync(id);
 
         if (usuario == null)

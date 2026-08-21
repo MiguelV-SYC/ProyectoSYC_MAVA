@@ -28,7 +28,8 @@ public class AuditoriaController : ControllerBase
         [FromQuery] int tamanoPagina = 20)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-        if (!esAdminSyc)
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+        if (!esAdminSyc && !esGerencial)
             return Forbid();
 
         var query = _context.Auditorias
@@ -96,7 +97,8 @@ public class AuditoriaController : ControllerBase
     public async Task<IActionResult> GetModulos()
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-        if (!esAdminSyc)
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+        if (!esAdminSyc && !esGerencial)
             return Forbid();
 
         var modulos = await _context.Auditorias
@@ -117,7 +119,8 @@ public class AuditoriaController : ControllerBase
         [FromQuery] DateTime? fecha)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
-        if (!esAdminSyc)
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+        if (!esAdminSyc && !esGerencial)
             return Forbid();
 
         var query = _context.Auditorias

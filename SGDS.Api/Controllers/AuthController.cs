@@ -157,6 +157,11 @@ public class AuthController : ControllerBase
         var esAdminSyc = usuario.UsuarioProyectos.Any(up => up.Rol.Nombre == "Administrador SYC");
         claims.Add(new Claim("esAdminSyc", esAdminSyc.ToString()));
 
+        // Perfil Gerencial: mismo patrón que esAdminSyc — el rol se asigna dentro de un
+        // UsuarioProyecto cualquiera (ancla técnica), pero el claim resultante es global.
+        var esGerencial = usuario.UsuarioProyectos.Any(up => up.Rol.Nombre == "Gerencial");
+        claims.Add(new Claim("esGerencial", esGerencial.ToString()));
+
         foreach (var up in usuario.UsuarioProyectos)
         {
             claims.Add(new Claim("proyecto", $"{up.ProyectoId}:{up.Rol.Nombre}"));

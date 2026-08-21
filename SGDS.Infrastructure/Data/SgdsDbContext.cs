@@ -251,6 +251,13 @@ private static int? ObtenerProyectoId(object entidad)
             .HasForeignKey(t => t.SedeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Perfil Gerencial: visibilidad de solo lectura sobre los 9 proyectos activos, creado
+        // exclusivamente por un Administrador SYC desde Gestión de Usuarios — nunca vía
+        // login/solicitar-acceso (bloqueado explícitamente en SolicitudesAccesoController).
+        modelBuilder.Entity<Rol>().HasData(
+            new Rol { Id = 4, Nombre = "Gerencial" }
+        );
+
         modelBuilder.Entity<UsuarioProyecto>()
             .HasKey(up => new { up.UsuarioId, up.ProyectoId });
 

@@ -40,6 +40,10 @@ import SedeDetallePage from './pages/SedeDetallePage';
 import ConsultaConsolidadaPage from './pages/ConsultaConsolidadaPage';
 import EstadoCuentaConsolidadoPage from './pages/EstadoCuentaConsolidadoPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
+import GerencialHomePage from './pages/GerencialHomePage';
+import GerencialAnalisisAvanzadoPage from './pages/GerencialAnalisisAvanzadoPage';
+import GerencialProximamentePage from './pages/GerencialProximamentePage';
+import GerencialProyectosPage from './pages/GerencialProyectosPage';
 
 function App() {
   const { user } = useAuth();
@@ -53,6 +57,8 @@ function App() {
         element={
           !user ? (
             <Navigate to="/login" replace />
+          ) : user.esGerencial ? (
+            <GerencialHomePage />
           ) : user.esAdminSyc ? (
             <DashboardAdminPage />
           ) : (
@@ -213,6 +219,21 @@ function App() {
       />
 
       <Route
+        path="/gerencial/analisis-avanzado"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialAnalisisAvanzadoPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/proximamente"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialProximamentePage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/proyectos"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialProyectosPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
         path="/infoconsumo/empresas/:empresaId/historial"
         element={user ? <HistorialEmpresaPage /> : <Navigate to="/login" replace />}
       />
@@ -257,8 +278,8 @@ function App() {
       />
 
       <Route 
-        path="/auditoria" 
-        element={user?.esAdminSyc ? <AuditoriaPage /> : <Navigate to="/dashboard" replace />} 
+        path="/auditoria"
+        element={(user?.esAdminSyc || user?.esGerencial) ? <AuditoriaPage /> : <Navigate to="/dashboard" replace />} 
       />
 
       <Route

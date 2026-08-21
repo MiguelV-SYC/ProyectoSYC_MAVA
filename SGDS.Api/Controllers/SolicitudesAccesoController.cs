@@ -73,9 +73,14 @@ public async Task<IActionResult> AprobarSolicitud(int id, AprobarSolicitudAcceso
     if (solicitud.Estado != "Pendiente")
         return BadRequest(new { mensaje = "Esta solicitud ya fue procesada" });
 
-    var rolExiste = await _context.Roles.AnyAsync(r => r.Id == dto.RolId);
-    if (!rolExiste)
+    var rol = await _context.Roles.FindAsync(dto.RolId);
+    if (rol == null)
         return BadRequest(new { mensaje = "Rol inválido" });
+
+    // El perfil Gerencial solo lo asigna un Administrador SYC desde Gestión de Usuarios —
+    // nunca a través del flujo de solicitud de acceso público, aunque el RolId llegue directo.
+    if (rol.Nombre == "Gerencial")
+        return BadRequest(new { mensaje = "El perfil Gerencial no se puede asignar por este flujo — créalo desde Gestión de Usuarios." });
 
     var emailYaExiste = await _context.Usuarios.AnyAsync(u => u.Email == solicitud.Email);
     if (emailYaExiste)

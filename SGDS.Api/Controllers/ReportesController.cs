@@ -29,6 +29,8 @@ public class ReportesController : ControllerBase
     private async Task<List<Solicitud>> ObtenerSolicitudesParaReporte(GenerarReporteDto dto)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+        var tieneVisibilidadGlobal = esAdminSyc || esGerencial;
         var proyectosPermitidos = User.FindAll("proyecto")
             .Select(c => int.Parse(c.Value.Split(':')[0]))
             .ToList();
@@ -42,7 +44,7 @@ public class ReportesController : ControllerBase
             .Include(s => s.TornaguiaInfoconsumo)
             .AsQueryable();
 
-        if (!esAdminSyc)
+        if (!tieneVisibilidadGlobal)
         {
             query = query.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
         }
@@ -198,13 +200,14 @@ public class ReportesController : ControllerBase
     public async Task<IActionResult> GetReportesRecientes([FromQuery] int? proyectoId, [FromQuery] int limite = 5)
         {
             var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+            var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
             var proyectosPermitidos = User.FindAll("proyecto")
                 .Select(c => int.Parse(c.Value.Split(':')[0]))
                 .ToList();
 
             var query = _context.Reportes.AsQueryable();
 
-            if (!esAdminSyc)
+            if (!esAdminSyc && !esGerencial)
             {
                 query = query.Where(r => r.ProyectoId != null && proyectosPermitidos.Contains(r.ProyectoId.Value));
             }
@@ -234,6 +237,7 @@ public class ReportesController : ControllerBase
     public async Task<IActionResult> DescargarReporte(int id)
     {
         var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
         var proyectosPermitidos = User.FindAll("proyecto")
             .Select(c => int.Parse(c.Value.Split(':')[0]))
             .ToList();
@@ -243,7 +247,7 @@ public class ReportesController : ControllerBase
         if (reporte == null)
             return NotFound();
 
-        if (!esAdminSyc && (reporte.ProyectoId == null || !proyectosPermitidos.Contains(reporte.ProyectoId.Value)))
+        if (!esAdminSyc && !esGerencial && (reporte.ProyectoId == null || !proyectosPermitidos.Contains(reporte.ProyectoId.Value)))
         {
             return NotFound();
         }

@@ -33,6 +33,7 @@ interface JwtClaims {
   email: string;
   nombreCompleto: string;
   esAdminSyc: string; // el JWT trae todo como string, hay que convertir a boolean
+  esGerencial: string;
   proyecto?: string | string[]; // repetido por proyecto: "id:rol" — puede venir como string único o array
   exp: number;
 }
@@ -42,6 +43,7 @@ export interface AuthUser {
   email: string;
   nombreCompleto: string;
   esAdminSyc: boolean;
+  esGerencial: boolean;
   proyectos: { proyectoId: string; rol: string }[];
   token: string;
 }
@@ -68,6 +70,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     email: data.email,
     nombreCompleto: data.nombreCompleto,
     esAdminSyc: decoded.esAdminSyc === 'True',
+    esGerencial: decoded.esGerencial === 'True',
     proyectos: parseProyectoClaim(decoded.proyecto),
     token: data.token,
   };

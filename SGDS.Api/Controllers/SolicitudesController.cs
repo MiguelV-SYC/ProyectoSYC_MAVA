@@ -341,11 +341,16 @@ public async Task<IActionResult> GetListadoSolicitudes(
     [FromQuery] int tamanoPagina = 20)
 {
     var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+    // Gerencial ve los 9 proyectos activos en modo solo lectura, igual que un admin, para
+    // este listado — las acciones de escritura de cada solicitud siguen bloqueadas porque
+    // Gerencial no tiene claims "proyecto" propios.
+    var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+    var tieneVisibilidadGlobal = esAdminSyc || esGerencial;
     var proyectosPermitidos = User.FindAll("proyecto")
         .Select(c => int.Parse(c.Value.Split(':')[0]))
         .ToList();
 
-    if (!esAdminSyc && !proyectoId.HasValue)
+    if (!tieneVisibilidadGlobal && !proyectoId.HasValue)
     {
         return BadRequest(new { mensaje = "Debe especificar un proyecto" });
     }
@@ -358,7 +363,7 @@ public async Task<IActionResult> GetListadoSolicitudes(
         .Include(s => s.TipoSolicitud)
         .AsQueryable();
 
-    if (!esAdminSyc)
+    if (!tieneVisibilidadGlobal)
     {
         queryBase = queryBase.Where(s => s.ProyectoId != null && proyectosPermitidos.Contains(s.ProyectoId.Value));
     }
@@ -550,9 +555,17 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
     [HttpPut("{id}/cambiar-estado")]
     public async Task<IActionResult> CambiarEstado(int id, CambiarEstadoDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
         var solicitud = await _context.Solicitudes.FindAsync(id);
 
         if (solicitud == null)
+            return NotFound();
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
             return NotFound();
 
         var estadoAnterior = solicitud.Estado;
@@ -582,9 +595,17 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
     [HttpPut("{id}/asignar-usuario")]
     public async Task<IActionResult> AsignarUsuario(int id, AsignarUsuarioDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
         var solicitud = await _context.Solicitudes.FindAsync(id);
 
         if (solicitud == null)
+            return NotFound();
+
+        if (!esAdminSyc && (solicitud.ProyectoId == null || !proyectosPermitidos.Contains(solicitud.ProyectoId.Value)))
             return NotFound();
 
         var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.Id == dto.UsuarioId && u.Activo);

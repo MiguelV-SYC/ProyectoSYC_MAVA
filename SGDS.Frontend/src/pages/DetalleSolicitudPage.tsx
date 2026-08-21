@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
+import { useAuth } from '../context/AuthContext';
 import {
   getSolicitudDetalle,
   cambiarEstado,
@@ -53,6 +54,7 @@ function diasDesde(iso: string) {
 export default function DetalleSolicitudPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [solicitud, setSolicitud] = useState<SolicitudDetalleResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -240,6 +242,7 @@ export default function DetalleSolicitudPage() {
               </p>
             </div>
           </div>
+          {!user?.esGerencial && (
           <div className="flex gap-2.5">
             {solicitud.proyectoNombre === 'IUVA' && (
               <button
@@ -426,6 +429,7 @@ export default function DetalleSolicitudPage() {
               </button>
             )}
           </div>
+          )}
         </div>
 
         <div className="grid grid-cols-[1fr_280px] gap-5 items-start">

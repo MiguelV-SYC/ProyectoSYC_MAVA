@@ -26,7 +26,9 @@ export default function AprobacionUsuariosPage() {
     passwordTemporal: string;
   } | null>(null);
 
-  const rolesOperador = roles.filter((r) => r.nombre !== 'Administrador SYC');
+  // El perfil Gerencial solo se crea desde Gestión de Usuarios — nunca vía este flujo de
+  // aprobación de solicitudes de acceso público (mismo criterio ya aplicado a Administrador SYC).
+  const rolesOperador = roles.filter((r) => r.nombre !== 'Administrador SYC' && r.nombre !== 'Gerencial');
 
   async function cargar() {
     setLoading(true);

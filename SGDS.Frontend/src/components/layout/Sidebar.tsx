@@ -46,10 +46,10 @@ export default function Sidebar({ active }: { active: string }) {
   const [misProyectos, setMisProyectos] = useState<ConteoProyectoDto[]>([]);
 
   useEffect(() => {
-    if (!user?.esAdminSyc) {
+    if (!user?.esAdminSyc && !user?.esGerencial) {
       getMisConteosPorProyecto().then(setMisProyectos).catch(() => setMisProyectos([]));
     }
-  }, [user?.esAdminSyc]);
+  }, [user?.esAdminSyc, user?.esGerencial]);
 
   const proyectoIdUrl = searchParams.get('proyectoId');
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function Sidebar({ active }: { active: string }) {
     .map((p) => p[0])
     .join('')
     .toUpperCase();
-  const rol = user?.esAdminSyc ? 'Administrador SYC' : 'Operador';
+  const rol = user?.esAdminSyc ? 'Administrador SYC' : user?.esGerencial ? 'Perfil Gerencial' : 'Operador';
 
   // Admin: Solicitudes/Documentos son vistas globales (sin proyectoId).
   // Workflow/Reportes siempre requieren elegir un proyecto — se deja que la propia
@@ -145,7 +145,7 @@ export default function Sidebar({ active }: { active: string }) {
         </div>
       </div>
 
-      {!user?.esAdminSyc && misProyectos.length > 0 && (
+      {!user?.esAdminSyc && !user?.esGerencial && misProyectos.length > 0 && (
         <div className="relative z-10 mb-3">
           <div className="text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pb-2">
             Mis proyectos
@@ -173,71 +173,155 @@ export default function Sidebar({ active }: { active: string }) {
         </div>
       )}
 
-      <nav className="relative z-10 flex flex-col gap-0.5 flex-1">
-        <NavItem
-          active={active === 'inicio'}
-          label="Inicio"
-          to="/dashboard"
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
-        />
-        <NavItem
-          active={active === 'solicitudes'}
-          label="Solicitudes"
-          to={rutaSolicitudes}
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
-        />
-        <NavItem
-          active={active === 'ciudadanos'}
-          label="Ciudadanos"
-          to="/ciudadanos"
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
-        />
-        <NavItem
-          active={active === 'empresas'}
-          label="Empresas"
-          to="/empresas"
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
-        />
-        <NavItem
-          active={active === 'documentos'}
-          label="Documentos"
-          to={rutaDocumentos}
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
-        />
-        <NavItem
-          active={active === 'workflow'}
-          label="Workflow"
-          to={rutaWorkflow}
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8 6h5a3 3 0 013 3v6" /></svg>}
-        />
-        <NavItem
-          active={active === 'reportes'}
-          label="Reportes"
-          to={rutaReportes}
-          icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
-        />
-
-        {user?.esAdminSyc && (
+      <nav className="relative z-10 flex flex-col gap-0.5 flex-1 overflow-y-auto">
+        {user?.esGerencial ? (
           <>
-            <NavSectionLabel>Administración</NavSectionLabel>
+            <NavSectionLabel>General</NavSectionLabel>
             <NavItem
-              active={active === 'usuarios'}
-              label="Usuarios"
-              to="/usuarios"
-              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><path d="M16 9h5M18.5 6.5v5" /></svg>}
+              active={active === 'inicio'}
+              label="Resumen Ejecutivo"
+              to="/dashboard"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
             />
+            <NavSectionLabel>Análisis</NavSectionLabel>
+            <NavItem
+              active={active === 'indicadores'}
+              label="Indicadores"
+              to="/dashboard"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
+            />
+            <NavItem
+              active={active === 'tendencias'}
+              label="Tendencias"
+              to="/dashboard"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 17l6-6 4 4 8-8" /><path d="M17 7h4v4" /></svg>}
+            />
+            <NavItem
+              active={active === 'comparativos'}
+              label="Comparativos"
+              to="/dashboard"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="8" height="16" rx="1.5" /><rect x="13" y="4" width="8" height="10" rx="1.5" /></svg>}
+            />
+            <NavItem
+              active={active === 'analisis-avanzado'}
+              label="Análisis Avanzado"
+              to="/gerencial/analisis-avanzado"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>}
+            />
+            <NavSectionLabel>SGDS Intelligence</NavSectionLabel>
+            <NavItem
+              active={active === 'insights'}
+              label="Insights"
+              to="/gerencial/proximamente"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M12 3l1.9 4.6L18 9l-4.1 1.9L12 15l-1.9-4.1L6 9l4.1-1.4z" /></svg>}
+            />
+            <NavItem
+              active={active === 'alertas-inteligentes'}
+              label="Alertas Inteligentes"
+              to="/gerencial/proximamente"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" /></svg>}
+            />
+            <NavItem
+              active={active === 'asistente-ia'}
+              label="Asistente IA"
+              to="/gerencial/proximamente"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M8 12h.01M12 12h.01M16 12h.01" /><rect x="3" y="4" width="18" height="16" rx="3" /></svg>}
+            />
+            <NavSectionLabel>Operación</NavSectionLabel>
+            <NavItem
+              active={active === 'proyectos'}
+              label="Proyectos"
+              to="/gerencial/proyectos"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /></svg>}
+            />
+            <NavItem
+              active={active === 'solicitudes'}
+              label="Solicitudes"
+              to="/solicitudes"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
+            />
+            <NavItem
+              active={active === 'reportes'}
+              label="Reportes"
+              to="/reportes"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
+            />
+            <NavSectionLabel>Control</NavSectionLabel>
             <NavItem
               active={active === 'auditoria'}
               label="Auditoría"
               to="/auditoria"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>}
             />
+          </>
+        ) : (
+          <>
             <NavItem
-              active={active === 'proyectos'}
-              label="Proyectos"
-              to="/proyectos"
-              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /></svg>}
+              active={active === 'inicio'}
+              label="Inicio"
+              to="/dashboard"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>}
             />
+            <NavItem
+              active={active === 'solicitudes'}
+              label="Solicitudes"
+              to={rutaSolicitudes}
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
+            />
+            <NavItem
+              active={active === 'ciudadanos'}
+              label="Ciudadanos"
+              to="/ciudadanos"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>}
+            />
+            <NavItem
+              active={active === 'empresas'}
+              label="Empresas"
+              to="/empresas"
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 21V7l8-4 8 4v14" /><path d="M9 21v-6h6v6" /></svg>}
+            />
+            <NavItem
+              active={active === 'documentos'}
+              label="Documentos"
+              to={rutaDocumentos}
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>}
+            />
+            <NavItem
+              active={active === 'workflow'}
+              label="Workflow"
+              to={rutaWorkflow}
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M8 6h5a3 3 0 013 3v6" /></svg>}
+            />
+            <NavItem
+              active={active === 'reportes'}
+              label="Reportes"
+              to={rutaReportes}
+              icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
+            />
+
+            {user?.esAdminSyc && (
+              <>
+                <NavSectionLabel>Administración</NavSectionLabel>
+                <NavItem
+                  active={active === 'usuarios'}
+                  label="Usuarios"
+                  to="/usuarios"
+                  icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><path d="M16 9h5M18.5 6.5v5" /></svg>}
+                />
+                <NavItem
+                  active={active === 'auditoria'}
+                  label="Auditoría"
+                  to="/auditoria"
+                  icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>}
+                />
+                <NavItem
+                  active={active === 'proyectos'}
+                  label="Proyectos"
+                  to="/proyectos"
+                  icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /></svg>}
+                />
+              </>
+            )}
           </>
         )}
       </nav>
