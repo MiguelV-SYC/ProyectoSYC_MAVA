@@ -1,5 +1,4 @@
 import axios from "axios";
-import type { StackId } from "recharts/types/util/ChartUtils";
 
 const API_URL = 'http://localhost:5158/api';
 
@@ -67,7 +66,7 @@ export async function getNecesitanAtencion(limite = 5): Promise<NecesitaAtencion
 }
 
 export async function getMiCola(params: {
-    proyectoId: number; 
+    proyectoId?: number;
     filtro?: 'todas' | 'en_revision' | 'pendientes';
     }): Promise<ColaTrabajoDto[]> {
         const { data } = await axios.get<ColaTrabajoDto[]>(`${API_URL}/Solicitudes/mi-cola`, {

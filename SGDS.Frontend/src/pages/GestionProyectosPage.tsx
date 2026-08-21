@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent, type JSX } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import {
   getProyectosAdmin,

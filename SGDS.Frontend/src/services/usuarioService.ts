@@ -66,8 +66,8 @@ export interface AprobarSolicitudDto {
 
 export interface AprobarSolicitudResponseDto {
     usuarioId: number;
-    email: string; 
-    password: string; 
+    email: string;
+    passwordTemporal: string;
 }
 
 export interface RechazarSolicitudDto {

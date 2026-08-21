@@ -3,12 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/layout/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import {
-  getMisConteosPorProyecto,
   getMisIndicadores,
   getNecesitanAtencion,
   getMiCola,
   asignarUsuarioSolicitud,
-  type ConteoProyectoDto,
   type IndicadoresOperadorDto,
   type NecesitaAtencionDto,
   type ColaTrabajoDto,
@@ -34,7 +32,6 @@ export default function OperadorHomePage() {
   const navigate = useNavigate();
   const primerNombre = user?.nombreCompleto?.split(' ')[0] ?? '';
 
-  const [proyectos, setProyectos] = useState<ConteoProyectoDto[]>([]);
   const [indicadores, setIndicadores] = useState<IndicadoresOperadorDto | null>(null);
   const [atencion, setAtencion] = useState<NecesitaAtencionDto[]>([]);
   const [cola, setCola] = useState<ColaTrabajoDto[]>([]);
@@ -43,14 +40,11 @@ export default function OperadorHomePage() {
   const [asignando, setAsignando] = useState<number | null>(null);
 
   useEffect(() => {
-    Promise.all([getMisConteosPorProyecto(), getMisIndicadores(), getNecesitanAtencion(5)]).then(
-      ([p, i, a]) => {
-        setProyectos(p);
-        setIndicadores(i);
-        setAtencion(a);
-        setLoading(false);
-      }
-    );
+    Promise.all([getMisIndicadores(), getNecesitanAtencion(5)]).then(([i, a]) => {
+      setIndicadores(i);
+      setAtencion(a);
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {

@@ -169,6 +169,10 @@ export default function EditarSolicitudPage() {
   const esSycTrace = solicitud?.proyectoNombre === 'SYCTrace';
   const esGoTrace = solicitud?.proyectoNombre === 'Gotrace';
   const esPasivosLaborales = solicitud?.proyectoNombre === 'Pasivos Laborales';
+  // Libro Total no tiene formulario de edición: un turno solo avanza mediante
+  // Llamar/Finalizar/No asistió (acciones de DetalleSolicitudPage), nunca por edición
+  // libre de campos — se excluye explícitamente para no caer en el formulario genérico.
+  const esLibroTotal = solicitud?.proyectoNombre === 'Libro Total';
   const tipoTramiteSeleccionado = tipos.find((t) => t.id === tipoSolicitudId)?.nombre ?? '';
   const errorCoherencia = esInfoconsumo
     ? validarCoherenciaOrigenDestino(tipoTramiteSeleccionado, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino)
@@ -291,7 +295,12 @@ export default function EditarSolicitudPage() {
         </h1>
         <p className="text-ink-600 text-[12.5px] mb-5">{solicitud.proyectoNombre}</p>
 
-        {!esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales ? (
+        {esLibroTotal ? (
+          <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
+            Los turnos de Libro Total no se editan — su ciclo de vida avanza con las acciones
+            "Llamar turno", "Finalizar atención" y "No asistió" desde el detalle del turno.
+          </div>
+        ) : !esEstampillas && !esInfoconsumo && !esSycTrace && !esGoTrace && !esPasivosLaborales ? (
           <div className="bg-white border border-line rounded-[14px] p-5 text-[13px] text-ink-600">
             La edición todavía solo está disponible para solicitudes de Estampillas, Infoconsumo, SYCTrace, Gotrace y Pasivos Laborales.
           </div>

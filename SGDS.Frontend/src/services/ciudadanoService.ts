@@ -1,6 +1,4 @@
 import axios from 'axios';
-import { interpolate } from 'recharts';
-import type { StackId } from 'recharts/types/util/ChartUtils';
 
 const API_URL =  'http://localhost:5158/api';
 

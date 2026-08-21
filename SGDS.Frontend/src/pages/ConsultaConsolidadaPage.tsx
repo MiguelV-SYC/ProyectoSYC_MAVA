@@ -5,13 +5,13 @@ import { getConsultaConsolidada, type ConsultaConsolidadaResponseDto } from '../
 import { getColorProyecto } from '../config/colorPorProyecto';
 
 const ESTADO_STYLE: Record<string, string> = {
-  Radicada: 'bg-[#f1f5f9] text-[#64748b]', Agendado: 'bg-[#f1f5f9] text-[#64748b]',
-  'En revisión': 'bg-blue-100 text-blue-600', 'En atención': 'bg-blue-100 text-blue-600',
+  Radicada: 'bg-[#f1f5f9] text-[#64748b]', Agendado: 'bg-[#f1f5f9] text-[#64748b]', Elaborada: 'bg-[#f1f5f9] text-[#64748b]', Generada: 'bg-[#f1f5f9] text-[#64748b]',
+  'En revisión': 'bg-blue-100 text-blue-600', 'En atención': 'bg-blue-100 text-blue-600', Expedida: 'bg-blue-100 text-blue-600',
   Pendiente: 'bg-[#fdf3e7] text-[#d97706]',
   'Requiere información': 'bg-[#f2ecff] text-[#7c3aed]',
   Aprobada: 'bg-[#e3f7f4] text-[#0d9488]', Atendido: 'bg-[#e3f7f4] text-[#0d9488]',
-  Pagada: 'bg-[#e3f7f4] text-[#0d9488]', Legalizada: 'bg-[#e3f7f4] text-[#0d9488]', Finalizada: 'bg-[#e3f7f4] text-[#0d9488]',
-  Rechazada: 'bg-[#fdeaea] text-[#dc2626]', Anulada: 'bg-[#fdeaea] text-[#dc2626]', 'No asistió': 'bg-[#fdeaea] text-[#dc2626]',
+  Pagada: 'bg-[#e3f7f4] text-[#0d9488]', Legalizada: 'bg-[#e3f7f4] text-[#0d9488]', Finalizada: 'bg-[#e3f7f4] text-[#0d9488]', Entregada: 'bg-[#e3f7f4] text-[#0d9488]',
+  Rechazada: 'bg-[#fdeaea] text-[#dc2626]', Anulada: 'bg-[#fdeaea] text-[#dc2626]', 'No asistió': 'bg-[#fdeaea] text-[#dc2626]', Vencida: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 export default function ConsultaConsolidadaPage() {

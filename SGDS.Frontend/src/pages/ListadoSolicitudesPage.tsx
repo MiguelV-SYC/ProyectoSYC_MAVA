@@ -30,6 +30,10 @@ const ESTADO_STYLE: Record<string, string> = {
   'En atención': 'bg-blue-100 text-blue-600',
   Atendido: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
   'No asistió': 'bg-[#fdeaea] text-[#dc2626]',
+  Elaborada: 'bg-[#f1f5f9] text-[#64748b]',
+  Expedida: 'bg-blue-100 text-blue-600',
+  Legalizada: 'bg-[var(--color-accento-claro)] text-[var(--color-accento)]',
+  Vencida: 'bg-[#fdeaea] text-[#dc2626]',
 };
 
 function formatearFecha(iso?: string) {

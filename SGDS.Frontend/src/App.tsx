@@ -109,22 +109,22 @@ function App() {
 
       <Route
         path="/empresas" 
-        element={user ? <ListadoEmpresasPage /> : <Navigate to="login" replace />}
+        element={user ? <ListadoEmpresasPage /> : <Navigate to="/login" replace />}
       />
 
       <Route
         path="/empresas/:id"
-        element={user ? <FichaEmpresaPage /> : <Navigate to="login" replace />}
+        element={user ? <FichaEmpresaPage /> : <Navigate to="/login" replace />}
       /> 
 
       <Route
         path="/empresas/nueva"
-        element={user ? <FormularioEmpresaPage /> : <Navigate to="login" replace />}
+        element={user ? <FormularioEmpresaPage /> : <Navigate to="/login" replace />}
       />
 
       <Route
         path="/empresas/:id/editar"
-        element={user ? <FormularioEmpresaPage /> : <Navigate to="login" replace />}
+        element={user ? <FormularioEmpresaPage /> : <Navigate to="/login" replace />}
       />
 
       <Route

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Aperture } from "lucide-react";
 
 const API_URL = 'http://localhost:5158/api';
 

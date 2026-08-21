@@ -24,12 +24,6 @@ function estadosPorProyecto(nombreProyecto?: string) {
   return ESTADOS;
 }
 
-function formatearFechaHora(iso: string) {
-  const fecha = new Date(iso);
-  if (isNaN(fecha.getTime())) return '—';
-  return fecha.toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
-
 function diasDesde(iso: string) {
   const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
   if (dias <= 0) return 'Generado hoy';
