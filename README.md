@@ -47,6 +47,10 @@ El proyecto surge a partir del análisis de diferentes soluciones y procesos obs
 A partir de estos elementos se plantea una solución modular y configurable que permita representar procesos administrativos de diferentes características, con una arquitectura preparada para evolucionar hacia una solución reutilizable.
 </p>
 
+<p align="justify">
+El eje central del modelo de datos es el concepto de <strong>Proyecto</strong>: cada Proyecto es un espacio de trabajo (tenant) aislado, con su propio catálogo de tipos de solicitud, sus propios operadores y sus propias solicitudes. Un mismo usuario puede pertenecer a varios proyectos con roles distintos en cada uno. Sobre ese modelo, SGDS implementa actualmente <strong>9 proyectos operativos</strong> (Comfenalco, Colpensiones, IUVA, Estampillas, Infoconsumo, SYCTrace, GoTrace, Pasivos Laborales y Libro Total), cada uno con su propio flujo de trámite y campos dinámicos, más un <strong>módulo Gerencial</strong> de solo lectura con visibilidad agregada sobre los 9.
+</p>
+
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
 </p>
@@ -91,11 +95,15 @@ El proyecto busca especialmente:
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>C#</strong></td>
-    <td align="center"><strong>ASP.NET Core</strong></td>
-    <td align="center"><strong>Entity Framework Core</strong></td>
+    <td align="center"><strong>C# / .NET 10</strong></td>
+    <td align="center"><strong>ASP.NET Core Web API</strong></td>
+    <td align="center"><strong>Entity Framework Core 10</strong></td>
   </tr>
 </table>
+
+<p align="justify">
+La API expone sus endpoints organizados por controller (19 en total), con autenticación JWT y autorización manual por claims — no se usa el atributo <code>[Authorize(Roles=...)]</code> de ASP.NET, sino que cada acción valida los claims del token (<code>esAdminSyc</code>, <code>esGerencial</code>, <code>proyecto</code>) según a qué Proyecto pertenece el usuario. La generación de documentos usa <strong>QuestPDF</strong> (PDFs) y <strong>ClosedXML</strong> (Excel), y las contraseñas se hashean con <strong>BCrypt.Net</strong>.
+</p>
 
 ---
 
@@ -110,18 +118,22 @@ El proyecto busca especialmente:
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" width="50"/>
     </td>
     <td align="center">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" width="50"/>
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg" width="50"/>
+    </td>
+    <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg" width="50"/>
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>React</strong></td>
+    <td align="center"><strong>React 19</strong></td>
     <td align="center"><strong>TypeScript</strong></td>
-    <td align="center"><strong>Material UI</strong></td>
+    <td align="center"><strong>Tailwind CSS v4</strong></td>
+    <td align="center"><strong>Vite</strong></td>
   </tr>
 </table>
 
 <p align="justify">
->El frontend se encuentra contemplado dentro del alcance del proyecto y será incorporado durante las siguientes fases de desarrollo.
+El frontend es una SPA construida sobre Vite, sin librería de componentes de terceros (el UI está hecho a mano con Tailwind). El enrutamiento usa <strong>react-router-dom v7</strong>, el consumo de la API es directo con <strong>axios</strong> (sin interceptor global), y el estado global se limita al usuario autenticado (<code>AuthContext</code> + JWT decodificado con <strong>jwt-decode</strong>). Los gráficos y mapas del módulo Gerencial y de GoTrace usan <strong>recharts</strong> y <strong>Leaflet</strong> respectivamente.
 </p>
 
 ---
@@ -138,6 +150,29 @@ El proyecto busca especialmente:
     <td align="center"><strong>PostgreSQL</strong></td>
   </tr>
 </table>
+
+<p align="justify">
+Las tablas se mapean explícitamente a <code>snake_case</code> en <code>OnModelCreating</code>, y las migraciones se generan con <strong>EF Core Migrations</strong> (<code>dotnet ef</code>, declarado como herramienta local del repositorio en <code>.config/dotnet-tools.json</code>).
+</p>
+
+---
+
+### Analítica y Business Intelligence
+
+<table align="center">
+<tr>
+    <td align="center">
+      📊
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Power BI Embedded</strong></td>
+  </tr>
+</table>
+
+<p align="justify">
+El módulo Gerencial contempla la integración con <strong>Power BI Embedded</strong> para análisis avanzado (drill-down por proyecto, filtros cruzados, comparativos históricos) como complemento a los indicadores que ya calcula la propia API. Hoy esta vista existe como una pantalla de referencia que documenta honestamente lo que falta para activarla: registro de la aplicación en Azure AD, una licencia Power BI Embedded (Pro/Premium/Embedded SKU) y una decisión sobre el mecanismo de actualización de datos (DirectQuery vs. importación programada, lo que a su vez define si se necesita un gateway hacia PostgreSQL on-premise). Mientras tanto, el propio módulo Gerencial ya expone Indicadores, Tendencias y Comparativos calculados directamente por la API, sin depender de esta integración.
+</p>
 
 ---
 
@@ -185,31 +220,38 @@ El proyecto busca especialmente:
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg" width="50"/>
     </td>
     <td align="center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/playwright/playwright-original.svg" width="50"/>
+    </td>
+    <td align="center">
       🔐
     </td>
   </tr>
   <tr>
     <td align="center"><strong>Swagger</strong></td>
     <td align="center"><strong>Postman</strong></td>
+    <td align="center"><strong>Playwright</strong></td>
     <td align="center"><strong>JWT</strong></td>
   </tr>
 </table>
 
+<p align="justify">
+Swagger está activo en el ambiente de desarrollo (con esquema de seguridad Bearer configurado, para poder probar endpoints autenticados directamente desde la UI). <strong>Playwright</strong> está instalado en la raíz del repositorio (no dentro de <code>SGDS.Frontend</code>) para pruebas end-to-end del frontend contra el servidor de desarrollo. No existe todavía un proyecto de pruebas unitarias/integración de .NET en la solución.
+</p>
+
 ---
 
-### Inteligencia Artificial
+### Inteligencia Artificial — "SGDS Intelligence"
 
 <p align="justify">
-Se contempla como componente adicional la incorporación de funcionalidades de Inteligencia Artificial orientadas a:
+El módulo Gerencial incluye una sección dedicada ("SGDS Intelligence") con tres vistas construidas y en uso: <strong>Insights</strong> (observaciones automáticas sobre el comportamiento del sistema), <strong>Alertas Inteligentes</strong> (detección de riesgos: vencimientos próximos, incrementos relevantes de solicitudes, SLA bajo) y <strong>Asistente IA</strong> (interfaz de preguntas en lenguaje natural).
+</p>
 
-* Análisis documental.
-* Resumen de expedientes.
-* Clasificación de solicitudes.
-* Detección de documentación faltante.
-* Generación de respuestas sugeridas.
-* Asistencia conversacional.
+<p align="justify">
+Hoy las tres funcionan con <strong>reglas y plantillas</strong> sobre datos ya calculados por la API — no con un modelo de lenguaje. Cada resultado trae explícito un indicador (<code>esGeneradoPorIa</code>, hoy siempre <code>false</code>) pensado para que, cuando se integre un modelo real, el cambio sea solo en el origen del texto y no en la forma de la respuesta ni en las vistas del frontend. El Asistente IA en particular es honesto sobre esto: su caja de texto está deshabilitada con el mensaje "se activará cuando se integre el modelo de IA", y ofrece atajos a las vistas de datos en su lugar — se descartó deliberadamente simular una conversación que no existe.
+</p>
 
-La implementación de estas funcionalidades dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
+<p align="justify">
+El alcance previsto para cuando se incorpore el modelo real: análisis documental, resumen de expedientes, clasificación de solicitudes, detección de documentación faltante, generación de respuestas sugeridas y asistencia conversacional real sobre los datos de los 9 proyectos. La implementación dependerá del avance del proyecto, el tiempo disponible y el nivel de conocimiento alcanzado durante la ruta de aprendizaje.
 </p>
 
 <p align="center">
@@ -224,50 +266,56 @@ La implementación de estas funcionalidades dependerá del avance del proyecto, 
 
 Antes de ejecutar el proyecto se requiere tener instalado:
 
-* .NET SDK compatible con la versión utilizada por el proyecto.
-* Visual Studio 2022 o Visual Studio Code.
+* **.NET SDK 10**.
+* **Node.js** (LTS 20+ recomendado) — incluye npm.
+* **PostgreSQL**, con una base de datos creada y su cadena de conexión configurada en <code>SGDS.Api/appsettings.json</code> (clave <code>ConnectionStrings:SgdsConnection</code>).
+* Visual Studio 2022, Visual Studio Code, o el editor de preferencia.
 * Git.
-* PostgreSQL *(cuando se incorpore la persistencia)*.
 
 ---
 
 ## Clonar el repositorio
 
 ```bash
-git clone <https://github.com/MiguelV-SYC/ProyectoSYC_MAVA.git>
-```
-
-Ingresar al proyecto:
-
-```bash
-cd C:\Users\m.villamizar\PROYECTO_SYC\ProyectoSYC_MAVA
+git clone https://github.com/MiguelV-SYC/ProyectoSYC_MAVA.git
+cd ProyectoSYC_MAVA
 ```
 
 ---
 
-## Restaurar dependencias
+## Backend (SGDS.Api)
 
 ```bash
 dotnet restore
-```
-
----
-
-## Compilar el proyecto
-
-```bash
 dotnet build
+dotnet run --project SGDS.Api
 ```
+
+La API queda disponible en el puerto que indique la consola (el frontend espera <code>http://localhost:5158</code>). Las migraciones de base de datos se aplican automáticamente al arrancar (<code>Database.Migrate()</code> en <code>Program.cs</code>) — no hace falta correr <code>dotnet ef database update</code> a mano en un primer arranque. Con <code>ASPNETCORE_ENVIRONMENT=Development</code>, Swagger queda disponible en <code>/swagger</code>.
 
 ---
 
-## Ejecutar el proyecto
+## Frontend (SGDS.Frontend)
 
 ```bash
-dotnet run
+cd SGDS.Frontend
+npm install
+npm run dev
 ```
 
-Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NET Core en la consola.
+El servidor de desarrollo de Vite queda disponible en <code>http://localhost:5173</code> — puerto al que está restringida la política CORS del backend (<code>Program.cs</code>), así que si se cambia el puerto del frontend hay que actualizar esa política.
+
+---
+
+## Pruebas end-to-end (Playwright, opcional)
+
+```bash
+npm install
+npx playwright install
+npx playwright test
+```
+
+Se ejecuta desde la raíz del repositorio (no desde <code>SGDS.Frontend</code>), con el backend y el frontend ya corriendo.
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
@@ -278,19 +326,15 @@ Una vez iniciado, la API estará disponible en la dirección indicada por ASP.NE
 ## <div align="center">🏗️ Arquitectura</div>
 
 <p align="justify">
-El proyecto será desarrollado utilizando una <strong>arquitectura en capas</strong>, buscando mantener una adecuada separación de responsabilidades entre los diferentes componentes de la aplicación.
-
-La estructura propuesta contempla:
+El backend está organizado en 4 proyectos .NET separados (Domain, Application, Infrastructure, Api) con una dirección de dependencia clara: <strong>Domain</strong> no depende de nada; <strong>Application</strong> depende de Domain; <strong>Infrastructure</strong> depende de Domain y Application; <strong>Api</strong> depende de las tres. El Frontend es un proyecto Vite completamente separado que consume la Api solo por HTTP, sin compartir código con el backend.
 </p>
-
 
 <div align="center"> 
 <img src="./Assets/Readme/ArquitecturaEnCapas.png" alt="ArquitecturaEnCapas" width="600" />
 </div>
 
-
 <p align="justify">
-* La arquitectura podrá evolucionar durante el desarrollo conforme se definan los requerimientos, componentes y necesidades técnicas del proyecto.
+<strong>Importante — esto no es Clean Architecture con casos de uso.</strong> Pese a tener capas Domain/Application/Infrastructure, no hay repositorios, no hay servicios de aplicación (use cases) ni MediatR. Domain contiene entidades POCO puras sin lógica de negocio; Application solo aporta DTOs, interfaces de servicio y helpers de cálculo puro (sin paquetes NuGet propios); toda la lógica de negocio real vive en los <strong>Controllers</strong> de Api, que inyectan el <code>DbContext</code> directamente y hacen ahí mismo las consultas, la autorización y el mapeo a DTOs — el patrón esperado para código nuevo es "controller gordo con LINQ", no una capa de servicios adicional.
 </p>
 
 <p align="center">
@@ -302,15 +346,37 @@ La estructura propuesta contempla:
 # <div align="center">📁 Estructura del proyecto</div>
 
 <p align="justify">
-La estructura inicial del backend está orientada a mantener una separación clara de responsabilidades:
+Estructura real del repositorio, con una separación clara de responsabilidades entre backend, frontend y documentación:
 </p>
 
 ```text
-
+ProyectoSYC_MAVA/
+├── SGDS.Domain/            Entidades POCO puras (22 entidades, sin lógica de negocio)
+│   └── Entities/
+├── SGDS.Application/       DTOs, interfaces de servicio, helpers de cálculo puro
+│   ├── DTOs/                 (18 archivos — varias clases relacionadas por archivo)
+│   ├── Helpers/               CalculadoraDv, CalculadoraEstampillas, CalculadoraImpuestoConsumo...
+│   └── Interfaces/            IAlmacenamientoService
+├── SGDS.Infrastructure/    DbContext (EF Core) + implementaciones de servicios
+│   ├── Data/                  SgdsDbContext.cs
+│   ├── Migrations/            12 migraciones aplicadas
+│   └── Services/               AlmacenamientoLocalService
+├── SGDS.Api/               Controllers (19) — aquí vive toda la lógica de negocio
+│   ├── Controllers/
+│   └── Program.cs
+├── SGDS.Frontend/          SPA React + Vite
+│   └── src/
+│       ├── pages/              49 páginas (una por ruta)
+│       ├── services/           19 servicios (uno por recurso de API)
+│       ├── components/         organizados por módulo
+│       ├── config/, context/, hooks/, assets/
+├── Assets/                 Mockups, README assets, diagramas BPMN
+├── tests/                  Pruebas end-to-end con Playwright
+└── SGDS.slnx               Solución .NET (formato .slnx)
 ```
 
 <p align="justify">
-> Esta estructura podrá evolucionar durante el desarrollo conforme se definan las necesidades de cada capa.
+> Esta estructura podrá seguir evolucionando conforme se incorporen nuevos módulos o funcionalidades.
 </p>
 
 <p align="center">
@@ -321,7 +387,7 @@ La estructura inicial del backend está orientada a mantener una separación cla
 <a name="estado-actual-del-proyecto"></a>
 # <div align="center">🚧 Estado Actual del Proyecto</div>
 
-El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
+El proyecto se encuentra en una fase de **backend y frontend funcionales**, con 9 módulos operativos y un módulo gerencial de analítica sobre ellos. Lo que queda pendiente es puntual (pruebas automatizadas de .NET, contenedores, el modelo de IA real), no estructural.
 
 ### Backend
 
@@ -334,39 +400,31 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
   </thead>
   <tbody>
     <tr>
-      <td align="center">Definición del proyecto</td>
+      <td align="center">Arquitectura en capas (Domain / Application / Infrastructure / Api)</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Diseño inicial</td>
+      <td align="center">API REST (19 controllers)</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">ASP.NET Core</td>
+      <td align="center">Entity Framework Core + PostgreSQL (12 migraciones)</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">API REST</td>
+      <td align="center">Autenticación JWT + autorización por claims</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Arquitectura en capas</td>
+      <td align="center">Modelo multi-tenant (Proyecto / TipoSolicitud / Solicitud)</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Entidades / modelos</td>
+      <td align="center">Auditoría automática transversal</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Entity Framework Core</td>
-      <td align="center">✅ Completado</td>
-    </tr>
-    <tr>
-      <td align="center">PostgreSQL</td>
-      <td align="center">✅ Completado</td>
-    </tr>
-    <tr>
-      <td align="center">JWT</td>
+      <td align="center">Generación de PDF / Excel (QuestPDF, ClosedXML)</td>
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
@@ -374,8 +432,8 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
       <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Pruebas</td>
-      <td align="center">✅ Completado</td>
+      <td align="center">Pruebas unitarias / integración (.NET)</td>
+      <td align="center">⏳ Pendiente</td>
     </tr>
   </tbody>
 </table>
@@ -393,21 +451,50 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
   </thead>
   <tbody>
     <tr>
-      <td align="center">React</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">React 19 + TypeScript + Vite</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">TypeScript</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">Tailwind CSS v4 (UI propio, sin librería de componentes)</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Material UI</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">Integración con la API (49 páginas, 19 servicios)</td>
+      <td align="center">✅ Completado</td>
     </tr>
     <tr>
-      <td align="center">Integración con API</td>
-      <td align="center">⏳ Pendiente</td>
+      <td align="center">Autenticación y enrutamiento por rol</td>
+      <td align="center">✅ Completado</td>
     </tr>
+    <tr>
+      <td align="center">Pruebas end-to-end (Playwright)</td>
+      <td align="center">🟡 Configurado, cobertura inicial</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+### Módulos por proyecto (multi-tenant)
+
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">Proyecto</th>
+      <th align="center">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td align="center">Comfenalco</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Colpensiones</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">IUVA</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Estampillas</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Infoconsumo</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">SYCTrace</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">GoTrace</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Pasivos Laborales</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Libro Total</td><td align="center">✅ Completado</td></tr>
+    <tr><td align="center">Módulo Gerencial (perfil de solo lectura + analítica)</td><td align="center">✅ Completado</td></tr>
   </tbody>
 </table>
 
@@ -424,20 +511,24 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
   </thead>
   <tbody>
     <tr>
+      <td align="center">Diagrama BPMN de procesos (draw.io)</td>
+      <td align="center">✅ Completado</td>
+    </tr>
+    <tr>
+      <td align="center">Power BI Embedded (Análisis Avanzado)</td>
+      <td align="center">🟡 Pantalla de referencia — pendiente Azure AD y licenciamiento</td>
+    </tr>
+    <tr>
+      <td align="center">SGDS Intelligence (Insights / Alertas / Asistente IA)</td>
+      <td align="center">🟡 Base por reglas construida — modelo de IA real pendiente</td>
+    </tr>
+    <tr>
       <td align="center">Azure DevOps</td>
       <td align="center">🟡 En planificación</td>
     </tr>
     <tr>
       <td align="center">Docker / Podman</td>
       <td align="center">⏳ Pendiente</td>
-    </tr>
-    <tr>
-      <td align="center">Inteligencia Artificial</td>
-      <td align="center">⏳ Por evaluar</td>
-    </tr>
-    <tr>
-      <td align="center">Documentación técnica</td>
-      <td align="center">🟡 En planificación</td>
     </tr>
   </tbody>
 </table>
@@ -465,33 +556,25 @@ El proyecto se encuentra actualmente en **fase de desarrollo del Backend**.
 # <div align="center">📚 Documentación </div>
 
 ## API
-La API será documentada mediante **Swagger / OpenAPI**.
-
-Una vez habilitado Swagger, podrá utilizarse para:
-
-* Consultar endpoints.
-* Revisar modelos.
-* Ejecutar solicitudes.
-* Validar respuestas.
-* Facilitar el consumo de la API durante el desarrollo del frontend.
+La API está documentada con **Swagger / OpenAPI**, activo en el ambiente de desarrollo (<code>/swagger</code>), con esquema de seguridad Bearer configurado para probar endpoints autenticados. Se usa para consultar endpoints, revisar modelos, ejecutar solicitudes y validar respuestas durante el desarrollo del frontend.
 
 ---
 
 ## Proyecto
 
-La documentación contempla progresivamente:
+Documentación existente hoy:
 
-* Documento de propuesta.
-* Requerimientos.
+* Diagrama de arquitectura en capas (<code>Assets/Readme/ArquitecturaEnCapas.png</code>).
+* Modelo BPMN del estado actual de los procesos, en <code>Assets/BPMN/SGDS-Procesos-Actual.drawio</code> — proceso principal de gestión de solicitudes, subproceso de tramitación por tipo de proyecto, y subproceso de alta de operadores, con actores, pools y lanes descritos.
+* Este README, como referencia de stack, estructura y estado del proyecto.
+
+Pendiente por documentar formalmente:
+
+* Documento de propuesta y requerimientos.
 * Historias de usuario.
-* Diagrama de casos de uso.
 * Diagrama entidad-relación.
-* Diagrama de arquitectura.
-* Diagramas de flujo.
 * Diagramas de secuencia.
-* Documentación de API.
-* Manual técnico.
-* Manual de usuario.
+* Manual técnico y manual de usuario.
 
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
