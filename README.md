@@ -243,6 +243,9 @@ Swagger está activo en el ambiente de desarrollo (con esquema de seguridad Bear
 
 ### Inteligencia Artificial — "SGDS Intelligence"
 
+<div align="center"> 
+<img src="./Assets/Readme/Logo_SGDSIntelligence.png" alt="Logo_SGDSIntelligence" width="100" />
+</div>
 <p align="justify">
 El módulo Gerencial incluye una sección dedicada ("SGDS Intelligence") con tres vistas construidas y en uso: <strong>Insights</strong> (observaciones automáticas sobre el comportamiento del sistema), <strong>Alertas Inteligentes</strong> (detección de riesgos: vencimientos próximos, incrementos relevantes de solicitudes, SLA bajo) y <strong>Asistente IA</strong> (interfaz de preguntas en lenguaje natural).
 </p>
