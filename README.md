@@ -162,7 +162,7 @@ Las tablas se mapean explícitamente a <code>snake_case</code> en <code>OnModelC
 <table align="center">
   <tr>
     <td align="center">
-      <img src="https://githubusercontent.com" alt="Power BI" width="40" height="40">
+      <img src="https://iconos8.es/icon/qYfwpsRXEcpc/power-bi" alt="Power BI" width="40" height="40"> 
     </td>
   </tr>
   <tr>
