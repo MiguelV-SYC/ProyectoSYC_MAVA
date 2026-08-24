@@ -160,15 +160,16 @@ Las tablas se mapean explícitamente a <code>snake_case</code> en <code>OnModelC
 ### Analítica y Business Intelligence
 
 <table align="center">
-<tr>
+  <tr>
     <td align="center">
-      📊
+      <img src="https://githubusercontent.com" alt="Power BI" width="40" height="40">
     </td>
   </tr>
   <tr>
     <td align="center"><strong>Power BI Embedded</strong></td>
   </tr>
 </table>
+
 
 <p align="justify">
 El módulo Gerencial contempla la integración con <strong>Power BI Embedded</strong> para análisis avanzado (drill-down por proyecto, filtros cruzados, comparativos históricos) como complemento a los indicadores que ya calcula la propia API. Hoy esta vista existe como una pantalla de referencia que documenta honestamente lo que falta para activarla: registro de la aplicación en Azure AD, una licencia Power BI Embedded (Pro/Premium/Embedded SKU) y una decisión sobre el mecanismo de actualización de datos (DirectQuery vs. importación programada, lo que a su vez define si se necesita un gateway hacia PostgreSQL on-premise). Mientras tanto, el propio módulo Gerencial ya expone Indicadores, Tendencias y Comparativos calculados directamente por la API, sin depender de esta integración.
