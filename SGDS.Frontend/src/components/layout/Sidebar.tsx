@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import logoSgds from '../../assets/logo-sgds.png';
+import logoIntelligence from '../../assets/sgds-intelligence-logo.png';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMisConteosPorProyecto, type ConteoProyectoDto } from '../../services/solicitudService';
@@ -31,9 +32,10 @@ function NavItem({ icon, label, active, to }: NavItemProps) {
   );
 }
 
-function NavSectionLabel({ children }: { children: React.ReactNode }) {
+function NavSectionLabel({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <div className="relative z-10 text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pt-4 pb-1.5">
+    <div className="relative z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-white/30 font-semibold px-3 pt-4 pb-1.5">
+      {icon}
       {children}
     </div>
   );
@@ -208,23 +210,23 @@ export default function Sidebar({ active }: { active: string }) {
               to="/gerencial/analisis-avanzado"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>}
             />
-            <NavSectionLabel>SGDS Intelligence</NavSectionLabel>
+            <NavSectionLabel icon={<img src={logoIntelligence} alt="" className="w-10 h-10" />}>SGDS Intelligence</NavSectionLabel>
             <NavItem
               active={active === 'insights'}
               label="Insights"
-              to="/gerencial/proximamente"
+              to="/gerencial/insights"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M12 3l1.9 4.6L18 9l-4.1 1.9L12 15l-1.9-4.1L6 9l4.1-1.4z" /></svg>}
             />
             <NavItem
               active={active === 'alertas-inteligentes'}
               label="Alertas Inteligentes"
-              to="/gerencial/proximamente"
+              to="/gerencial/alertas"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" /></svg>}
             />
             <NavItem
               active={active === 'asistente-ia'}
               label="Asistente IA"
-              to="/gerencial/proximamente"
+              to="/gerencial/asistente-ia"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M8 12h.01M12 12h.01M16 12h.01" /><rect x="3" y="4" width="18" height="16" rx="3" /></svg>}
             />
             <NavSectionLabel>Operación</NavSectionLabel>

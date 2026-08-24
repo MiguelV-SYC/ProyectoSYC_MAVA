@@ -12,7 +12,7 @@ export default function KpiCard({ icono, colorFondo, colorIcono, valor, label, d
   return (
     <div className="bg-white border border-line rounded-[13px] p-4">
       <div className="flex items-center gap-2.5 mb-2.5">
-        <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center shrink-0 [&>svg]:w-4 [&>svg]:h-4" style={{ background: colorFondo }}>
+        <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center shrink-0 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:stroke-current" style={{ background: colorFondo }}>
           <span style={{ color: colorIcono }}>{icono}</span>
         </div>
         <div>

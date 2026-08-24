@@ -42,11 +42,13 @@ import EstadoCuentaConsolidadoPage from './pages/EstadoCuentaConsolidadoPage';
 import HistorialEmpresaPage from './pages/HistorialEmpresaPage';
 import GerencialHomePage from './pages/GerencialHomePage';
 import GerencialAnalisisAvanzadoPage from './pages/GerencialAnalisisAvanzadoPage';
-import GerencialProximamentePage from './pages/GerencialProximamentePage';
 import GerencialProyectosPage from './pages/GerencialProyectosPage';
 import GerencialIndicadoresPage from './pages/GerencialIndicadoresPage';
 import GerencialTendenciasPage from './pages/GerencialTendenciasPage';
 import GerencialComparativosPage from './pages/GerencialComparativosPage';
+import GerencialInsightsPage from './pages/GerencialInsightsPage';
+import GerencialAlertasPage from './pages/GerencialAlertasPage';
+import GerencialAsistenteIaPage from './pages/GerencialAsistenteIaPage';
 
 function App() {
   const { user } = useAuth();
@@ -242,8 +244,18 @@ function App() {
       />
 
       <Route
-        path="/gerencial/proximamente"
-        element={user?.esGerencial || user?.esAdminSyc ? <GerencialProximamentePage /> : <Navigate to="/dashboard" replace />}
+        path="/gerencial/insights"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialInsightsPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/alertas"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialAlertasPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/asistente-ia"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialAsistenteIaPage /> : <Navigate to="/dashboard" replace />}
       />
 
       <Route

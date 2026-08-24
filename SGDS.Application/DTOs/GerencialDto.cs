@@ -184,3 +184,40 @@ public class ComparativosGerencialResponseDto
     public ResumenComparativoDto Resumen { get; set; } = new();
     public List<ComparativoProyectoDto> PorProyecto { get; set; } = new();
 }
+
+// ===== SGDS Intelligence (Insights y Alertas Inteligentes) =====
+// EsGeneradoPorIa queda en false hoy — se calcula por reglas/plantillas, no por IA. Cuando se
+// integre el asistente, la misma forma de DTO sirve: solo cambia la fuente del texto y este
+// flag pasa a true, sin requerir cambios en el frontend que lo consume.
+
+public class InsightGerencialDto
+{
+    public string Titulo { get; set; } = string.Empty;
+    public string Texto { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public string? EnlaceRuta { get; set; }
+    public bool EsGeneradoPorIa { get; set; } = false;
+}
+
+public class InsightsGerencialResponseDto
+{
+    public DateTime Desde { get; set; }
+    public DateTime Hasta { get; set; }
+    public List<InsightGerencialDto> Insights { get; set; } = new();
+}
+
+public class AlertaDetalladaDto
+{
+    public string Severidad { get; set; } = string.Empty;
+    public string Texto { get; set; } = string.Empty;
+    public string Etiqueta { get; set; } = string.Empty;
+    public string? EnlaceRuta { get; set; }
+    public bool EsGeneradoPorIa { get; set; } = false;
+}
+
+public class AlertasGerencialResponseDto
+{
+    public DateTime Desde { get; set; }
+    public DateTime Hasta { get; set; }
+    public List<AlertaDetalladaDto> Alertas { get; set; } = new();
+}

@@ -190,6 +190,67 @@ public class GerencialController : ControllerBase
         });
     }
 
+    // GET: api/Gerencial/insights?dias=30
+    // Observaciones en prosa generadas por plantilla a partir de las mismas cifras ya
+    // calculadas (volumen, SLA, tiempo de respuesta, rechazo por tipo de trámite) — el
+    // reemplazo por redacción real de IA no cambia esta forma de respuesta, solo la fuente
+    // del campo Texto y EsGeneradoPorIa.
+    [HttpGet("insights")]
+    public async Task<IActionResult> GetInsights([FromQuery] int dias = 30)
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        dias = Math.Clamp(dias, 1, 365);
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-dias);
+        var desdeAnterior = desde.AddDays(-dias);
+
+        var actual = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Include(s => s.TipoSolicitud)
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
+            .ToListAsync();
+
+        var anterior = await _context.Solicitudes
+            .Where(s => s.FechaCreacion >= desdeAnterior && s.FechaCreacion < desde)
+            .ToListAsync();
+
+        return Ok(new InsightsGerencialResponseDto
+        {
+            Desde = desde,
+            Hasta = hasta,
+            Insights = ConstruirInsights(actual, anterior),
+        });
+    }
+
+    // GET: api/Gerencial/alertas?dias=30
+    // Vista de profundidad del mismo motor de reglas de ConstruirAlertas (dashboard) — ahí se
+    // resume al hallazgo más relevante por regla; acá se listan todos los que cumplen cada
+    // regla, sin cambiar el resumen que ya se muestra en el Resumen Ejecutivo.
+    [HttpGet("alertas")]
+    public async Task<IActionResult> GetAlertasDetalladas([FromQuery] int dias = 30)
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        dias = Math.Clamp(dias, 1, 365);
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-dias);
+
+        var periodo = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
+            .ToListAsync();
+
+        return Ok(new AlertasGerencialResponseDto
+        {
+            Desde = desde,
+            Hasta = hasta,
+            Alertas = ConstruirAlertasDetalladas(periodo, ConstruirSlaPorProyecto(periodo)),
+        });
+    }
+
     // GET: api/Gerencial/comparativos?dias=30
     // Período actual vs. anterior (mismos deltas que el resumen deja en null hoy) y
     // proyecto vs. proyecto sobre el mismo par de períodos.
@@ -473,17 +534,17 @@ public class GerencialController : ControllerBase
     }
 
     // Compara la primera mitad del periodo contra la segunda mitad, por proyecto, para
-    // detectar el incremento más marcado — una señal simple de tendencia sin necesitar el
-    // periodo histórico completo otra vez.
-    private static (string Nombre, decimal Porcentaje)? ProyectoConMayorIncremento(List<Solicitud> periodo)
+    // detectar incrementos marcados — una señal simple de tendencia sin necesitar el periodo
+    // histórico completo otra vez.
+    private static List<(string Nombre, decimal Porcentaje)> TodosLosProyectosConIncremento(List<Solicitud> periodo)
     {
-        if (periodo.Count == 0) return null;
+        if (periodo.Count == 0) return new();
 
         var minFecha = periodo.Min(s => s.FechaCreacion);
         var maxFecha = periodo.Max(s => s.FechaCreacion);
         var mitad = minFecha.AddSeconds((maxFecha - minFecha).TotalSeconds / 2);
 
-        var porProyecto = periodo
+        return periodo
             .Where(s => s.Proyecto != null)
             .GroupBy(s => s.Proyecto!.Nombre)
             .Select(g => new
@@ -496,9 +557,167 @@ public class GerencialController : ControllerBase
             .Select(g => new { g.Nombre, Porcentaje = PorcentajeCambio(g.SegundaMitad, g.PrimeraMitad) })
             .Where(g => g.Porcentaje.HasValue && g.Porcentaje.Value >= UmbralIncrementoRelevante)
             .OrderByDescending(g => g.Porcentaje)
+            .Select(g => (g.Nombre, g.Porcentaje!.Value))
+            .ToList();
+    }
+
+    private static (string Nombre, decimal Porcentaje)? ProyectoConMayorIncremento(List<Solicitud> periodo)
+    {
+        var todos = TodosLosProyectosConIncremento(periodo);
+        return todos.Count > 0 ? todos[0] : null;
+    }
+
+    // ===== Helpers de Insights =====
+
+    private static List<InsightGerencialDto> ConstruirInsights(List<Solicitud> actual, List<Solicitud> anterior)
+    {
+        var insights = new List<InsightGerencialDto>();
+
+        var deltaVolumen = PorcentajeCambio(actual.Count, anterior.Count);
+        if (deltaVolumen.HasValue && deltaVolumen.Value != 0)
+        {
+            var direccion = deltaVolumen.Value >= 0 ? "subió" : "bajó";
+            insights.Add(new InsightGerencialDto
+            {
+                Titulo = "Volumen de solicitudes",
+                Texto = $"El total de solicitudes {direccion} un {Math.Abs(deltaVolumen.Value):0.#}% frente al período anterior.",
+                Categoria = "volumen",
+                EnlaceRuta = "/gerencial/comparativos",
+            });
+        }
+
+        var mayorIncremento = ProyectoConMayorIncremento(actual);
+        if (mayorIncremento != null)
+        {
+            insights.Add(new InsightGerencialDto
+            {
+                Titulo = "Proyecto con mayor crecimiento",
+                Texto = $"{mayorIncremento.Value.Nombre} presenta el incremento más marcado del período (+{mayorIncremento.Value.Porcentaje:0.#}%).",
+                Categoria = "volumen",
+                EnlaceRuta = "/gerencial/tendencias",
+            });
+        }
+
+        var slaPorProyecto = ConstruirSlaPorProyecto(actual).Where(p => p.CumplimientoPorcentaje.HasValue).ToList();
+        if (slaPorProyecto.Count > 0)
+        {
+            var mejor = slaPorProyecto.OrderByDescending(p => p.CumplimientoPorcentaje).First();
+            insights.Add(new InsightGerencialDto
+            {
+                Titulo = "Mejor cumplimiento de SLA",
+                Texto = $"{mejor.ProyectoNombre} lidera el cumplimiento de SLA con {mejor.CumplimientoPorcentaje}%.",
+                Categoria = "sla",
+                EnlaceRuta = "/gerencial/indicadores",
+            });
+
+            var peor = slaPorProyecto.OrderBy(p => p.CumplimientoPorcentaje).First();
+            if (peor.ProyectoId != mejor.ProyectoId)
+            {
+                insights.Add(new InsightGerencialDto
+                {
+                    Titulo = "Oportunidad de mejora en SLA",
+                    Texto = $"{peor.ProyectoNombre} tiene el cumplimiento de SLA más bajo del período ({peor.CumplimientoPorcentaje}%).",
+                    Categoria = "sla",
+                    EnlaceRuta = "/gerencial/indicadores",
+                });
+            }
+        }
+
+        var cerradasActual = actual.Where(EsFinalizada).ToList();
+        var cerradasAnterior = anterior.Where(EsFinalizada).ToList();
+        if (cerradasActual.Count > 0 && cerradasAnterior.Count > 0)
+        {
+            var promActual = (decimal)cerradasActual.Average(s => (s.FechaCierre!.Value - s.FechaCreacion).TotalDays);
+            var promAnterior = (decimal)cerradasAnterior.Average(s => (s.FechaCierre!.Value - s.FechaCreacion).TotalDays);
+            var delta = Math.Round(promActual - promAnterior, 1);
+            if (delta != 0)
+            {
+                var direccion = delta < 0 ? "mejoró" : "empeoró";
+                insights.Add(new InsightGerencialDto
+                {
+                    Titulo = "Tiempo de respuesta",
+                    Texto = $"El tiempo de respuesta promedio {direccion} en {Math.Abs(delta)} días frente al período anterior.",
+                    Categoria = "tiempo",
+                    EnlaceRuta = "/gerencial/tendencias",
+                });
+            }
+        }
+
+        var tipoConMasRechazo = actual
+            .Where(s => s.Proyecto != null && s.TipoSolicitud != null)
+            .GroupBy(s => new { Proyecto = s.Proyecto!.Nombre, Tipo = s.TipoSolicitud!.Nombre })
+            .Select(g =>
+            {
+                var finalizadas = g.Where(EsFinalizada).ToList();
+                var negativas = finalizadas.Count(s => EstadosNegativos.Contains(s.Estado));
+                return new { g.Key.Proyecto, g.Key.Tipo, Finalizadas = finalizadas.Count, Tasa = finalizadas.Count > 0 ? (decimal)negativas / finalizadas.Count * 100m : 0m };
+            })
+            .Where(x => x.Finalizadas >= 3 && x.Tasa > 0)
+            .OrderByDescending(x => x.Tasa)
             .FirstOrDefault();
 
-        return porProyecto != null ? (porProyecto.Nombre, porProyecto.Porcentaje!.Value) : null;
+        if (tipoConMasRechazo != null)
+        {
+            insights.Add(new InsightGerencialDto
+            {
+                Titulo = "Trámite con mayor tasa de rechazo",
+                Texto = $"\"{tipoConMasRechazo.Tipo}\" en {tipoConMasRechazo.Proyecto} tiene la tasa de rechazo más alta del período ({tipoConMasRechazo.Tasa:0.#}%).",
+                Categoria = "calidad",
+                EnlaceRuta = "/gerencial/indicadores",
+            });
+        }
+
+        return insights;
+    }
+
+    // ===== Helpers de Alertas Inteligentes (versión detallada de ConstruirAlertas) =====
+
+    private static List<AlertaDetalladaDto> ConstruirAlertasDetalladas(List<Solicitud> periodo, List<SlaPorProyectoDto> slaPorProyecto)
+    {
+        var alertas = new List<AlertaDetalladaDto>();
+        var hoy = DateTime.UtcNow;
+
+        var porVencerPorProyecto = periodo
+            .Where(s => s.FechaCierre == null && s.FechaLimite != null && s.FechaLimite >= hoy && s.FechaLimite <= hoy.AddDays(DiasAlertaVencimiento))
+            .Where(s => s.Proyecto != null)
+            .GroupBy(s => s.Proyecto!.Nombre)
+            .Select(g => new { Proyecto = g.Key, Total = g.Count() })
+            .OrderByDescending(g => g.Total);
+
+        foreach (var g in porVencerPorProyecto)
+        {
+            alertas.Add(new AlertaDetalladaDto
+            {
+                Severidad = "alta",
+                Texto = $"{g.Total} solicitudes de {g.Proyecto} vencen en los próximos {DiasAlertaVencimiento} días.",
+                Etiqueta = "Riesgo alto",
+                EnlaceRuta = "/solicitudes",
+            });
+        }
+
+        foreach (var (nombre, porcentaje) in TodosLosProyectosConIncremento(periodo))
+        {
+            alertas.Add(new AlertaDetalladaDto
+            {
+                Severidad = "media",
+                Texto = $"El proyecto {nombre} presenta un incremento del {porcentaje:0}% en solicitudes.",
+                Etiqueta = "Riesgo medio",
+                EnlaceRuta = "/gerencial/tendencias",
+            });
+        }
+
+        foreach (var p in slaPorProyecto.Where(p => p.CumplimientoPorcentaje.HasValue && p.CumplimientoPorcentaje.Value < UmbralSlaBajo))
+        {
+            alertas.Add(new AlertaDetalladaDto
+            {
+                Severidad = "info",
+                Texto = $"{p.ProyectoNombre} tiene un cumplimiento de SLA de {p.CumplimientoPorcentaje}%, por debajo del {UmbralSlaBajo:0}%.",
+                Etiqueta = "Información",
+                EnlaceRuta = "/gerencial/indicadores",
+            });
+        }
+
+        return alertas;
     }
 
     // ===== Helpers de Tendencias (granularidad día/semana/mes) =====

@@ -200,3 +200,47 @@ export async function getComparativosGerencial(dias = 30): Promise<ComparativosG
   });
   return data;
 }
+
+export interface InsightGerencialDto {
+  titulo: string;
+  texto: string;
+  categoria: string;
+  enlaceRuta?: string;
+  esGeneradoPorIa: boolean;
+}
+
+export interface InsightsGerencialResponseDto {
+  desde: string;
+  hasta: string;
+  insights: InsightGerencialDto[];
+}
+
+export async function getInsightsGerencial(dias = 30): Promise<InsightsGerencialResponseDto> {
+  const { data } = await axios.get<InsightsGerencialResponseDto>(`${API_URL}/Gerencial/insights`, {
+    params: { dias },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface AlertaDetalladaDto {
+  severidad: string;
+  texto: string;
+  etiqueta: string;
+  enlaceRuta?: string;
+  esGeneradoPorIa: boolean;
+}
+
+export interface AlertasGerencialResponseDto {
+  desde: string;
+  hasta: string;
+  alertas: AlertaDetalladaDto[];
+}
+
+export async function getAlertasDetalladasGerencial(dias = 30): Promise<AlertasGerencialResponseDto> {
+  const { data } = await axios.get<AlertasGerencialResponseDto>(`${API_URL}/Gerencial/alertas`, {
+    params: { dias },
+    headers: authHeader(),
+  });
+  return data;
+}
