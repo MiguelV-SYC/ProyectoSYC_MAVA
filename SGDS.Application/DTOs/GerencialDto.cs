@@ -99,3 +99,88 @@ public class DashboardGerencialResponseDto
     public List<AlertaGerencialDto> Alertas { get; set; } = new();
     public List<ResumenProyectoGerencialDto> Proyectos { get; set; } = new();
 }
+
+// ===== Indicadores (vista de profundidad: mismo período, catálogo completo de métricas) =====
+
+public class IndicadorPorTipoDto
+{
+    public int ProyectoId { get; set; }
+    public string ProyectoNombre { get; set; } = string.Empty;
+    public string TipoSolicitudNombre { get; set; } = string.Empty;
+    public int Total { get; set; }
+    public int Finalizadas { get; set; }
+    public decimal? CumplimientoSlaPorcentaje { get; set; }
+    public decimal? TiempoRespuestaPromedioDias { get; set; }
+    public decimal? TasaAprobacionPorcentaje { get; set; }
+    public decimal? TasaRechazoPorcentaje { get; set; }
+    public decimal? PorcentajeRequiereInformacion { get; set; }
+}
+
+public class IndicadoresGerencialResponseDto
+{
+    public DateTime Desde { get; set; }
+    public DateTime Hasta { get; set; }
+    public List<IndicadorPorTipoDto> Indicadores { get; set; } = new();
+}
+
+// ===== Tendencias (vista de tiempo: misma métrica, muchos períodos, granularidad ajustable) =====
+
+public class PuntoTendenciaExtendidoDto
+{
+    public DateTime Fecha { get; set; }
+    public int Radicadas { get; set; }
+    public int Finalizadas { get; set; }
+    public int EnTramite { get; set; }
+    public decimal? CumplimientoSlaPorcentaje { get; set; }
+}
+
+public class TendenciasGerencialResponseDto
+{
+    public DateTime Desde { get; set; }
+    public DateTime Hasta { get; set; }
+    public string Granularidad { get; set; } = "dia";
+    public List<PuntoTendenciaExtendidoDto> Puntos { get; set; } = new();
+}
+
+// ===== Comparativos (período actual vs. anterior, y proyecto vs. proyecto) =====
+
+public class ComparativoPeriodoDto
+{
+    public int Total { get; set; }
+    public int Finalizadas { get; set; }
+    public int EnTramite { get; set; }
+    public int Pendientes { get; set; }
+    public decimal? CumplimientoSlaPorcentaje { get; set; }
+}
+
+public class ResumenComparativoDto
+{
+    public ComparativoPeriodoDto Actual { get; set; } = new();
+    public ComparativoPeriodoDto Anterior { get; set; } = new();
+    public decimal? DeltaTotalPorcentaje { get; set; }
+    public decimal? DeltaFinalizadasPorcentaje { get; set; }
+    public decimal? DeltaEnTramitePorcentaje { get; set; }
+    public decimal? DeltaPendientesPorcentaje { get; set; }
+    public decimal? DeltaSlaPorcentaje { get; set; }
+}
+
+public class ComparativoProyectoDto
+{
+    public int ProyectoId { get; set; }
+    public string ProyectoNombre { get; set; } = string.Empty;
+    public int TotalActual { get; set; }
+    public int TotalAnterior { get; set; }
+    public decimal? DeltaTotalPorcentaje { get; set; }
+    public decimal? SlaActualPorcentaje { get; set; }
+    public decimal? SlaAnteriorPorcentaje { get; set; }
+    public decimal? DeltaSlaPorcentaje { get; set; }
+}
+
+public class ComparativosGerencialResponseDto
+{
+    public DateTime Desde { get; set; }
+    public DateTime Hasta { get; set; }
+    public DateTime DesdeAnterior { get; set; }
+    public ResumenComparativoDto Resumen { get; set; } = new();
+    public List<ComparativoProyectoDto> PorProyecto { get; set; } = new();
+}

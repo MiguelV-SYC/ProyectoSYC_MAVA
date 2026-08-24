@@ -57,7 +57,7 @@ export default function GerencialHomePage() {
       <main className="flex-1 px-8 py-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="font-display text-[22px] font-semibold text-ink-900">Hola, {primerNombre} 👋</h1>
+            <h1 className="font-display text-[22px] font-semibold text-ink-900">Hola, {primerNombre}</h1>
             <p className="text-ink-600 text-[12.5px] mt-0.5">Resumen ejecutivo del sistema al {hoy}</p>
           </div>
           <select

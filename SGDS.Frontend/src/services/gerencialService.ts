@@ -103,3 +103,100 @@ export async function getDashboardGerencial(dias = 30): Promise<DashboardGerenci
   });
   return data;
 }
+
+export interface IndicadorPorTipoDto {
+  proyectoId: number;
+  proyectoNombre: string;
+  tipoSolicitudNombre: string;
+  total: number;
+  finalizadas: number;
+  cumplimientoSlaPorcentaje?: number;
+  tiempoRespuestaPromedioDias?: number;
+  tasaAprobacionPorcentaje?: number;
+  tasaRechazoPorcentaje?: number;
+  porcentajeRequiereInformacion?: number;
+}
+
+export interface IndicadoresGerencialResponseDto {
+  desde: string;
+  hasta: string;
+  indicadores: IndicadorPorTipoDto[];
+}
+
+export async function getIndicadoresGerencial(dias = 30): Promise<IndicadoresGerencialResponseDto> {
+  const { data } = await axios.get<IndicadoresGerencialResponseDto>(`${API_URL}/Gerencial/indicadores`, {
+    params: { dias },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface PuntoTendenciaExtendidoDto {
+  fecha: string;
+  radicadas: number;
+  finalizadas: number;
+  enTramite: number;
+  cumplimientoSlaPorcentaje?: number;
+}
+
+export type Granularidad = 'dia' | 'semana' | 'mes';
+
+export interface TendenciasGerencialResponseDto {
+  desde: string;
+  hasta: string;
+  granularidad: Granularidad;
+  puntos: PuntoTendenciaExtendidoDto[];
+}
+
+export async function getTendenciasGerencial(dias = 90, granularidad: Granularidad = 'dia'): Promise<TendenciasGerencialResponseDto> {
+  const { data } = await axios.get<TendenciasGerencialResponseDto>(`${API_URL}/Gerencial/tendencias`, {
+    params: { dias, granularidad },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export interface ComparativoPeriodoDto {
+  total: number;
+  finalizadas: number;
+  enTramite: number;
+  pendientes: number;
+  cumplimientoSlaPorcentaje?: number;
+}
+
+export interface ResumenComparativoDto {
+  actual: ComparativoPeriodoDto;
+  anterior: ComparativoPeriodoDto;
+  deltaTotalPorcentaje?: number;
+  deltaFinalizadasPorcentaje?: number;
+  deltaEnTramitePorcentaje?: number;
+  deltaPendientesPorcentaje?: number;
+  deltaSlaPorcentaje?: number;
+}
+
+export interface ComparativoProyectoDto {
+  proyectoId: number;
+  proyectoNombre: string;
+  totalActual: number;
+  totalAnterior: number;
+  deltaTotalPorcentaje?: number;
+  slaActualPorcentaje?: number;
+  slaAnteriorPorcentaje?: number;
+  deltaSlaPorcentaje?: number;
+}
+
+export interface ComparativosGerencialResponseDto {
+  desde: string;
+  hasta: string;
+  desdeAnterior: string;
+  resumen: ResumenComparativoDto;
+  porProyecto: ComparativoProyectoDto[];
+}
+
+export async function getComparativosGerencial(dias = 30): Promise<ComparativosGerencialResponseDto> {
+  const { data } = await axios.get<ComparativosGerencialResponseDto>(`${API_URL}/Gerencial/comparativos`, {
+    params: { dias },
+    headers: authHeader(),
+  });
+  return data;
+}

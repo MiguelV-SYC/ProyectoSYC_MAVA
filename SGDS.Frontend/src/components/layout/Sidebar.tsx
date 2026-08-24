@@ -187,19 +187,19 @@ export default function Sidebar({ active }: { active: string }) {
             <NavItem
               active={active === 'indicadores'}
               label="Indicadores"
-              to="/dashboard"
+              to="/gerencial/indicadores"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M4 19V9M12 19V5M20 19v-7" /></svg>}
             />
             <NavItem
               active={active === 'tendencias'}
               label="Tendencias"
-              to="/dashboard"
+              to="/gerencial/tendencias"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 17l6-6 4 4 8-8" /><path d="M17 7h4v4" /></svg>}
             />
             <NavItem
               active={active === 'comparativos'}
               label="Comparativos"
-              to="/dashboard"
+              to="/gerencial/comparativos"
               icon={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="4" width="8" height="16" rx="1.5" /><rect x="13" y="4" width="8" height="10" rx="1.5" /></svg>}
             />
             <NavItem

@@ -27,6 +27,15 @@ public class GerencialController : ControllerBase
     private const decimal UmbralSlaBajo = 85m;
     private const decimal UmbralIncrementoRelevante = 15m;
 
+    // Vocabulario de estados "negativos" conocido entre los 9 proyectos (mismo criterio que el
+    // arreglo estadosFinales ya hardcodeado en SolicitudesController.CambiarEstado) — se usa
+    // solo para Indicadores (tasa de aprobación/rechazo), nunca para decidir si algo está
+    // cerrado (eso ya lo resuelve FechaCierre, no el nombre del estado).
+    private static readonly HashSet<string> EstadosNegativos = new()
+    {
+        "Rechazada", "Anulada", "No asistió", "Vencida",
+    };
+
     public GerencialController(SgdsDbContext context)
     {
         _context = context;
@@ -83,6 +92,136 @@ public class GerencialController : ControllerBase
         dto.Alertas = ConstruirAlertas(dto, proyectos, solicitudesPeriodo);
 
         return Ok(dto);
+    }
+
+    // GET: api/Gerencial/indicadores?dias=30
+    // Vista de profundidad: mismo período que el resumen, pero el catálogo completo de
+    // métricas desglosado por proyecto + tipo de trámite (no solo los 5 KPIs del resumen).
+    [HttpGet("indicadores")]
+    public async Task<IActionResult> GetIndicadores([FromQuery] int dias = 30)
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        dias = Math.Clamp(dias, 1, 365);
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-dias);
+
+        var solicitudes = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Include(s => s.TipoSolicitud)
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta && s.Proyecto != null && s.TipoSolicitud != null)
+            .ToListAsync();
+
+        var idsPeriodo = solicitudes.Select(s => s.Id).ToList();
+
+        // "Pasar por Requiere información" se mira en el historial completo, no solo en el
+        // estado actual — una solicitud puede haber pasado por ahí y ya haber avanzado.
+        var idsConRequiereInfo = (await _context.HistorialEstados
+            .Where(h => idsPeriodo.Contains(h.SolicitudId) && h.EstadoNuevo == "Requiere información")
+            .Select(h => h.SolicitudId)
+            .Distinct()
+            .ToListAsync())
+            .ToHashSet();
+
+        var indicadores = solicitudes
+            .GroupBy(s => new { s.Proyecto!.Id, s.Proyecto.Nombre, Tipo = s.TipoSolicitud!.Nombre })
+            .Select(g =>
+            {
+                var total = g.Count();
+                var finalizadas = g.Where(EsFinalizada).ToList();
+                var negativas = finalizadas.Count(s => EstadosNegativos.Contains(s.Estado));
+                var conRequiereInfo = g.Count(s => idsConRequiereInfo.Contains(s.Id));
+
+                return new IndicadorPorTipoDto
+                {
+                    ProyectoId = g.Key.Id,
+                    ProyectoNombre = g.Key.Nombre,
+                    TipoSolicitudNombre = g.Key.Tipo,
+                    Total = total,
+                    Finalizadas = finalizadas.Count,
+                    CumplimientoSlaPorcentaje = finalizadas.Count > 0
+                        ? Math.Round((decimal)finalizadas.Count(CumpleSla) / finalizadas.Count * 100m, 1)
+                        : null,
+                    TiempoRespuestaPromedioDias = finalizadas.Count > 0
+                        ? Math.Round((decimal)finalizadas.Average(s => (s.FechaCierre!.Value - s.FechaCreacion).TotalDays), 1)
+                        : null,
+                    TasaAprobacionPorcentaje = finalizadas.Count > 0
+                        ? Math.Round((decimal)(finalizadas.Count - negativas) / finalizadas.Count * 100m, 1)
+                        : null,
+                    TasaRechazoPorcentaje = finalizadas.Count > 0
+                        ? Math.Round((decimal)negativas / finalizadas.Count * 100m, 1)
+                        : null,
+                    PorcentajeRequiereInformacion = total > 0
+                        ? Math.Round((decimal)conRequiereInfo / total * 100m, 1)
+                        : 0,
+                };
+            })
+            .OrderByDescending(i => i.Total)
+            .ToList();
+
+        return Ok(new IndicadoresGerencialResponseDto { Desde = desde, Hasta = hasta, Indicadores = indicadores });
+    }
+
+    // GET: api/Gerencial/tendencias?dias=90&granularidad=semana
+    // Vista de tiempo: misma métrica, rangos largos y granularidad ajustable (día/semana/mes),
+    // a diferencia de la tendencia diaria fija del resumen ejecutivo.
+    [HttpGet("tendencias")]
+    public async Task<IActionResult> GetTendencias([FromQuery] int dias = 90, [FromQuery] string granularidad = "dia")
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        dias = Math.Clamp(dias, 1, 365);
+        granularidad = granularidad is "semana" or "mes" ? granularidad : "dia";
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-dias);
+
+        var solicitudes = await _context.Solicitudes
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
+            .ToListAsync();
+
+        return Ok(new TendenciasGerencialResponseDto
+        {
+            Desde = desde,
+            Hasta = hasta,
+            Granularidad = granularidad,
+            Puntos = ConstruirTendenciaExtendida(solicitudes, desde, hasta, granularidad),
+        });
+    }
+
+    // GET: api/Gerencial/comparativos?dias=30
+    // Período actual vs. anterior (mismos deltas que el resumen deja en null hoy) y
+    // proyecto vs. proyecto sobre el mismo par de períodos.
+    [HttpGet("comparativos")]
+    public async Task<IActionResult> GetComparativos([FromQuery] int dias = 30)
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        dias = Math.Clamp(dias, 1, 365);
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-dias);
+        var desdeAnterior = desde.AddDays(-dias);
+
+        var actual = await _context.Solicitudes
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
+            .ToListAsync();
+
+        var anterior = await _context.Solicitudes
+            .Where(s => s.FechaCreacion >= desdeAnterior && s.FechaCreacion < desde)
+            .ToListAsync();
+
+        var proyectos = await _context.Proyectos.Where(p => p.Activo).OrderBy(p => p.Nombre).ToListAsync();
+
+        return Ok(new ComparativosGerencialResponseDto
+        {
+            Desde = desde,
+            Hasta = hasta,
+            DesdeAnterior = desdeAnterior,
+            Resumen = ConstruirResumenComparativo(actual, anterior),
+            PorProyecto = ConstruirComparativoPorProyecto(proyectos, actual, anterior),
+        });
     }
 
     // ===== Helpers de cálculo =====
@@ -360,5 +499,121 @@ public class GerencialController : ControllerBase
             .FirstOrDefault();
 
         return porProyecto != null ? (porProyecto.Nombre, porProyecto.Porcentaje!.Value) : null;
+    }
+
+    // ===== Helpers de Tendencias (granularidad día/semana/mes) =====
+
+    private static DateTime InicioSemana(DateTime fecha)
+    {
+        var diff = (7 + (fecha.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return fecha.Date.AddDays(-diff);
+    }
+
+    private static DateTime InicioBucket(DateTime fecha, string granularidad) => granularidad switch
+    {
+        "semana" => InicioSemana(fecha),
+        "mes" => new DateTime(fecha.Year, fecha.Month, 1),
+        _ => fecha.Date,
+    };
+
+    private static DateTime FinBucket(DateTime inicioBucket, string granularidad) => granularidad switch
+    {
+        "semana" => inicioBucket.AddDays(7),
+        "mes" => inicioBucket.AddMonths(1),
+        _ => inicioBucket.AddDays(1),
+    };
+
+    private static List<PuntoTendenciaExtendidoDto> ConstruirTendenciaExtendida(List<Solicitud> periodo, DateTime desde, DateTime hasta, string granularidad)
+    {
+        var puntos = new List<PuntoTendenciaExtendidoDto>();
+        var acumuladoAbierto = 0;
+        var cursor = InicioBucket(desde, granularidad);
+
+        while (cursor < hasta)
+        {
+            var fin = FinBucket(cursor, granularidad);
+            var radicadas = periodo.Count(s => s.FechaCreacion >= cursor && s.FechaCreacion < fin);
+            var cerradas = periodo.Where(s => s.FechaCierre >= cursor && s.FechaCierre < fin).ToList();
+            acumuladoAbierto += radicadas - cerradas.Count;
+
+            puntos.Add(new PuntoTendenciaExtendidoDto
+            {
+                Fecha = cursor,
+                Radicadas = radicadas,
+                Finalizadas = cerradas.Count,
+                EnTramite = Math.Max(acumuladoAbierto, 0),
+                CumplimientoSlaPorcentaje = cerradas.Count > 0
+                    ? Math.Round((decimal)cerradas.Count(CumpleSla) / cerradas.Count * 100m, 1)
+                    : null,
+            });
+
+            cursor = fin;
+        }
+
+        return puntos;
+    }
+
+    // ===== Helpers de Comparativos =====
+
+    private static ComparativoPeriodoDto ResumirPeriodo(List<Solicitud> periodo)
+    {
+        var finalizadas = periodo.Where(EsFinalizada).ToList();
+        return new ComparativoPeriodoDto
+        {
+            Total = periodo.Count,
+            Finalizadas = finalizadas.Count,
+            EnTramite = periodo.Count(EsEnTramite),
+            Pendientes = periodo.Count(EsPendiente),
+            CumplimientoSlaPorcentaje = finalizadas.Count > 0
+                ? Math.Round((decimal)finalizadas.Count(CumpleSla) / finalizadas.Count * 100m, 1)
+                : null,
+        };
+    }
+
+    private static ResumenComparativoDto ConstruirResumenComparativo(List<Solicitud> actual, List<Solicitud> anterior)
+    {
+        var a = ResumirPeriodo(actual);
+        var b = ResumirPeriodo(anterior);
+        return new ResumenComparativoDto
+        {
+            Actual = a,
+            Anterior = b,
+            DeltaTotalPorcentaje = PorcentajeCambio(a.Total, b.Total),
+            DeltaFinalizadasPorcentaje = PorcentajeCambio(a.Finalizadas, b.Finalizadas),
+            DeltaEnTramitePorcentaje = PorcentajeCambio(a.EnTramite, b.EnTramite),
+            DeltaPendientesPorcentaje = PorcentajeCambio(a.Pendientes, b.Pendientes),
+            DeltaSlaPorcentaje = a.CumplimientoSlaPorcentaje.HasValue && b.CumplimientoSlaPorcentaje.HasValue
+                ? Math.Round(a.CumplimientoSlaPorcentaje.Value - b.CumplimientoSlaPorcentaje.Value, 1)
+                : null,
+        };
+    }
+
+    private static List<ComparativoProyectoDto> ConstruirComparativoPorProyecto(List<Proyecto> proyectos, List<Solicitud> actual, List<Solicitud> anterior)
+    {
+        return proyectos.Select(p =>
+        {
+            var deActual = actual.Where(s => s.ProyectoId == p.Id).ToList();
+            var deAnterior = anterior.Where(s => s.ProyectoId == p.Id).ToList();
+            var finalizadasActual = deActual.Where(EsFinalizada).ToList();
+            var finalizadasAnterior = deAnterior.Where(EsFinalizada).ToList();
+            decimal? slaActual = finalizadasActual.Count > 0
+                ? Math.Round((decimal)finalizadasActual.Count(CumpleSla) / finalizadasActual.Count * 100m, 1)
+                : null;
+            decimal? slaAnterior = finalizadasAnterior.Count > 0
+                ? Math.Round((decimal)finalizadasAnterior.Count(CumpleSla) / finalizadasAnterior.Count * 100m, 1)
+                : null;
+
+            return new ComparativoProyectoDto
+            {
+                ProyectoId = p.Id,
+                ProyectoNombre = p.Nombre,
+                TotalActual = deActual.Count,
+                TotalAnterior = deAnterior.Count,
+                DeltaTotalPorcentaje = PorcentajeCambio(deActual.Count, deAnterior.Count),
+                SlaActualPorcentaje = slaActual,
+                SlaAnteriorPorcentaje = slaAnterior,
+                DeltaSlaPorcentaje = slaActual.HasValue && slaAnterior.HasValue ? Math.Round(slaActual.Value - slaAnterior.Value, 1) : null,
+            };
+        }).OrderByDescending(c => c.TotalActual).ToList();
     }
 }

@@ -44,6 +44,9 @@ import GerencialHomePage from './pages/GerencialHomePage';
 import GerencialAnalisisAvanzadoPage from './pages/GerencialAnalisisAvanzadoPage';
 import GerencialProximamentePage from './pages/GerencialProximamentePage';
 import GerencialProyectosPage from './pages/GerencialProyectosPage';
+import GerencialIndicadoresPage from './pages/GerencialIndicadoresPage';
+import GerencialTendenciasPage from './pages/GerencialTendenciasPage';
+import GerencialComparativosPage from './pages/GerencialComparativosPage';
 
 function App() {
   const { user } = useAuth();
@@ -216,6 +219,21 @@ function App() {
       <Route
         path="/solicitudes/:id/estado-cuenta"
         element={user ? <EstadoCuentaConsolidadoPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/gerencial/indicadores"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialIndicadoresPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/tendencias"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialTendenciasPage /> : <Navigate to="/dashboard" replace />}
+      />
+
+      <Route
+        path="/gerencial/comparativos"
+        element={user?.esGerencial || user?.esAdminSyc ? <GerencialComparativosPage /> : <Navigate to="/dashboard" replace />}
       />
 
       <Route
