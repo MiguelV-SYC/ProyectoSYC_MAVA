@@ -226,6 +226,10 @@ public class EmpresasController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> EliminarEmpresa(int id)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var empresa = await _context.Empresas.FindAsync(id);
 
         if (empresa == null)

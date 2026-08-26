@@ -33,6 +33,16 @@ public class InfoconsumoController : ControllerBase
     [HttpPost("solicitudes")]
     public async Task<IActionResult> CrearSolicitud(CrearSolicitudInfoconsumoDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        if (!esAdminSyc && !proyectosPermitidos.Contains(dto.ProyectoId))
+        {
+            return BadRequest(new { mensaje = "No tienes acceso al proyecto indicado." });
+        }
+
         var empresaExiste = await _context.Empresas.AnyAsync(e => e.Id == dto.EmpresaId);
         if (!empresaExiste)
             return BadRequest(new { mensaje = "La empresa contribuyente no existe." });

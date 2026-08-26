@@ -172,6 +172,10 @@ public class VehiculosController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> EliminarVehiculo(int id)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var vehiculo = await _context.Vehiculos.FindAsync(id);
 
         if (vehiculo == null)

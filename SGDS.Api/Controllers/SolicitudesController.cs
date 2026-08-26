@@ -448,6 +448,16 @@ public async Task<IActionResult> GetListadoSolicitudes(
             return BadRequest(new { mensaje = "Debe indicar un Ciudadano o una Empresa" });
         }
 
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        if (!esAdminSyc && (dto.ProyectoId == null || !proyectosPermitidos.Contains(dto.ProyectoId.Value)))
+        {
+            return BadRequest(new { mensaje = "No tienes acceso al proyecto indicado." });
+        }
+
         var nuevaSolicitud = new Solicitud
         {
             CiudadanoId = dto.CiudadanoId,

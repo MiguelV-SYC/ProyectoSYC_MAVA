@@ -237,6 +237,10 @@ public async Task<IActionResult> GetCiudadano(int id)
     [HttpDelete("{id}")]
     public async Task<IActionResult> EliminarCiudadano(int id)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        if (!esAdminSyc)
+            return Forbid();
+
         var ciudadano = await _context.Ciudadanos.FindAsync(id);
 
         if (ciudadano == null)

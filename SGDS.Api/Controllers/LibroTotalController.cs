@@ -59,6 +59,16 @@ public class LibroTotalController : ControllerBase
     [HttpPost("solicitudes")]
     public async Task<IActionResult> AgendarTurno(CrearTurnoDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        if (!esAdminSyc && !proyectosPermitidos.Contains(dto.ProyectoId))
+        {
+            return BadRequest(new { mensaje = "No tienes acceso al proyecto indicado." });
+        }
+
         var ciudadanoExiste = await _context.Ciudadanos.AnyAsync(c => c.Id == dto.CiudadanoId);
         if (!ciudadanoExiste)
             return BadRequest(new { mensaje = "El ciudadano no existe." });
@@ -233,6 +243,9 @@ public class LibroTotalController : ControllerBase
     [HttpGet("consulta-consolidada")]
     public async Task<IActionResult> GetConsultaConsolidada([FromQuery] string documento)
     {
+        var errorAcceso = await VerificarAccesoConsultaConsolidadaAsync();
+        if (errorAcceso != null) return errorAcceso;
+
         if (string.IsNullOrWhiteSpace(documento))
             return BadRequest(new { mensaje = "Indica el número de documento a consultar." });
 
@@ -247,6 +260,9 @@ public class LibroTotalController : ControllerBase
     [HttpGet("consulta-consolidada-pdf")]
     public async Task<IActionResult> GetConsultaConsolidadaPdf([FromQuery] string documento)
     {
+        var errorAcceso = await VerificarAccesoConsultaConsolidadaAsync();
+        if (errorAcceso != null) return errorAcceso;
+
         var ciudadano = await _context.Ciudadanos.FirstOrDefaultAsync(c => c.NumeroDocumento == documento);
         if (ciudadano == null)
             return NotFound(new { mensaje = "No se encontró un ciudadano con ese número de documento." });
@@ -262,6 +278,9 @@ public class LibroTotalController : ControllerBase
     [HttpGet("consulta-consolidada-qr.png")]
     public async Task<IActionResult> GetConsultaConsolidadaQr([FromQuery] string documento)
     {
+        var errorAcceso = await VerificarAccesoConsultaConsolidadaAsync();
+        if (errorAcceso != null) return errorAcceso;
+
         var ciudadano = await _context.Ciudadanos.FirstOrDefaultAsync(c => c.NumeroDocumento == documento);
         if (ciudadano == null)
             return NotFound(new { mensaje = "No se encontró un ciudadano con ese número de documento." });
@@ -270,6 +289,27 @@ public class LibroTotalController : ControllerBase
         var dto = ConstruirEstadoCuentaDto(consulta, sedeNombre: null, operadorNombre: null);
         var qrBytes = GenerarQrPng(ContenidoQr(dto));
         return File(qrBytes, "image/png");
+    }
+
+    // La consulta consolidada trae solicitudes de TODOS los demás proyectos por diseño (por
+    // eso no puede exigir membresía en cada uno) — pero sí exige que quien pregunta pertenezca
+    // a Libro Total (dueño de esta función) o tenga visibilidad global (admin/gerencial).
+    private async Task<IActionResult?> VerificarAccesoConsultaConsolidadaAsync()
+    {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var esGerencial = User.FindFirst("esGerencial")?.Value == "True";
+        if (esAdminSyc || esGerencial) return null;
+
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        var idLibroTotal = await _context.Proyectos
+            .Where(p => p.Nombre == "Libro Total")
+            .Select(p => (int?)p.Id)
+            .FirstOrDefaultAsync();
+
+        return (idLibroTotal.HasValue && proyectosPermitidos.Contains(idLibroTotal.Value)) ? null : Forbid();
     }
 
     // ===== Estado de Cuenta Consolidado vinculado a un turno (con sede y operador) =====

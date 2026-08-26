@@ -41,6 +41,16 @@ public class SycTraceController : ControllerBase
     [HttpPost("solicitudes")]
     public async Task<IActionResult> CrearSolicitud(CrearSolicitudSycTraceDto dto)
     {
+        var esAdminSyc = User.FindFirst("esAdminSyc")?.Value == "True";
+        var proyectosPermitidos = User.FindAll("proyecto")
+            .Select(c => int.Parse(c.Value.Split(':')[0]))
+            .ToList();
+
+        if (!esAdminSyc && !proyectosPermitidos.Contains(dto.ProyectoId))
+        {
+            return BadRequest(new { mensaje = "No tienes acceso al proyecto indicado." });
+        }
+
         var tipo = await _context.TiposSolicitudes.FindAsync(dto.TipoSolicitudId);
         if (tipo == null)
             return BadRequest(new { mensaje = "El tipo de solicitud no es válido." });
