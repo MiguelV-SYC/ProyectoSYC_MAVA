@@ -4,7 +4,7 @@ import { login as loginService, type AuthUser } from '../services/authService';
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, recaptchaToken: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -19,10 +19,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 });
   const [loading, setLoading] = useState(false);
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string, recaptchaToken: string) {
     setLoading(true);
     try {
-      const authUser = await loginService(email, password);
+      const authUser = await loginService(email, password, recaptchaToken);
       setUser(authUser);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
     } finally {

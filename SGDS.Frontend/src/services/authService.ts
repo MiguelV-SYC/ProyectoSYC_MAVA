@@ -57,10 +57,11 @@ function parseProyectoClaim(claim?: string | string[]): { proyectoId: string; ro
   });
 }
 
-export async function login(email: string, password: string): Promise<AuthUser> {
+export async function login(email: string, password: string, recaptchaToken: string): Promise<AuthUser> {
   const { data } = await axios.post<LoginResponseDto>(`${API_URL}/auth/login`, {
     email,
     password,
+    recaptchaToken,
   });
 
   const decoded = jwtDecode<JwtClaims>(data.token);

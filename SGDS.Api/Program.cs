@@ -36,7 +36,8 @@ builder.Services.AddDbContext<SgdsDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("SgdsConnection"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 
 //acá se trabaja JWT
 var jwtKey = builder.Configuration["Jwt:Key"]!;

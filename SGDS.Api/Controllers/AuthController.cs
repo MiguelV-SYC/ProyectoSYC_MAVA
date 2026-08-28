@@ -7,6 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using SGDS.Domain.Entities;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SGDS.Api.Controllers;
@@ -17,11 +19,13 @@ public class AuthController : ControllerBase
 {
     private readonly SgdsDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AuthController(SgdsDbContext context, IConfiguration configuration)
+    public AuthController(SgdsDbContext context, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         _context = context;
         _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
     }
 //metodo put para visibilidad de auditoría en modulo admin)
    [HttpGet("modulos")]
@@ -116,6 +120,11 @@ public class AuthController : ControllerBase
    [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        if (!await VerificarRecaptcha(dto.RecaptchaToken))
+        {
+            return BadRequest(new { mensaje = "Verificación de reCAPTCHA fallida. Intenta de nuevo." });
+        }
+
         var usuario = await _context.Usuarios
             .Include(u => u.UsuarioProyectos)
                 .ThenInclude(up => up.Proyecto)
@@ -138,6 +147,31 @@ public class AuthController : ControllerBase
         };
 
         return Ok(respuesta);
+    }
+
+    private async Task<bool> VerificarRecaptcha(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        var secretKey = _configuration["Recaptcha:SecretKey"]!;
+        var cliente = _httpClientFactory.CreateClient();
+
+        var respuesta = await cliente.PostAsync(
+            $"https://www.google.com/recaptcha/api/siteverify?secret={secretKey}&response={token}",
+            null);
+
+        if (!respuesta.IsSuccessStatusCode)
+            return false;
+
+        var resultado = await respuesta.Content.ReadFromJsonAsync<RecaptchaVerificacionDto>();
+        return resultado?.Success == true;
+    }
+
+    private class RecaptchaVerificacionDto
+    {
+        [JsonPropertyName("success")]
+        public bool Success { get; set; }
     }
 
     private string GenerarToken(Usuario usuario)

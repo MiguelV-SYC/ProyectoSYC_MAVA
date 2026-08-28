@@ -1,27 +1,39 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { useAuth } from '../context/AuthContext';
 import logoSgds from '../assets/logo-sgds.png';
 import { Link } from 'react-router-dom';
 import SGDSBackground from '../components/SGDSBackground';
 
+const RECAPTCHA_SITE_KEY = '6Ld6U50tAAAAAINHe-gLJtr5iCUMKnk6guxJw9Vj';
+
 export default function LoginPage() {
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
+    if (!recaptchaToken) {
+      setError('Marca la casilla de verificación antes de continuar.');
+      return;
+    }
+
     try {
-      await login(email, password);
+      await login(email, password, recaptchaToken);
       navigate('/dashboard');
     } catch (err) {
       setError('Correo o contraseña incorrectos.');
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     }
   }
 
@@ -128,10 +140,19 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex justify-end -mt-1.5 mb-[22px]">
+            <div className="flex justify-end -mt-1.5 mb-[18px]">
               <Link to="/recuperar-password" className="text-[12.5px] text-blue-600 font-medium hover:underline">
                 <br />¿Olvidaste tu contraseña?
               </Link>
+            </div>
+
+            <div className="mb-[18px] flex justify-center">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={(token) => setRecaptchaToken(token)}
+                onExpired={() => setRecaptchaToken(null)}
+              />
             </div>
 
             {error && (
@@ -142,7 +163,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !recaptchaToken}
               className="w-full py-[13px] rounded-[10px] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(47,111,237,0.55)] bg-[linear-gradient(145deg,var(--color-blue-500),var(--color-blue-600))] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? 'Ingresando...' : 'Iniciar sesión'}
