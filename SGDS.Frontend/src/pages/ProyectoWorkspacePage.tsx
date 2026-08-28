@@ -128,7 +128,7 @@ export default function ProyectoWorkspacePage() {
         </button>
 
         <div className="relative bg-gradient-to-r from-[var(--color-accento)] to-[var(--color-accento-oscuro)] rounded-2xl p-7 mb-7 overflow-hidden">
-          <div className="flex items-center justify-between relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
             <div className="flex items-center gap-4">
               <div className="w-[54px] h-[54px] rounded-2xl bg-white/15 flex items-center justify-center shrink-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:stroke-white">
                 {ICONOS[proyecto.nombre] ?? ICONO_DEFAULT}
@@ -155,9 +155,9 @@ export default function ProyectoWorkspacePage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="font-display text-[16px] font-semibold text-ink-900">Resumen del proyecto</h2>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center flex-wrap gap-2.5">
             {proyecto.nombre === 'IUVA' && (
               <button
                 onClick={() => navigate(`/vehiculos?proyectoId=${id}`)}
@@ -221,9 +221,9 @@ export default function ProyectoWorkspacePage() {
         </div>
 
         <div className="bg-white border border-line rounded-[14px] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 px-5 py-4 border-b border-line">
             <h3 className="font-display text-[14px] font-semibold text-ink-900">Solicitudes recientes</h3>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => setTipoFiltro('')}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
