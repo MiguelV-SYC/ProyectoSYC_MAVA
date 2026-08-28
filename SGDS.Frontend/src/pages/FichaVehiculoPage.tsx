@@ -58,7 +58,7 @@ export default function FichaVehiculoPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         {loading || !vehiculo ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando vehículo...</div>
         ) : (
@@ -123,7 +123,7 @@ export default function FichaVehiculoPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[380px_1fr] gap-5 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-5 items-start">
               <div className="flex flex-col gap-5">
                 <div className="bg-white border border-line rounded-[14px] overflow-hidden">
                   <div className="px-5 py-[14px] border-b border-line">
@@ -167,11 +167,12 @@ export default function FichaVehiculoPage() {
                 <div className="px-5 py-[14px] border-b border-line">
                   <h3 className="font-display text-[14px] font-semibold text-ink-900">Historial de causaciones</h3>
                 </div>
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      {['ID', 'Tipo', 'Estado', 'Fecha'].map((h) => (
-                        <th key={h} className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line">
+                      {['ID', 'Tipo', 'Estado', 'Fecha'].map((h, i) => (
+                        <th key={h} className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>
                           {h}
                         </th>
                       ))}
@@ -182,9 +183,9 @@ export default function FichaVehiculoPage() {
                       <tr
                         key={s.id}
                         onClick={() => navigate(`/solicitudes/${s.id}`)}
-                        className="cursor-pointer hover:bg-paper transition-colors"
+                        className="group cursor-pointer hover:bg-paper transition-colors"
                       >
-                        <td className="px-5 py-3 text-[12px] text-ink-400 font-semibold border-b border-line last:border-0">
+                        <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-3 text-[12px] text-ink-400 font-semibold border-b border-line last:border-0 whitespace-nowrap">
                           #{s.numero}
                         </td>
                         <td className="px-5 py-3 text-[12.5px] border-b border-line last:border-0">{s.tipoSolicitudNombre ?? '—'}</td>
@@ -208,6 +209,7 @@ export default function FichaVehiculoPage() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </>

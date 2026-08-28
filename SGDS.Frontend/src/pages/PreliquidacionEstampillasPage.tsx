@@ -72,7 +72,7 @@ export default function PreliquidacionEstampillasPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={id ? `/solicitudes/${id}` : '/solicitudes'} className="hover:text-ink-600">
             {liquidacion ? `#${liquidacion.numero}` : 'Solicitud'}
@@ -92,7 +92,7 @@ export default function PreliquidacionEstampillasPage() {
           </div>
         ) : (
           <div className="max-w-[640px] flex flex-col gap-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="font-display text-[19px] font-semibold text-ink-900">Liquidación de Estampillas Departamentales</h1>
                 <p className="text-ink-600 text-[12.5px] mt-[2px]">
@@ -113,7 +113,7 @@ export default function PreliquidacionEstampillasPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Contribuyente</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Nombre / Razón social</div>
                   <div className="text-[13.5px] font-semibold text-ink-900">{liquidacion.contribuyenteNombre}</div>
@@ -127,7 +127,7 @@ export default function PreliquidacionEstampillasPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Contrato</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 {[
                   ['Hecho generador', liquidacion.hechoGenerador ?? '—'],
                   ['Objeto', liquidacion.objetoContrato ?? '—'],
@@ -147,11 +147,12 @@ export default function PreliquidacionEstampillasPage() {
               <div className="px-5 py-[14px] border-b border-line">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900">Liquidación — Estampillas Departamentales (Santander)</h3>
               </div>
+              <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
                     {['Estampilla', 'Tarifa', 'Base gravable', 'Valor'].map((h) => (
-                      <th key={h} className={`text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line ${h === 'Estampilla' || h === 'Tarifa' ? 'text-left' : 'text-right'}`}>
+                      <th key={h} className={`text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${h === 'Estampilla' ? 'text-left sticky left-0 z-10 bg-white' : h === 'Tarifa' ? 'text-left' : 'text-right'}`}>
                         {h}
                       </th>
                     ))}
@@ -159,8 +160,8 @@ export default function PreliquidacionEstampillasPage() {
                 </thead>
                 <tbody>
                   {liquidacion.items.filter((i) => i.aplica).map((item) => (
-                    <tr key={item.nombre}>
-                      <td className="px-5 py-3 text-[13px] font-semibold text-ink-900 border-b border-line">{item.nombre}</td>
+                    <tr key={item.nombre} className="group">
+                      <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-3 text-[13px] font-semibold text-ink-900 border-b border-line whitespace-nowrap">{item.nombre}</td>
                       <td className="px-5 py-3 text-[13px] text-ink-600 border-b border-line">{(item.tarifa * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3 text-[13px] text-right border-b border-line">{formatearMoneda(item.baseGravable)}</td>
                       <td className="px-5 py-3 text-[13px] font-semibold text-right border-b border-line">{formatearMoneda(item.valor)}</td>
@@ -175,6 +176,7 @@ export default function PreliquidacionEstampillasPage() {
                   )}
                 </tbody>
               </table>
+              </div>
               <div className="flex items-center justify-between px-5 py-4 border-t border-line bg-paper">
                 <span className="text-[13px] font-semibold text-ink-900">Total a pagar</span>
                 <span className="font-display text-[17px] font-bold text-[var(--color-accento)]">{formatearMoneda(liquidacion.total)}</span>

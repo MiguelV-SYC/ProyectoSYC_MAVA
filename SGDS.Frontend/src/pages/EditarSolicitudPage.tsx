@@ -283,7 +283,7 @@ export default function EditarSolicitudPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[900px]">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto max-w-[900px]">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={`/solicitudes/${solicitud.id}`} className="hover:text-ink-600">#{solicitud.numero}</Link>
           <span>/</span>

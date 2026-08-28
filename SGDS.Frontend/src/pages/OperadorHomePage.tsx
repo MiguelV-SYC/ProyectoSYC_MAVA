@@ -81,7 +81,7 @@ export default function OperadorHomePage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="inicio" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-semibold text-ink-900">Hola, {primerNombre} 👋</h1>
@@ -101,7 +101,7 @@ export default function OperadorHomePage() {
           <div className="text-center text-sm text-ink-400 py-10">Cargando...</div>
         ) : (
           <>
-            <div className="grid grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-white border border-line rounded-xl px-5 py-4">
                 <div className="font-display text-2xl font-bold text-ink-900">{indicadores.asignadasAMi}</div>
                 <div className="text-[11.5px] text-ink-600 mt-1">Asignadas a mí</div>
@@ -140,7 +140,7 @@ export default function OperadorHomePage() {
                   return (
                     <div
                       key={a.solicitudId}
-                      className={`flex items-center justify-between bg-white border border-line border-l-[3px] ${estilo.borde} rounded-xl px-5 py-3.5`}
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 bg-white border border-line border-l-[3px] ${estilo.borde} rounded-xl px-5 py-3.5`}
                     >
                       <div>
                         <div className="text-[13.5px] font-semibold text-ink-900">
@@ -161,7 +161,7 @@ export default function OperadorHomePage() {
                               : navigate(`/solicitudes/${a.solicitudId}`)
                           }
                           disabled={asignando === a.solicitudId}
-                          className="bg-ink-900 text-white text-[12.5px] font-semibold rounded-[9px] px-4 py-2 disabled:opacity-60"
+                          className="bg-ink-900 text-white text-[11.5px] sm:text-[12.5px] font-semibold rounded-[9px] px-3 py-1.5 sm:px-4 sm:py-2 disabled:opacity-60"
                         >
                           {asignando === a.solicitudId
                             ? 'Asignando...'
@@ -177,11 +177,11 @@ export default function OperadorHomePage() {
             )}
 
             <div className="bg-white border border-line rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 px-5 py-4 border-b border-line">
                 <h3 className="font-display text-[14px] font-semibold text-ink-900">
                   Tu cola de trabajo
                 </h3>
-                <div className="flex gap-1 bg-paper rounded-lg p-1">
+                <div className="flex gap-1 bg-paper rounded-lg p-1 self-start">
                   {(['todas', 'en_revision', 'pendientes'] as const).map((f) => (
                     <button
                       key={f}
@@ -196,13 +196,14 @@ export default function OperadorHomePage() {
                 </div>
               </div>
 
+              <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    {['ID', 'Tipo', 'Afiliado', 'Estado', 'Fecha'].map((h) => (
+                    {['ID', 'Tipo', 'Afiliado', 'Estado', 'Fecha'].map((h, i) => (
                       <th
                         key={h}
-                        className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line"
+                        className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}
                       >
                         {h}
                       </th>
@@ -211,8 +212,8 @@ export default function OperadorHomePage() {
                 </thead>
                 <tbody>
                   {cola.map((s) => (
-                    <tr key={s.solicitudId} className="hover:bg-paper transition-colors cursor-pointer">
-                      <td className="px-5 py-[13px] text-[12px] text-ink-400 font-semibold border-b border-line">
+                    <tr key={s.solicitudId} className="group hover:bg-paper transition-colors cursor-pointer">
+                      <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[12px] text-ink-400 font-semibold border-b border-line whitespace-nowrap">
                         #{s.numero}
                       </td>
                       <td className="px-5 py-[13px] text-[13px] border-b border-line">{s.tipoSolicitud}</td>
@@ -244,6 +245,7 @@ export default function OperadorHomePage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </>
         )}

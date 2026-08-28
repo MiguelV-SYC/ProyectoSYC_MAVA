@@ -121,7 +121,7 @@ export default function FormularioCiudadanoPage() {
     >
       <Sidebar active="ciudadanos" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[820px]">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto max-w-[820px]">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to="/ciudadanos" className="hover:text-ink-600">Ciudadanos</Link>
           <span>/</span>
@@ -170,7 +170,7 @@ export default function FormularioCiudadanoPage() {
             <form onSubmit={handleSubmit}>
               <div className="bg-white border border-line rounded-[14px] p-6 mb-5">
                 <h3 className="font-display text-[15px] font-semibold text-ink-900 mb-4">Identificación</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipo de documento</label>
                     <select
@@ -217,7 +217,7 @@ export default function FormularioCiudadanoPage() {
                     className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-xs font-semibold text-ink-900 mb-1.5">Teléfono</label>
                     <input
@@ -238,7 +238,7 @@ export default function FormularioCiudadanoPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-ink-900 mb-1.5">Ciudad</label>
                     <input

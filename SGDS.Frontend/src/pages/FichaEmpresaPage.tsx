@@ -61,7 +61,7 @@ export default function FichaEmpresaPage() {
     >
       <Sidebar active="empresas" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         {loading || !empresa ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando empresa...</div>
         ) : (
@@ -114,7 +114,7 @@ export default function FichaEmpresaPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[280px_1fr] gap-5 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 items-start">
               <div>
                 <div className="bg-white border border-line rounded-[14px] overflow-hidden mb-4">
                   <div className="px-5 py-[14px] border-b border-line">
@@ -167,13 +167,14 @@ export default function FichaEmpresaPage() {
                 <div className="px-5 py-[14px] border-b border-line">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900">Solicitudes</h3>
                 </div>
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      {['ID', 'Tipo', 'Estado', 'Fecha'].map((h) => (
+                      {['ID', 'Tipo', 'Estado', 'Fecha'].map((h, i) => (
                         <th
                           key={h}
-                          className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line"
+                          className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}
                         >
                           {h}
                         </th>
@@ -182,8 +183,8 @@ export default function FichaEmpresaPage() {
                   </thead>
                   <tbody>
                     {solicitudes.map((s) => (
-                      <tr key={s.id} className="hover:bg-paper transition-colors cursor-pointer">
-                        <td className="px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold">
+                      <tr key={s.id} className="group hover:bg-paper transition-colors cursor-pointer">
+                        <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold whitespace-nowrap">
                           #{s.numero}
                         </td>
                         <td className="px-5 py-[13px] text-[13px] border-b border-line">{s.tipoSolicitudNombre}</td>
@@ -205,6 +206,7 @@ export default function FichaEmpresaPage() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </>

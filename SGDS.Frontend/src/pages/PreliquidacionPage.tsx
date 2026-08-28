@@ -112,14 +112,14 @@ export default function PreliquidacionPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={`/solicitudes/${solicitud.id}`} className="hover:text-ink-600">#{solicitud.numero}</Link>
           <span>/</span>
           <span className="text-ink-900 font-semibold">Preliquidación</span>
         </div>
 
-        <div className="flex items-center justify-between mb-6 max-w-[640px]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 max-w-[640px]">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">Liquidación de Impuesto Vehicular</h1>
             <p className="text-ink-600 text-[12.5px] mt-[2px]">Departamento de Santander · SGDS — Referencia {solicitud.numero}</p>
@@ -139,7 +139,7 @@ export default function PreliquidacionPage() {
         <div className="max-w-[640px] flex flex-col gap-5">
           <div className="bg-white border border-line rounded-[14px] p-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos del vehículo</h3>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
                 ['Placa', vehiculo?.placa ?? solicitud.vehiculoPlaca ?? '—'],
                 ['Marca / Línea', [vehiculo?.marca ?? solicitud.vehiculoMarca, vehiculo?.linea ?? solicitud.vehiculoLinea].filter(Boolean).join(' ') || '—'],
@@ -159,7 +159,7 @@ export default function PreliquidacionPage() {
 
           <div className="bg-white border border-line rounded-[14px] p-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Propietario</h3>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               <div>
                 <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Nombre</div>
                 <div className="text-[13.5px] font-semibold text-ink-900">{propietarioNombre}</div>
@@ -173,7 +173,7 @@ export default function PreliquidacionPage() {
 
           <div className="bg-white border border-line rounded-[14px] p-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Base gravable</h3>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
                 ['Avalúo comercial', formatearMoneda(avaluo)],
                 ['¿Antiguo o clásico?', antiguoClasico ? 'Sí' : 'No'],
@@ -197,6 +197,7 @@ export default function PreliquidacionPage() {
             <div className="px-5 py-[14px] border-b border-line">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900">Fechas y valores de pago</h3>
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
@@ -220,6 +221,7 @@ export default function PreliquidacionPage() {
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
 
           <div className="bg-white border border-line rounded-[14px] p-6 text-center">

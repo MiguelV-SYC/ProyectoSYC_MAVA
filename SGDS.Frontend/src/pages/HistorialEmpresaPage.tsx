@@ -52,7 +52,7 @@ export default function HistorialEmpresaPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <button
           onClick={() => navigate(volverA ?? '/solicitudes')}
           className="flex items-center gap-1.5 text-[12.5px] text-ink-600 font-medium mb-4 hover:text-ink-900"
@@ -74,11 +74,12 @@ export default function HistorialEmpresaPage() {
           {loading ? (
             <div className="px-5 py-10 text-center text-sm text-ink-400">Cargando historial...</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['ID', 'Tipo de trámite', 'Estado', 'Fecha'].map((h) => (
-                    <th key={h} className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line">
+                  {['ID', 'Tipo de trámite', 'Estado', 'Fecha'].map((h, i) => (
+                    <th key={h} className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>
                       {h}
                     </th>
                   ))}
@@ -89,9 +90,9 @@ export default function HistorialEmpresaPage() {
                   <tr
                     key={s.id}
                     onClick={() => navigate(`/solicitudes/${s.id}`)}
-                    className="cursor-pointer hover:bg-paper transition-colors"
+                    className="group cursor-pointer hover:bg-paper transition-colors"
                   >
-                    <td className="px-5 py-3 text-[12px] text-ink-400 font-semibold border-b border-line last:border-0">#{s.numero}</td>
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-3 text-[12px] text-ink-400 font-semibold border-b border-line last:border-0 whitespace-nowrap">#{s.numero}</td>
                     <td className="px-5 py-3 text-[12.5px] border-b border-line last:border-0">{s.tipoSolicitudNombre ?? '—'}</td>
                     <td className="px-5 py-3 border-b border-line last:border-0">
                       <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-[10px] py-[4px] rounded-full ${ESTADO_STYLE[s.estado] ?? 'bg-paper text-ink-600'}`}>
@@ -111,6 +112,7 @@ export default function HistorialEmpresaPage() {
                 )}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </main>

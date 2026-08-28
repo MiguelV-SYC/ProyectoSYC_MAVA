@@ -146,7 +146,7 @@ export default function FormularioVehiculoPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[820px]">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto max-w-[820px]">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={proyectoId ? `/vehiculos?proyectoId=${proyectoId}` : '/vehiculos'} className="hover:text-ink-600">
             Vehículos
@@ -170,7 +170,7 @@ export default function FormularioVehiculoPage() {
           <form onSubmit={handleSubmit}>
             <div className="bg-white border border-line rounded-[14px] p-6 mb-5">
               <h3 className="font-display text-[15px] font-semibold text-ink-900 mb-4">Datos del vehículo</h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Placa</label>
                   <input
@@ -192,7 +192,7 @@ export default function FormularioVehiculoPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Marca</label>
                   <input

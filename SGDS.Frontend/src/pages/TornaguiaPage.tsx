@@ -126,7 +126,7 @@ export default function TornaguiaPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={id ? `/solicitudes/${id}` : '/solicitudes'} className="hover:text-ink-600">
             {tornaguia ? `#${tornaguia.numero}` : 'Solicitud'}
@@ -146,14 +146,14 @@ export default function TornaguiaPage() {
           </div>
         ) : (
           <div className="max-w-[680px] flex flex-col gap-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="font-display text-[19px] font-semibold text-ink-900">Tornaguía de {tornaguia.tipoTramite}</h1>
                 <p className="text-ink-600 text-[12.5px] mt-[2px]">
                   Secretaría de Hacienda Departamental — Unidad de Rentas · Número {tornaguia.numero}
                 </p>
               </div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center flex-wrap gap-2.5">
                 <button
                   onClick={() => navigate(`/infoconsumo/empresas/${tornaguia.empresaId}/historial?volverA=${encodeURIComponent(`/solicitudes/${id}/tornaguia`)}`)}
                   className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-4 py-2 text-[12.5px] font-semibold hover:bg-paper"
@@ -203,7 +203,7 @@ export default function TornaguiaPage() {
               <>
                 <div className="bg-white border border-line rounded-[14px] p-5">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Producto amparado</h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                     {[
                       ['Categoría', tornaguia.categoriaProducto],
                       ['Unidades', `${tornaguia.unidadesFisicas.toLocaleString('es-CO')} (${tornaguia.volumenTotalCc.toLocaleString('es-CO')} cc)`],
@@ -219,7 +219,7 @@ export default function TornaguiaPage() {
 
                 <div className="bg-white border border-line rounded-[14px] p-5">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Empresa remitente</h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                     <div>
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Razón social</div>
                       <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.empresaRazonSocial}</div>
@@ -234,7 +234,7 @@ export default function TornaguiaPage() {
                 {tornaguia.loteGoTraceSolicitudId && (
                   <div className="bg-white border border-line rounded-[14px] p-5">
                     <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Trazabilidad GoTrace</h3>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                       <div>
                         <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Lote de origen</div>
                         <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.loteGoTraceNumero}</div>
@@ -255,7 +255,7 @@ export default function TornaguiaPage() {
 
                 <div className="bg-white border border-line rounded-[14px] p-5">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Transportador</h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                     {[
                       ['Empresa transportadora', tornaguia.empresaTransportadora],
                       ['Conductor', tornaguia.conductor ?? '—'],
@@ -273,7 +273,7 @@ export default function TornaguiaPage() {
 
                 <div className="bg-white border border-line rounded-[14px] p-5">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Movilización autorizada</h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-4">
                     <div>
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Tipo de transporte</div>
                       <div className="text-[13.5px] font-semibold text-ink-900">{tornaguia.tipoTransporte}</div>

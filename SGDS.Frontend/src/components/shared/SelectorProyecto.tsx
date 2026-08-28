@@ -31,7 +31,7 @@ interface Props {
 
 export default function SelectorProyecto({ titulo, descripcion, proyectos, onElegir }: Props) {
   return (
-    <div className="w-full h-full flex items-center justify-center px-8">
+    <div className="w-full h-full flex items-center justify-center px-4 sm:px-8 pt-16 md:pt-0">
       <div className="w-full max-w-[1440px]">
         <div className="text-center mb-6">
           <h2 className="font-display text-[25px] font-semibold text-ink-900 mb-1.5">{titulo}</h2>
@@ -42,7 +42,7 @@ export default function SelectorProyecto({ titulo, descripcion, proyectos, onEle
         {proyectos.length === 0 ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando proyectos...</div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {proyectos.map((p) => (
               <button
                 key={p.id}

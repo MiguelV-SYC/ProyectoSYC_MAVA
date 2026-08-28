@@ -172,7 +172,7 @@ export default function GestionProyectosPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="proyectos" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">Proyectos</h1>
@@ -194,7 +194,7 @@ export default function GestionProyectosPage() {
         {loading ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando proyectos...</div>
         ) : (
-          <div className="grid grid-cols-3 gap-[14px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
             {proyectos.map((p) => (
               <div key={p.id} className="relative bg-white border border-line rounded-2xl p-5">
                 <span

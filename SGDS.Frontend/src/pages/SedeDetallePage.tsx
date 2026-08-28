@@ -32,7 +32,7 @@ export default function SedeDetallePage() {
     <div className="flex min-h-screen bg-paper" style={colorStyle}>
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <button onClick={() => navigate('/librototal/sedes')} className="hover:underline">Sedes</button>
           <span>/</span>
@@ -58,7 +58,7 @@ export default function SedeDetallePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="bg-white border border-line rounded-xl p-5">
                   <div className="text-[12px] text-ink-600 mb-1.5">Atenciones este mes</div>
                   <div className="font-display text-2xl font-bold text-ink-900">{sede.atencionesMes}</div>

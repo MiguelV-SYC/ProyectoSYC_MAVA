@@ -259,8 +259,8 @@ export default function WorkflowKanbanPage() {
     >
       <Sidebar active="workflow" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-x-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto overflow-x-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
               {esLibroTotal ? `Turnos — Sede ${nombreSedeSeleccionada}` : `Workflow — ${proyecto?.nombre ?? '...'}`}
@@ -333,7 +333,7 @@ export default function WorkflowKanbanPage() {
             </select>
           </div>
         ) : esLibroTotal ? null : (
-          <div className="flex items-center gap-2.5 mb-4">
+          <div className="flex flex-wrap items-center gap-2.5 mb-4">
             <select
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
@@ -354,7 +354,7 @@ export default function WorkflowKanbanPage() {
                 <option key={o.valor} value={o.valor}>{o.label}</option>
               ))}
             </select>
-            <span className="text-[11px] text-ink-400">
+            <span className="w-full sm:w-auto text-[11px] text-ink-400">
               El filtro de tiempo solo aplica a las columnas Aprobada, Rechazada y Finalizada
             </span>
           </div>
@@ -363,14 +363,14 @@ export default function WorkflowKanbanPage() {
         {loading ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando workflow...</div>
         ) : esInfoconsumo ? (
-          <div className="flex gap-3.5 min-w-max pb-4">
+          <div className="flex flex-col md:flex-row gap-3.5 md:min-w-max pb-4">
             {COLUMNAS_INFOCONSUMO.map((c) => {
               let tarjetas = tarjetasInfoconsumo[c.estado] ?? [];
               if (filtroTipoInfoconsumo) {
                 tarjetas = tarjetas.filter((t) => t.tipoTramite === filtroTipoInfoconsumo);
               }
               return (
-                <div key={c.estado} className="w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                <div key={c.estado} className="w-full md:w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
                   <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
                     <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                     <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
@@ -378,7 +378,7 @@ export default function WorkflowKanbanPage() {
                       {tarjetas.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 max-h-[55vh] overflow-y-auto overflow-x-auto">
                     {tarjetas.map((t) => (
                       <div
                         key={t.id}
@@ -411,14 +411,14 @@ export default function WorkflowKanbanPage() {
             })}
           </div>
         ) : esSycTrace ? (
-          <div className="flex gap-3.5 min-w-max pb-4">
+          <div className="flex flex-col md:flex-row gap-3.5 md:min-w-max pb-4">
             {COLUMNAS_SYCTRACE.map((c) => {
               let tarjetas = columnas[c.estado] ?? [];
               if (filtroTipo) {
                 tarjetas = tarjetas.filter((s) => s.tipoSolicitudNombre === filtroTipo);
               }
               return (
-                <div key={c.estado} className="w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                <div key={c.estado} className="w-full md:w-[290px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
                   <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
                     <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                     <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
@@ -426,7 +426,7 @@ export default function WorkflowKanbanPage() {
                       {totales[c.estado] ?? 0}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 max-h-[55vh] overflow-y-auto overflow-x-auto">
                     {tarjetas.map((s) => (
                       <div
                         key={s.id}
@@ -459,11 +459,11 @@ export default function WorkflowKanbanPage() {
             })}
           </div>
         ) : esLibroTotal ? (
-          <div className="flex gap-3.5 min-w-max pb-4">
+          <div className="flex flex-col md:flex-row gap-3.5 md:min-w-max pb-4">
             {COLUMNAS_LIBROTOTAL.map((c) => {
               const tarjetas = tarjetasLibroTotal[c.estado] ?? [];
               return (
-                <div key={c.estado} className="w-[250px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
+                <div key={c.estado} className="w-full md:w-[250px] shrink-0 rounded-2xl p-3 bg-[#eef2f7]">
                   <div className="flex items-center gap-2 px-1.5 py-1 mb-2.5">
                     <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                     <span className="text-[13.5px] font-semibold text-ink-900 flex-1">{c.estado}</span>
@@ -471,7 +471,7 @@ export default function WorkflowKanbanPage() {
                       {tarjetas.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 max-h-[55vh] overflow-y-auto overflow-x-auto">
                     {tarjetas.map((t) => (
                       <div
                         key={t.id}
@@ -506,7 +506,7 @@ export default function WorkflowKanbanPage() {
             })}
           </div>
         ) : (
-          <div className="flex gap-3.5 min-w-max pb-4">
+          <div className="flex flex-col md:flex-row gap-3.5 md:min-w-max pb-4">
             {COLUMNAS.map((c) => {
               let tarjetas = columnas[c.estado] ?? [];
               if (filtroTipo) {
@@ -523,7 +523,7 @@ export default function WorkflowKanbanPage() {
                   onDragOver={(e: DragEvent) => { e.preventDefault(); setColumnaSobre(c.estado); }}
                   onDragLeave={() => setColumnaSobre((cur) => (cur === c.estado ? null : cur))}
                   onDrop={(e: DragEvent) => { e.preventDefault(); handleDrop(c.estado); }}
-                  className={`w-[290px] shrink-0 rounded-2xl p-3 ${
+                  className={`w-full md:w-[290px] shrink-0 rounded-2xl p-3 ${
                     columnaSobre === c.estado ? 'bg-[var(--color-accento-claro)]' : 'bg-[#eef2f7]'
                   }`}
                 >
@@ -535,7 +535,7 @@ export default function WorkflowKanbanPage() {
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 max-h-[55vh] overflow-y-auto overflow-x-auto">
                     {tarjetas.map((s) => (
                       <div
                         key={s.id}

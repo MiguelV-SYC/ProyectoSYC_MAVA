@@ -131,7 +131,7 @@ export default function FormularioEmpresaPage() {
     >
       <Sidebar active="empresas" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[900px]">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto max-w-[900px]">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <button onClick={() => navigate('/empresas')} className="hover:underline">
             Empresas
@@ -210,7 +210,7 @@ export default function FormularioEmpresaPage() {
                   className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Teléfono</label>
                   <input
@@ -231,7 +231,7 @@ export default function FormularioEmpresaPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Ciudad</label>
                   <input

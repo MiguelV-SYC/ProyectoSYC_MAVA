@@ -652,7 +652,7 @@ export default function NuevaSolicitudPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto max-w-[900px]">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto max-w-[900px]">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <button onClick={() => navigate(`/solicitudes?proyectoId=${proyectoId}`)} className="hover:underline">
             Solicitudes
@@ -687,7 +687,7 @@ export default function NuevaSolicitudPage() {
               />
             </>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {tipos.map((t) => (
               <button
                 key={t.id}
@@ -879,7 +879,7 @@ export default function NuevaSolicitudPage() {
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Características del vehículo</h3>
 
             {vehiculoVinculado && (
-              <div className="grid grid-cols-3 gap-4 mb-4 bg-paper rounded-[9px] px-4 py-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 bg-paper rounded-[9px] px-4 py-3">
                 {[
                   ['Marca', vehiculoVinculado.marca || '—'],
                   ['Línea', vehiculoVinculado.linea || '—'],
@@ -893,7 +893,7 @@ export default function NuevaSolicitudPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4 mb-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3.5">
               <div>
                 <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipo de vehículo</label>
                 <select
@@ -952,7 +952,7 @@ export default function NuevaSolicitudPage() {
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">4. Base gravable</h3>
 
-            <div className="grid grid-cols-2 gap-4 mb-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3.5">
               <div>
                 <label className="block text-xs font-semibold text-ink-900 mb-1.5">Avalúo comercial (tabla Mintransporte)</label>
                 <input

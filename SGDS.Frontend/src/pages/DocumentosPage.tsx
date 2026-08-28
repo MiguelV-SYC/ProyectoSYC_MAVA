@@ -164,7 +164,7 @@ export default function DocumentosPage() {
     >
       <Sidebar active="documentos" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
@@ -242,7 +242,7 @@ export default function DocumentosPage() {
             No se encontraron documentos con estos filtros.
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {documentos.map((d) => (
               <button
                 key={d.id}

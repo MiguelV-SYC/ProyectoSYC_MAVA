@@ -93,7 +93,7 @@ export default function CertificadoTrazabilidadPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={id ? `/solicitudes/${id}` : '/solicitudes'} className="hover:text-ink-600">
             {certificado ? `#${certificado.numero}` : 'Solicitud'}
@@ -164,7 +164,7 @@ export default function CertificadoTrazabilidadPage() {
                   <div className="text-[11px] font-bold uppercase tracking-wide pb-2 mb-3 border-b-2" style={{ color: color.primario, borderColor: color.primarioClaro }}>
                     Producto
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 mb-1">Producto</div>
                       <div className="text-[13.5px] font-semibold text-ink-900">{certificado.producto}</div>
@@ -190,7 +190,7 @@ export default function CertificadoTrazabilidadPage() {
                   <div className="text-[11px] font-bold uppercase tracking-wide pb-2 mb-3 border-b-2" style={{ color: color.primario, borderColor: color.primarioClaro }}>
                     Empresa productora
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 mb-1">Razón social</div>
                       <div className="text-[13.5px] font-semibold text-ink-900">{certificado.empresaRazonSocial}</div>

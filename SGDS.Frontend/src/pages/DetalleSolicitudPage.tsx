@@ -217,7 +217,7 @@ export default function DetalleSolicitudPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <span className="text-ink-600">{solicitud.proyectoNombre}</span>
           <span>/</span>
@@ -226,7 +226,7 @@ export default function DetalleSolicitudPage() {
           <span className="text-ink-900 font-semibold">#{solicitud.numero}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-[var(--color-accento-claro)] flex items-center justify-center shrink-0">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-5 h-5 stroke-[var(--color-accento)]">
@@ -243,7 +243,7 @@ export default function DetalleSolicitudPage() {
             </div>
           </div>
           {!user?.esGerencial && (
-          <div className="flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
             {solicitud.proyectoNombre === 'IUVA' && (
               <button
                 onClick={() => navigate(`/solicitudes/${solicitud.id}/preliquidacion`)}
@@ -432,11 +432,11 @@ export default function DetalleSolicitudPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-[1fr_280px] gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5 items-start">
           <div className="flex flex-col gap-5">
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Información de la solicitud</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Estado actual</div>
                   <span className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-[10px] py-[5px] rounded-full ${ESTADO_STYLE[estadoMostrado] ?? 'bg-paper text-ink-600'}`}>

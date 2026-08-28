@@ -55,7 +55,7 @@ export default function CiudadanosListPage() {
     >
       <Sidebar active="ciudadanos" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <div className="flex items-center gap-2">
@@ -126,13 +126,14 @@ export default function CiudadanosListPage() {
           {loading ? (
             <div className="px-5 py-10 text-center text-sm text-ink-400">Cargando ciudadanos...</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['Ciudadano', 'Documento', 'Proyectos con actividad', 'Solicitudes', ''].map((h) => (
+                  {['Ciudadano', 'Documento', 'Proyectos con actividad', 'Solicitudes', ''].map((h, i) => (
                     <th
                       key={h}
-                      className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line"
+                      className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}
                     >
                       {h}
                     </th>
@@ -144,9 +145,9 @@ export default function CiudadanosListPage() {
                   <tr
                     key={c.id}
                     onClick={() => navigate(`/ciudadanos/${c.id}`)}
-                    className="cursor-pointer hover:bg-paper transition-colors"
+                    className="group cursor-pointer hover:bg-paper transition-colors"
                   >
-                    <td className="px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900">
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900 whitespace-nowrap">
                       {c.nombreCompleto}
                     </td>
                     <td className="px-5 py-[13px] text-[12px] text-ink-400 border-b border-line">
@@ -185,6 +186,7 @@ export default function CiudadanosListPage() {
                 )}
               </tbody>
             </table>
+            </div>
           )}
 
           <div className="flex items-center justify-between px-5 py-[14px] border-t border-line">

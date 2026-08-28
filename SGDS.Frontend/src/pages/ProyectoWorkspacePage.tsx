@@ -116,7 +116,7 @@ export default function ProyectoWorkspacePage() {
     >
       <Sidebar active="inicio" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-1.5 text-[12.5px] text-ink-600 font-medium mb-4 hover:text-ink-900"
@@ -204,7 +204,7 @@ export default function ProyectoWorkspacePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3.5 mb-7">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-7">
           {[
             { label: 'Radicadas hoy', valor: resumen?.radicadasHoy ?? 0 },
             { label: 'Pendientes', valor: pendientes },
@@ -246,11 +246,12 @@ export default function ProyectoWorkspacePage() {
             </div>
           </div>
 
+          <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                {['ID', 'Tipo de solicitud', 'Afiliado', 'Estado', 'Fecha', 'Operador'].map((h) => (
-                  <th key={h} className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line">
+                {['ID', 'Tipo de solicitud', 'Afiliado', 'Estado', 'Fecha', 'Operador'].map((h, i) => (
+                  <th key={h} className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>
                     {h}
                   </th>
                 ))}
@@ -261,9 +262,9 @@ export default function ProyectoWorkspacePage() {
                 <tr
                   key={s.id}
                   onClick={() => navigate(`/solicitudes/${s.id}`)}
-                  className="cursor-pointer hover:bg-paper transition-colors"
+                  className="group cursor-pointer hover:bg-paper transition-colors"
                 >
-                  <td className="px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold">#{s.numero}</td>
+                  <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold whitespace-nowrap">#{s.numero}</td>
                   <td className="px-5 py-[13px] text-[13px] border-b border-line">{s.tipoSolicitudNombre}</td>
                   <td className="px-5 py-[13px] text-[13px] border-b border-line">
                     <div className="font-semibold text-ink-900">{s.ciudadanoNombre ?? s.empresaNombre}</div>
@@ -290,6 +291,7 @@ export default function ProyectoWorkspacePage() {
               )}
             </tbody>
           </table>
+          </div>
 
           <div className="px-5 py-3 border-t border-line">
             <button

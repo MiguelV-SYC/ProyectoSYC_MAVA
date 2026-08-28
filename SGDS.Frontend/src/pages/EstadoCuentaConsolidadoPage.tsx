@@ -77,7 +77,7 @@ export default function EstadoCuentaConsolidadoPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           {id ? (
             <Link to={`/solicitudes/${id}`} className="hover:text-ink-600">Turno</Link>
@@ -134,7 +134,7 @@ export default function EstadoCuentaConsolidadoPage() {
               <div className="px-8 py-7 flex flex-col gap-5">
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-accento)] pb-2 mb-3 border-b-2 border-[var(--color-accento-claro)]">Ciudadano</div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><div className="text-[10.5px] uppercase text-ink-400 mb-0.5">Nombre</div><div className="text-[13.5px] font-semibold">{estadoCuenta.ciudadanoNombre}</div></div>
                     <div><div className="text-[10.5px] uppercase text-ink-400 mb-0.5">Documento</div><div className="text-[13.5px] font-semibold">{estadoCuenta.ciudadanoDocumento}</div></div>
                   </div>
@@ -142,6 +142,7 @@ export default function EstadoCuentaConsolidadoPage() {
 
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-accento)] pb-2 mb-3 border-b-2 border-[var(--color-accento-claro)]">Resumen por proyecto</div>
+                  <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-[12.5px]">
                     <thead>
                       <tr className="border-b-2 border-[var(--color-accento-claro)]">
@@ -170,6 +171,7 @@ export default function EstadoCuentaConsolidadoPage() {
                       )}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
 

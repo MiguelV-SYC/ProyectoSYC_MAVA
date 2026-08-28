@@ -198,11 +198,12 @@ export default function GerencialHomePage() {
               {dashboard.criticas.length === 0 ? (
                 <p className="text-[12px] text-ink-400 py-4 text-center">No hay solicitudes próximas a vencer.</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      {['ID', 'Proyecto', 'Asunto', 'Días', 'Prioridad', 'Estado'].map((h) => (
-                        <th key={h} className="text-left text-[10px] uppercase tracking-wide text-ink-400 font-bold px-1 py-2 border-b border-line">{h}</th>
+                      {['ID', 'Proyecto', 'Asunto', 'Días', 'Prioridad', 'Estado'].map((h, i) => (
+                        <th key={h} className={`text-left text-[10px] uppercase tracking-wide text-ink-400 font-bold px-1 py-2 border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -210,8 +211,8 @@ export default function GerencialHomePage() {
                     {dashboard.criticas.map((c) => {
                       const color = getColorProyecto(c.proyectoNombre);
                       return (
-                        <tr key={c.solicitudId} onClick={() => navigate(`/solicitudes/${c.solicitudId}`)} className="cursor-pointer hover:bg-paper">
-                          <td className="px-1 py-2.5 text-[11px] font-semibold text-ink-400 border-b border-line">#{c.numero}</td>
+                        <tr key={c.solicitudId} onClick={() => navigate(`/solicitudes/${c.solicitudId}`)} className="group cursor-pointer hover:bg-paper">
+                          <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-1 py-2.5 text-[11px] font-semibold text-ink-400 border-b border-line whitespace-nowrap">#{c.numero}</td>
                           <td className="px-1 py-2.5 border-b border-line">
                             <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold">
                               <span className="w-[7px] h-[7px] rounded-full" style={{ background: color.primario }} />
@@ -231,6 +232,7 @@ export default function GerencialHomePage() {
                     })}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
 

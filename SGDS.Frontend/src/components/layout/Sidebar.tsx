@@ -117,7 +117,7 @@ export default function Sidebar({ active }: { active: string }) {
       <button
         onClick={() => setAbierto(true)}
         aria-label="Abrir menú"
-        className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-[10px] flex items-center justify-center text-white bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-800))] shadow-[0_4px_14px_-4px_rgba(10,23,48,0.55)]"
+        className="md:hidden fixed top-4 left-4 z-[1100] w-10 h-10 rounded-[10px] flex items-center justify-center text-white bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-800))] shadow-[0_4px_14px_-4px_rgba(10,23,48,0.55)]"
       >
         <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-5 h-5 stroke-current">
           <path d="M4 7h16M4 12h16M4 17h16" />
@@ -127,13 +127,13 @@ export default function Sidebar({ active }: { active: string }) {
       {/* Fondo semitransparente — solo cuando el panel mobile está abierto, tocarlo lo cierra */}
       {abierto && (
         <div
-          className="md:hidden fixed inset-0 z-30 bg-black/40"
+          className="md:hidden fixed inset-0 z-[1090] bg-black/40"
           onClick={() => setAbierto(false)}
         />
       )}
 
       <aside
-        className={`w-[260px] shrink-0 fixed md:relative inset-y-0 left-0 md:inset-auto z-40 md:z-auto flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))] transition-transform duration-300 md:translate-x-0 ${
+        className={`w-[260px] shrink-0 fixed md:relative inset-y-0 left-0 md:inset-auto z-[1095] md:z-auto flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))] transition-transform duration-300 md:translate-x-0 ${
           abierto ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

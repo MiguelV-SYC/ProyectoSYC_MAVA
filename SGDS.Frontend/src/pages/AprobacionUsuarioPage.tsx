@@ -110,7 +110,7 @@ export default function AprobacionUsuariosPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="usuarios" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="mb-5">
           <Link
               to="/usuarios"

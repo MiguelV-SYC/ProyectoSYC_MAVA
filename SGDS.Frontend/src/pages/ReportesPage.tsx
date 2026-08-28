@@ -152,7 +152,7 @@ export default function ReportesPage() {
     >
       <Sidebar active="reportes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="mb-6">
           <h1 className="font-display text-[19px] font-semibold text-ink-900">
             Reportes — {proyecto?.nombre ?? '...'}
@@ -160,11 +160,11 @@ export default function ReportesPage() {
           <p className="text-ink-600 text-[12.5px] mt-[3px]">Exporta listados de solicitudes filtrados a Excel o PDF</p>
         </div>
 
-        <div className="grid grid-cols-[1fr_300px] gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
           <div className="flex flex-col gap-5">
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Filtros del reporte</h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Desde</label>
                   <input
@@ -198,7 +198,7 @@ export default function ReportesPage() {
               </select>
 
               <label className="block text-xs font-semibold text-ink-900 mb-2">Estados a incluir</label>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {estadosDisponibles.map((estado) => (
                   <label
                     key={estado}
@@ -218,7 +218,7 @@ export default function ReportesPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Formato de salida</h3>
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {(['xlsx', 'pdf'] as const).map((f) => (
                   <button
                     key={f}

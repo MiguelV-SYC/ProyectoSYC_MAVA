@@ -72,7 +72,7 @@ export default function LiquidacionPasivoLaboralPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={id ? `/solicitudes/${id}` : '/solicitudes'} className="hover:text-ink-600">
             {liquidacion ? `#${liquidacion.numero}` : 'Solicitud'}
@@ -92,7 +92,7 @@ export default function LiquidacionPasivoLaboralPage() {
           </div>
         ) : (
           <div className="max-w-[680px] flex flex-col gap-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="font-display text-[19px] font-semibold text-ink-900">Liquidación de {etiquetaInstrumento(liquidacion.instrumento)}</h1>
                 <p className="text-ink-600 text-[12.5px] mt-[2px]">
@@ -122,7 +122,7 @@ export default function LiquidacionPasivoLaboralPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Entidad concurrente</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Razón social</div>
                   <div className="text-[13.5px] font-semibold text-ink-900">{liquidacion.empresaRazonSocial}</div>
@@ -136,7 +136,7 @@ export default function LiquidacionPasivoLaboralPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Servidor / Pensionado</h3>
-              <div className="grid grid-cols-3 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
                 {[
                   ['Nombre', liquidacion.servidorNombre || '—'],
                   ['Documento', liquidacion.servidorDocumento || '—'],
@@ -155,6 +155,7 @@ export default function LiquidacionPasivoLaboralPage() {
                 <div className="px-5 py-[14px] border-b border-line">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900">Cálculo de la cuota parte</h3>
                 </div>
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <tbody>
                     <tr>
@@ -177,6 +178,7 @@ export default function LiquidacionPasivoLaboralPage() {
                     </tr>
                   </tbody>
                 </table>
+                </div>
                 <div className="flex flex-col gap-1 items-end px-5 py-4 border-t border-line bg-paper">
                   <span className="text-[13px] font-semibold text-ink-900">
                     Valor mensual a cargo de la entidad: <span className="font-display text-[17px] font-bold text-[var(--color-accento)]">{formatearMoneda(liquidacion.valorMensualACargo)}</span>

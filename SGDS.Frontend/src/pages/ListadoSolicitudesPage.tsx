@@ -148,8 +148,8 @@ useEffect(() => {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">
               Solicitudes{proyecto ? ` — ${proyecto.nombre}` : esAdmin ? ' — Todos los proyectos' : ''}
@@ -159,7 +159,7 @@ useEffect(() => {
             </p>
           </div>
           {proyectoId && (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center flex-wrap gap-2.5">
               {proyecto?.nombre === 'IUVA' && (
                 <button
                   onClick={() => navigate(`/vehiculos?proyectoId=${proyectoId}`)}
@@ -273,11 +273,12 @@ useEffect(() => {
           {loading ? (
             <div className="px-5 py-10 text-center text-sm text-ink-400">Cargando solicitudes...</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['ID', 'Tipo de solicitud', ...(proyecto ? [] : ['Proyecto']), 'Afiliado', 'Estado', 'Fecha', 'Operador', ''].map((h) => (
-                    <th key={h} className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line">
+                  {['ID', 'Tipo de solicitud', ...(proyecto ? [] : ['Proyecto']), 'Afiliado', 'Estado', 'Fecha', 'Operador', ''].map((h, i) => (
+                    <th key={h} className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>
                       {h}
                     </th>
                   ))}
@@ -288,9 +289,9 @@ useEffect(() => {
                   <tr
                     key={s.id}
                     onClick={() => navigate(`/solicitudes/${s.id}`)}
-                    className="cursor-pointer hover:bg-paper transition-colors"
+                    className="group cursor-pointer hover:bg-paper transition-colors"
                   >
-                    <td className="px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold">#{s.numero}</td>
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[12px] border-b border-line text-ink-400 font-semibold whitespace-nowrap">#{s.numero}</td>
                     <td className="px-5 py-[13px] text-[13px] border-b border-line">{s.tipoSolicitudNombre}</td>
                     {!proyecto && (
                       <td className="px-5 py-[13px] text-[13px] border-b border-line text-ink-600">{s.proyectoNombre}</td>
@@ -327,6 +328,7 @@ useEffect(() => {
                 )}
               </tbody>
             </table>
+            </div>
           )}
 
           <div className="flex items-center justify-between px-5 py-[14px] border-t border-line">

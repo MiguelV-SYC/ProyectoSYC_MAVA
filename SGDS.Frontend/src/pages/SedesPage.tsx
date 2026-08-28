@@ -22,7 +22,7 @@ export default function SedesPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <button onClick={() => navigate(-1)} className="hover:underline">Libro Total</button>
           <span>/</span>
@@ -37,7 +37,7 @@ export default function SedesPage() {
         {loading ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando sedes...</div>
         ) : (
-          <div className="grid grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {sedes.map((s) => (
               <button
                 key={s.id}

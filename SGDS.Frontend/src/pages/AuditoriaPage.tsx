@@ -112,7 +112,7 @@ export default function AuditoriaPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="auditoria" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="font-display text-[19px] font-semibold text-ink-900">Auditoría</h1>
@@ -177,11 +177,12 @@ export default function AuditoriaPage() {
           {loading ? (
             <div className="px-5 py-10 text-center text-sm text-ink-400">Cargando auditoría...</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['Usuario', 'Acción', 'Módulo', 'Proyecto', 'Fecha', 'IP'].map((h) => (
-                    <th key={h} className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line">
+                  {['Usuario', 'Acción', 'Módulo', 'Proyecto', 'Fecha', 'IP'].map((h, i) => (
+                    <th key={h} className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}>
                       {h}
                     </th>
                   ))}
@@ -189,8 +190,8 @@ export default function AuditoriaPage() {
               </thead>
               <tbody>
                 {registros.map((r) => (
-                  <tr key={r.id} className="hover:bg-paper transition-colors">
-                    <td className="px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900">
+                  <tr key={r.id} className="group hover:bg-paper transition-colors">
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900 whitespace-nowrap">
                       {r.usuarioNombre}
                     </td>
                     <td className="px-5 py-[13px] text-[13px] border-b border-line">
@@ -221,6 +222,7 @@ export default function AuditoriaPage() {
                 )}
               </tbody>
             </table>
+            </div>
           )}
 
           <div className="flex items-center justify-between px-5 py-[14px] border-t border-line">

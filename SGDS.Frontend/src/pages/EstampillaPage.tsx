@@ -129,7 +129,7 @@ export default function EstampillaPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-xs text-ink-400 mb-3.5">
           <Link to={id ? `/solicitudes/${id}` : '/solicitudes'} className="hover:text-ink-600">
             {estampilla ? `#${estampilla.numero}` : 'Solicitud'}
@@ -149,14 +149,14 @@ export default function EstampillaPage() {
           </div>
         ) : (
           <div className="max-w-[680px] flex flex-col gap-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="font-display text-[19px] font-semibold text-ink-900">Estampilla de control — {estampilla.empresaRazonSocial}</h1>
                 <p className="text-ink-600 text-[12.5px] mt-[2px]">
                   Secretaría de Hacienda Departamental de Santander — Control de Rentas · Número {estampilla.numero}
                 </p>
               </div>
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center flex-wrap gap-2.5">
                 <button
                   onClick={() => navigate(`/solicitudes/${id}/estampilla/arte`)}
                   className="flex items-center gap-1.5 bg-white border border-line text-ink-600 rounded-[9px] px-4 py-2 text-[12.5px] font-semibold hover:bg-paper"
@@ -257,7 +257,7 @@ export default function EstampillaPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Producto</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 {[
                   ['Nombre comercial', estampilla.nombreProducto],
                   ['Marca', estampilla.marca || '—'],
@@ -277,7 +277,7 @@ export default function EstampillaPage() {
 
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Empresa y origen</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 <div>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Razón social</div>
                   <div className="text-[13.5px] font-semibold text-ink-900">{estampilla.empresaRazonSocial}</div>
@@ -308,7 +308,7 @@ export default function EstampillaPage() {
             {estampilla.loteGoTraceNumero && (
               <div className="bg-white border border-line rounded-[14px] p-5">
                 <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Trazabilidad GoTrace</h3>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                   <div>
                     <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">Lote de origen</div>
                     <div className="text-[13.5px] font-semibold text-ink-900">{estampilla.loteGoTraceNumero}</div>

@@ -53,7 +53,7 @@ export default function VehiculosListPage() {
     >
       <Sidebar active="solicitudes" />
 
-      <main className="flex-1 px-[38px] py-7 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <button
           onClick={() => navigate(proyectoId ? `/solicitudes?proyectoId=${proyectoId}` : '/dashboard')}
           className="flex items-center gap-1.5 text-[12.5px] text-ink-600 font-medium mb-4 hover:text-ink-900"
@@ -107,13 +107,14 @@ export default function VehiculosListPage() {
           {loading ? (
             <div className="px-5 py-10 text-center text-sm text-ink-400">Cargando vehículos...</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['Placa', 'Marca / Línea', 'Modelo', 'Propietario', ''].map((h) => (
+                  {['Placa', 'Marca / Línea', 'Modelo', 'Propietario', ''].map((h, i) => (
                     <th
                       key={h}
-                      className="text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line"
+                      className={`text-left text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold px-5 py-[10px] border-b border-line whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-white' : ''}`}
                     >
                       {h}
                     </th>
@@ -125,9 +126,9 @@ export default function VehiculosListPage() {
                   <tr
                     key={v.id}
                     onClick={() => navigate(`/vehiculos/${v.id}${proyectoId ? `?proyectoId=${proyectoId}` : ''}`)}
-                    className="cursor-pointer hover:bg-paper transition-colors"
+                    className="group cursor-pointer hover:bg-paper transition-colors"
                   >
-                    <td className="px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900">
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-paper px-5 py-[13px] text-[13px] border-b border-line font-semibold text-ink-900 whitespace-nowrap">
                       <span className="inline-block bg-paper border border-line rounded-[6px] px-2 py-[3px] font-mono text-[12px] tracking-wide">
                         {v.placa}
                       </span>
@@ -158,6 +159,7 @@ export default function VehiculosListPage() {
                 )}
               </tbody>
             </table>
+            </div>
           )}
 
           <div className="flex items-center justify-between px-5 py-[14px] border-t border-line">
