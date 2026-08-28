@@ -47,8 +47,8 @@ export default function GerencialIndicadoresPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="indicadores" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[22px] font-semibold text-ink-900">Indicadores</h1>
             <p className="text-ink-600 text-[12.5px] mt-0.5">Catálogo de métricas operativas por proyecto y tipo de trámite</p>
@@ -66,7 +66,7 @@ export default function GerencialIndicadoresPage() {
           <div className="text-center text-sm text-ink-400 py-10">Cargando indicadores...</div>
         ) : (
           <>
-            <div className="grid grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
               <KpiCard
                 icono={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
                 colorFondo="#e8f0ff" colorIcono="#2f6fed"

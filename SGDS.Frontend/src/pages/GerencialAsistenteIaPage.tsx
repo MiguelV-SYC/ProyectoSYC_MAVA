@@ -19,7 +19,7 @@ export default function GerencialAsistenteIaPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="asistente-ia" />
 
-      <main className="flex-1 px-8 py-6 flex flex-col">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 flex flex-col overflow-x-hidden">
         <div className="flex items-center gap-3 mb-2">
           <IntelligenceMark />
           <div>
@@ -42,7 +42,7 @@ export default function GerencialAsistenteIaPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 max-w-[560px] w-full mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-[560px] w-full mt-6">
             {SUGERENCIAS.map((s) => (
               <button
                 key={s.ruta}

@@ -1,7 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import logoSgds from '../../assets/logo-sgds.png';
 import logoIntelligence from '../../assets/sgds-intelligence-logo.png';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMisConteosPorProyecto, type ConteoProyectoDto } from '../../services/solicitudService';
 
@@ -44,6 +44,14 @@ function NavSectionLabel({ children, icon }: { children: React.ReactNode; icon?:
 export default function Sidebar({ active }: { active: string }) {
   const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+
+  const [abierto, setAbierto] = useState(false);
+
+  // Cierra el panel mobile automáticamente al navegar, para no tener que cerrarlo a mano.
+  useEffect(() => {
+    setAbierto(false);
+  }, [location.pathname]);
 
   const [misProyectos, setMisProyectos] = useState<ConteoProyectoDto[]>([]);
 
@@ -104,7 +112,31 @@ export default function Sidebar({ active }: { active: string }) {
     : '/dashboard';
 
   return (
-    <aside className="w-[260px] shrink-0 relative flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
+    <>
+      {/* Botón hamburguesa — solo visible por debajo de md, abre el panel deslizante */}
+      <button
+        onClick={() => setAbierto(true)}
+        aria-label="Abrir menú"
+        className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-[10px] flex items-center justify-center text-white bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-800))] shadow-[0_4px_14px_-4px_rgba(10,23,48,0.55)]"
+      >
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-5 h-5 stroke-current">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+
+      {/* Fondo semitransparente — solo cuando el panel mobile está abierto, tocarlo lo cierra */}
+      {abierto && (
+        <div
+          className="md:hidden fixed inset-0 z-30 bg-black/40"
+          onClick={() => setAbierto(false)}
+        />
+      )}
+
+      <aside
+        className={`w-[260px] shrink-0 fixed md:relative inset-y-0 left-0 md:inset-auto z-40 md:z-auto flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))] transition-transform duration-300 md:translate-x-0 ${
+          abierto ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
       <div
         className="absolute inset-0"
         style={{
@@ -133,6 +165,16 @@ export default function Sidebar({ active }: { active: string }) {
           <circle className="fill-white/30" cx="205" cy="760" r="2.4" />
         </svg>
       </div>
+
+      <button
+        onClick={() => setAbierto(false)}
+        aria-label="Cerrar menú"
+        className="md:hidden absolute z-10 top-4 right-4 w-8 h-8 rounded-[8px] flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white"
+      >
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-current">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
 
       <div className="relative z-10 flex items-center gap-3 px-2 pb-[26px]">
         <div className="relative w-[46px] h-[46px] rounded-full flex items-center justify-center">
@@ -349,6 +391,7 @@ export default function Sidebar({ active }: { active: string }) {
         </svg>
         Cerrar sesión
       </button>
-    </aside>
+      </aside>
+    </>
   );
 }

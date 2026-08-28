@@ -37,8 +37,8 @@ export default function GerencialComparativosPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="comparativos" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[22px] font-semibold text-ink-900">Comparativos</h1>
             <p className="text-ink-600 text-[12.5px] mt-0.5">Período actual vs. anterior, y proyecto vs. proyecto</p>
@@ -61,7 +61,7 @@ export default function GerencialComparativosPage() {
               {'  ·  '}Anterior: {new Date(datos.desdeAnterior).toLocaleDateString('es-CO')} — {new Date(datos.desde).toLocaleDateString('es-CO')}
             </p>
 
-            <div className="grid grid-cols-5 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
               <KpiCard
                 icono={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
                 colorFondo="#e8f0ff" colorIcono="#2f6fed"

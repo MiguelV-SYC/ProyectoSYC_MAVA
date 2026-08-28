@@ -39,8 +39,8 @@ export default function GerencialInsightsPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="insights" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-2">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
           <div className="flex items-center gap-3">
             <IntelligenceMark />
             <div>
@@ -69,7 +69,7 @@ export default function GerencialInsightsPage() {
             Sin datos suficientes para generar insights en este periodo.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {insights.map((insight, idx) => {
               const estilo = CATEGORIA_ESTILO[insight.categoria] ?? CATEGORIA_ESTILO.volumen;
               return (

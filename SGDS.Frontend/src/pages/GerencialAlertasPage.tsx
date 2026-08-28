@@ -43,8 +43,8 @@ export default function GerencialAlertasPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="alertas-inteligentes" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-2">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
           <div className="flex items-center gap-3">
             <IntelligenceMark />
             <div>
@@ -73,7 +73,7 @@ export default function GerencialAlertasPage() {
             Sin alertas relevantes en este periodo.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {alertas.map((a, idx) => (
               <div key={idx} className={`flex gap-3 p-4 rounded-[12px] border ${ALERTA_ESTILO[a.severidad]}`}>
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className={`w-5 h-5 shrink-0 mt-0.5 ${ALERTA_ICONO_COLOR[a.severidad]}`}>
