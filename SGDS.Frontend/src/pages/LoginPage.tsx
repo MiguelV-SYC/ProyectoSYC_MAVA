@@ -41,10 +41,10 @@ export default function LoginPage() {
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
       <SGDSBackground />
 
-      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)] bg-white md:bg-[linear-gradient(90deg,var(--color-navy-950)_0%,var(--color-navy-900)_10%,var(--color-navy-800)_35%,#ffffff_62%)]">
 
-        {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho) */}
-        <div className="hidden md:flex relative flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
+        {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho). El fondo navy ahora lo pinta el degradado del contenedor padre, para que se funda con el blanco del panel derecho en vez de cortar en seco en la costura de la columna. */}
+        <div className="hidden md:flex relative flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden">
           <div
             className="absolute inset-0"
             style={{
@@ -78,7 +78,7 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10 font-display text-[15px] font-semibold leading-[1.4]">
-            Sistema de Gestión<br />de Solicitudes
+           <br /> Sistema de Gestión<br />de Solicitudes
           </div>
           <div className="relative z-10 text-xs text-white/55 mt-2 font-medium">
             Gestión inteligente. Procesos eficientes.
@@ -86,7 +86,7 @@ export default function LoginPage() {
         </div>
 
         {/* Panel derecho — formulario */}
-        <div className="bg-white px-6 pt-8 pb-8 md:px-11 md:pt-11 md:pb-10 flex flex-col items-center">
+        <div className="px-6 pt-8 pb-8 md:px-11 md:pt-11 md:pb-10 flex flex-col items-center bg-white md:bg-transparent">
           <div className="flex items-center gap-[9px] mb-[18px]">
             <div className="w-16 h-16 md:w-[100px] md:h-[100px] flex items-center justify-center">
               <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
@@ -94,8 +94,8 @@ export default function LoginPage() {
             <div className="font-display font-bold text-2xl md:text-[30px] text-ink-900">SGDS</div>
           </div>
 
-          <div className="relative w-full h-px bg-line mb-[26px]">
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-[11px] font-semibold text-ink-400 tracking-wide uppercase">
+          <div className="w-full text-center mb-[26px]">
+            <span className="text-[11px] font-semibold text-ink-400 tracking-wide uppercase">
               Iniciar sesión
             </span>
           </div>
