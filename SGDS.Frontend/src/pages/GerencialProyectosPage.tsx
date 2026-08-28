@@ -17,7 +17,7 @@ export default function GerencialProyectosPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="proyectos" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
         <h1 className="font-display text-[19px] font-semibold text-ink-900 mb-1">Proyectos</h1>
         <p className="text-ink-600 text-[12.5px] mb-6">
           Vista de solo lectura de los {proyectos.length} proyectos activos — últimos 30 días.
@@ -26,7 +26,7 @@ export default function GerencialProyectosPage() {
         {loading ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando proyectos...</div>
         ) : (
-          <div className="grid grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {proyectos.map((p) => {
               const color = getColorProyecto(p.proyectoNombre);
               return (

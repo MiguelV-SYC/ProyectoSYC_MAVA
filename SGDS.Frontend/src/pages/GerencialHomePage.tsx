@@ -54,8 +54,8 @@ export default function GerencialHomePage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="inicio" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[22px] font-semibold text-ink-900">Hola, {primerNombre}</h1>
             <p className="text-ink-600 text-[12.5px] mt-0.5">Resumen ejecutivo del sistema al {hoy}</p>
@@ -73,7 +73,7 @@ export default function GerencialHomePage() {
           <div className="text-center text-sm text-ink-400 py-10">Cargando resumen ejecutivo...</div>
         ) : (
           <>
-            <div className="grid grid-cols-5 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
               <KpiCard
                 icono={<svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M6 3h9l5 5v13H6z" /><path d="M14 3v5h5" /></svg>}
                 colorFondo="#e8f0ff" colorIcono="#2f6fed"
@@ -104,7 +104,7 @@ export default function GerencialHomePage() {
               />
             </div>
 
-            <div className="grid grid-cols-[1.6fr_1fr_1fr] gap-4 mb-4">
+            <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr_1fr] gap-4 mb-4">
               <div className="bg-white border border-line rounded-[14px] p-5">
                 <h3 className="font-display text-[14px] font-semibold text-ink-900 mb-3">Comportamiento de solicitudes</h3>
                 <div className="flex gap-4 mb-3">
@@ -150,7 +150,7 @@ export default function GerencialHomePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1.6fr_1fr_1fr] gap-4 mb-4">
+            <div className="grid grid-cols-1 xl:grid-cols-[1.6fr_1fr_1fr] gap-4 mb-4">
               <div className="bg-white border border-line rounded-[14px] p-5">
                 <h3 className="font-display text-[14px] font-semibold text-ink-900 mb-4">Solicitudes por proyecto</h3>
                 {dashboard.solicitudesPorProyecto.map((p) => (

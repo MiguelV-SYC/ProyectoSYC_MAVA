@@ -10,10 +10,10 @@ export default function GerencialAnalisisAvanzadoPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="analisis-avanzado" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="font-display text-[19px] font-semibold text-ink-900 flex items-center gap-2.5">
+            <h1 className="font-display text-[19px] font-semibold text-ink-900 flex items-center flex-wrap gap-2.5">
               Análisis Avanzado
               <span className="inline-flex items-center gap-1.5 bg-[#fef9e7] text-[#8a6d00] text-[11px] font-bold px-2.5 py-1 rounded-md">
                 Power BI Embedded
@@ -23,12 +23,12 @@ export default function GerencialAnalisisAvanzadoPage() {
           </div>
         </div>
 
-        <div className="flex bg-white border border-line rounded-[10px] p-1 mb-4 w-fit">
+        <div className="flex bg-white border border-line rounded-[10px] p-1 mb-4 w-full sm:w-fit overflow-x-auto">
           {TABS.map((t, i) => (
             <button
               key={t}
               onClick={() => setTab(i)}
-              className={`px-4 py-2 rounded-[7px] text-[12px] font-semibold ${tab === i ? 'bg-[#0f172a] text-white' : 'text-ink-600'}`}
+              className={`px-4 py-2 rounded-[7px] text-[12px] font-semibold whitespace-nowrap shrink-0 ${tab === i ? 'bg-[#0f172a] text-white' : 'text-ink-600'}`}
             >
               {t}
             </button>

@@ -37,13 +37,13 @@ export default function GerencialTendenciasPage() {
     <div className="flex min-h-screen bg-paper">
       <Sidebar active="tendencias" />
 
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
+      <main className="flex-1 px-4 md:px-8 py-6 pt-16 md:pt-6 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
             <h1 className="font-display text-[22px] font-semibold text-ink-900">Tendencias</h1>
             <p className="text-ink-600 text-[12.5px] mt-0.5">Comportamiento del sistema en el tiempo — misma métrica, muchos períodos</p>
           </div>
-          <div className="flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
             <select
               value={granularidad}
               onChange={(e) => setGranularidad(e.target.value as Granularidad)}
@@ -70,7 +70,7 @@ export default function GerencialTendenciasPage() {
         ) : (
           <>
             <div className="bg-white border border-line rounded-[14px] p-5 mb-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <h3 className="font-display text-[14px] font-semibold text-ink-900">Radicadas, finalizadas y en trámite</h3>
                 <span className="text-[11px] text-ink-400">
                   {new Date(datos.desde).toLocaleDateString('es-CO')} — {new Date(datos.hasta).toLocaleDateString('es-CO')}
