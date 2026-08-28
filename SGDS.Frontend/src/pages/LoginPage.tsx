@@ -15,6 +15,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,12 +87,12 @@ export default function LoginPage() {
         </div>
 
         {/* Panel derecho — formulario */}
-        <div className="px-6 pt-8 pb-8 md:px-11 md:pt-11 md:pb-10 flex flex-col items-center bg-white md:bg-transparent">
+        <div className="px-6 pt-8 pb-8 md:pl-24 md:pr-8 md:pt-11 md:pb-10 flex flex-col items-center bg-white md:bg-transparent">
           <div className="flex items-center gap-[9px] mb-[18px]">
             <div className="w-16 h-16 md:w-[100px] md:h-[100px] flex items-center justify-center">
               <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
             </div>
-            <div className="font-display font-bold text-2xl md:text-[30px] text-ink-900">SGDS</div>
+            <div className="font-display font-bold text-2xl md:text-[25px] text-ink-900">SGDS</div>
           </div>
 
           <div className="w-full text-center mb-[26px]">
@@ -130,13 +131,33 @@ export default function LoginPage() {
                   <path d="M8 11V7a4 4 0 018 0v4" />
                 </svg>
                 <input
-                  type="password"
+                  type={mostrarPassword ? 'text' : 'password'}
                   placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full py-3 pr-3.5 pl-10 border-[1.5px] border-line rounded-[10px] text-[13.5px] text-ink-900 outline-none transition-colors focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(47,111,237,0.12)] placeholder:text-ink-400"
+                  className="w-full py-3 pr-10 pl-10 border-[1.5px] border-line rounded-[10px] text-[13.5px] text-ink-900 outline-none transition-colors focus:border-blue-500 focus:shadow-[0_0_0_3px_rgba(47,111,237,0.12)] placeholder:text-ink-400"
                 />
+                <button
+                  type="button"
+                  onClick={() => setMostrarPassword((v) => !v)}
+                  aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  tabIndex={-1}
+                  className="absolute right-[12px] w-5 h-5 flex items-center justify-center text-ink-400 hover:text-ink-600"
+                >
+                  {mostrarPassword ? (
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-current">
+                      <path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7z" />
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" className="w-4 h-4 stroke-current">
+                      <path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -146,13 +167,17 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <div className="mb-[18px] flex justify-center overflow-x-auto max-w-full">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={(token) => setRecaptchaToken(token)}
-                onExpired={() => setRecaptchaToken(null)}
-              />
+            <div className="mb-[18px] flex justify-center">
+              <div className="w-[276px] h-[72px] border-[1.5px] border-line rounded-[4px] overflow-hidden flex items-center justify-center bg-white">
+                <div className="scale-90 origin-center">
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={RECAPTCHA_SITE_KEY}
+                    onChange={(token) => setRecaptchaToken(token)}
+                    onExpired={() => setRecaptchaToken(null)}
+                  />
+                </div>
+              </div>
             </div>
 
             {error && (
