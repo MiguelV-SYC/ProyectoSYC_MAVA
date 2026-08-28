@@ -206,7 +206,7 @@ export default function WorkflowKanbanPage() {
   return (
     <div className="flex h-screen bg-paper">
       <Sidebar active="workflow" />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-y-auto">
         <SelectorProyecto
           titulo="Elige un proyecto"
           descripcion="Selecciona el proyecto cuyo workflow quieres ver."

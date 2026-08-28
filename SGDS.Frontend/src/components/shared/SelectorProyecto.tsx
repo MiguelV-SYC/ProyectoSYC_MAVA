@@ -47,7 +47,7 @@ export default function SelectorProyecto({ titulo, descripcion, proyectos, onEle
               <button
                 key={p.id}
                 onClick={() => onElegir(p.id)}
-                className="flex items-center gap-3 bg-white border border-line rounded-xl px-10 py-10 text-left transition-all hover:-translate-y-[2px] hover:shadow-[0_10px_22px_-10px_rgba(15,26,46,0.18)] hover:border-blue-400"
+                className="flex items-center gap-3 bg-white border border-line rounded-xl px-5 py-5 sm:px-10 sm:py-10 text-left transition-all hover:-translate-y-[2px] hover:shadow-[0_10px_22px_-10px_rgba(15,26,46,0.18)] hover:border-blue-400"
               >
                 <div className="w-12 h-12 rounded-[9px] bg-blue-100 flex items-center justify-center shrink-0 [&>svg]:w-[20px] [&>svg]:h-[20px] [&>svg]:stroke-blue-600">
                   {ICONOS[p.nombre] ?? ICONO_DEFAULT}

@@ -66,15 +66,15 @@ export default function DashboardAdminPage() {
       <Sidebar active="inicio" />
 
       <main className="flex-1 px-4 md:px-[42px] py-[34px] pt-16 md:pt-[34px] overflow-y-auto">
-        <div className="flex items-center justify-between mb-[30px]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-[30px]">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-ink-900">Hola, {primerNombre} 👋</h1>
+            <h1 className="font-display text-2xl font-semibold text-ink-900">Hola, {primerNombre}</h1>
             <p className="text-ink-600 text-[13.5px] mt-[3px]">
               Selecciona un proyecto para continuar, o revisa el resumen general.
             </p>
           </div>
           <div className="flex items-center gap-3.5">
-            <div className="flex items-center gap-2 bg-white border border-line rounded-[10px] px-3.5 py-[9px] w-[300px]">
+            <div className="flex items-center gap-2 bg-white border border-line rounded-[10px] px-3.5 py-[9px] w-full sm:w-[300px]">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" className="w-[15px] h-[15px] stroke-ink-400 shrink-0">
                 <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
               </svg>
@@ -100,7 +100,7 @@ export default function DashboardAdminPage() {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <SummaryChip
             num={proyectos.length}
             label="Proyectos activos"

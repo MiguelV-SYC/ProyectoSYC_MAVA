@@ -124,7 +124,7 @@ export default function ReportesPage() {
   return (
     <div className="flex h-screen bg-paper">
       <Sidebar active="reportes" />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-y-auto">
         <SelectorProyecto
           titulo="Elige un proyecto"
           descripcion="Selecciona el proyecto para el que quieres generar un reporte."

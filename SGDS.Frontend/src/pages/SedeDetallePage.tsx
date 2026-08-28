@@ -42,7 +42,7 @@ export default function SedeDetallePage() {
         {loading || !sede ? (
           <div className="text-center text-sm text-ink-400 py-10">Cargando sede...</div>
         ) : (
-          <div className="flex items-start gap-5">
+          <div className="flex flex-col lg:flex-row items-start gap-5">
             <div className="flex flex-col gap-5 max-w-[640px] w-full">
               <div className="relative bg-gradient-to-r from-[var(--color-accento)] to-[var(--color-accento-oscuro)] rounded-2xl p-7 overflow-hidden">
                 <div className="flex items-center gap-4 relative z-10">
@@ -71,7 +71,7 @@ export default function SedeDetallePage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-line rounded-[14px] p-5 flex items-center justify-between">
+              <div className="bg-white border border-line rounded-[14px] p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="font-display text-[14px] font-semibold text-ink-900">Tablero de turnos</div>
                   <p className="text-[12px] text-ink-600 mt-0.5">Fila de atención de hoy en {sede.nombre}.</p>
@@ -79,7 +79,7 @@ export default function SedeDetallePage() {
                 <button
                   disabled={!proyectoId}
                   onClick={() => navigate(`/workflow?proyectoId=${proyectoId}&sedeId=${sede.id}`)}
-                  className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60 shrink-0"
+                  className="flex items-center gap-1.5 bg-[var(--color-accento)] text-white rounded-[9px] px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60 shrink-0 self-start"
                 >
                   Ver turnos de esta sede
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" className="w-3.5 h-3.5 stroke-white">

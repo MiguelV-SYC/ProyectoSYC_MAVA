@@ -36,7 +36,7 @@ export default function GaleriaCultural({ sedeNombre }: Props) {
   }, [imagenes.length, slug]);
 
   return (
-    <div className="bg-white border border-line rounded-[14px] overflow-hidden sticky top-7 w-[500px]">
+    <div className="bg-white border border-line rounded-[14px] overflow-hidden lg:sticky lg:top-7 w-full lg:w-[500px]">
       <div className="px-5 py-4 border-b border-line">
         <div className="font-display text-[13.5px] font-semibold text-ink-900">Arte y cultura</div>
         <p className="text-[11.5px] text-ink-600 mt-0.5">Galería de la sede {sedeNombre}</p>
