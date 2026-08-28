@@ -26,10 +26,10 @@ export default function RecuperarPasswordPage() {
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
   <SGDSBackground />
-      <div className="relative z-10 w-full max-w-[880px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+      <div className="relative z-10 w-full max-w-[880px] grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
-        {/* Panel izquierdo — marca */}
-        <div className="relative flex flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.10),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
+        {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho) */}
+        <div className="hidden md:flex relative flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.10),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
           <div
             className="absolute inset-0"
             style={{
@@ -72,7 +72,11 @@ export default function RecuperarPasswordPage() {
         </div>
 
         {/* Panel derecho — formulario */}
-        <div className="bg-white px-[46px] py-12 flex flex-col items-center">
+        <div className="bg-white px-6 py-9 md:px-[46px] md:py-12 flex flex-col items-center">
+          <div className="flex md:hidden items-center gap-2.5 mb-6 self-start">
+            <img src={logoSgds} alt="Logo SGDS" className="w-9 h-9 object-contain" />
+            <span className="font-display font-bold text-lg text-ink-900">SGDS</span>
+          </div>
           {enviado ? (
             <div className="text-center w-full max-w-[300px]">
               <div className="w-[52px] h-[52px] rounded-[14px] bg-blue-100 flex items-center justify-center mb-[18px] mx-auto">

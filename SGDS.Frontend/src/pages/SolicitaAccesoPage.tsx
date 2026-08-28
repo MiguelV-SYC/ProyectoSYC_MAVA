@@ -65,10 +65,10 @@ export default function SolicitaAccesoPage() {
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
   <SGDSBackground />
-      <div className="relative z-10 w-full max-w-[980px] grid grid-cols-[0.75fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+      <div className="relative z-10 w-full max-w-[980px] grid grid-cols-1 md:grid-cols-[0.75fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
-        {/* Panel izquierdo — marca */}
-        <div className="relative flex flex-col justify-between px-9 py-11 text-white overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(79,139,255,0.20),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_60%,var(--color-navy-800))]">
+        {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho) */}
+        <div className="hidden md:flex relative flex-col justify-between px-9 py-11 text-white overflow-hidden bg-[radial-gradient(circle_at_30%_20%,rgba(79,139,255,0.20),transparent_55%),linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_60%,var(--color-navy-800))]">
           <div
             className="absolute inset-0"
             style={{
@@ -133,7 +133,11 @@ export default function SolicitaAccesoPage() {
         </div>
 
         {/* Panel derecho — formulario */}
-        <div className="bg-white px-11 py-10 overflow-y-auto max-h-[92vh]">
+        <div className="bg-white px-6 py-8 md:px-11 md:py-10 max-h-none overflow-visible md:max-h-[92vh] md:overflow-y-auto">
+          <div className="flex md:hidden items-center gap-2.5 mb-5">
+            <img src={logoSgds} alt="Logo SGDS" className="w-9 h-9 object-contain" />
+            <span className="font-display font-bold text-lg text-ink-900">SGDS</span>
+          </div>
           <h1 className="font-display text-[22px] font-semibold text-ink-900">Solicita acceso</h1>
           <p className="text-ink-600 text-[13px] mt-[5px] mb-[26px]">
             Completa tus datos y el proyecto al que necesitas acceso. Te contactaremos una vez sea aprobada.
@@ -161,7 +165,7 @@ export default function SolicitaAccesoPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3.5 mb-[18px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-[18px]">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Correo electrónico institucional</label>
                   <input
@@ -204,7 +208,7 @@ export default function SolicitaAccesoPage() {
                 {proyectosLoading ? (
                   <p className="text-xs text-ink-400">Cargando proyectos...</p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {proyectos.map((p) => (
                       <label
                         key={p.id}

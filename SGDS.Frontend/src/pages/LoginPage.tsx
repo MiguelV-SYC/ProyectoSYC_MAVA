@@ -41,10 +41,10 @@ export default function LoginPage() {
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
       <SGDSBackground />
 
-      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
+      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)]">
 
-        {/* Panel izquierdo — marca */}
-        <div className="relative flex flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
+        {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho) */}
+        <div className="hidden md:flex relative flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden bg-[linear-gradient(160deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))]">
           <div
             className="absolute inset-0"
             style={{
@@ -86,12 +86,12 @@ export default function LoginPage() {
         </div>
 
         {/* Panel derecho — formulario */}
-        <div className="bg-white px-11 pt-11 pb-10 flex flex-col items-center">
+        <div className="bg-white px-6 pt-8 pb-8 md:px-11 md:pt-11 md:pb-10 flex flex-col items-center">
           <div className="flex items-center gap-[9px] mb-[18px]">
-            <div className="w-[100px] h-[100px] flex items-center justify-center">
+            <div className="w-16 h-16 md:w-[100px] md:h-[100px] flex items-center justify-center">
               <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
             </div>
-            <div className="font-display font-bold text-[30px] text-ink-900">SGDS</div>
+            <div className="font-display font-bold text-2xl md:text-[30px] text-ink-900">SGDS</div>
           </div>
 
           <div className="relative w-full h-px bg-line mb-[26px]">
@@ -146,7 +146,7 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <div className="mb-[18px] flex justify-center">
+            <div className="mb-[18px] flex justify-center overflow-x-auto max-w-full">
               <ReCAPTCHA
                 ref={recaptchaRef}
                 sitekey={RECAPTCHA_SITE_KEY}
