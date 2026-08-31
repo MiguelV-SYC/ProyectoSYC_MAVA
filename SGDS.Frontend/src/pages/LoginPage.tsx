@@ -42,7 +42,8 @@ export default function LoginPage() {
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
       <SGDSBackground />
 
-      <div className="relative z-10 w-full max-w-[1280px] grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)] bg-white md:bg-[linear-gradient(90deg,var(--color-navy-950)_0%,var(--color-navy-900)_10%,var(--color-navy-800)_35%,#ffffff_62%)]">
+      <div className="relative z-10 w-full max-w-[1280px] login-glow-wrap">
+      <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1fr] rounded-[22px] overflow-hidden shadow-[0_30px_60px_-20px_rgba(10,23,48,0.35)] bg-white md:bg-[linear-gradient(90deg,var(--color-navy-950)_0%,var(--color-navy-900)_10%,var(--color-navy-800)_35%,#ffffff_62%)] login-container-enter">
 
         {/* Panel izquierdo — marca (oculto en mobile, la marca compacta vive en el panel derecho). El fondo navy ahora lo pinta el degradado del contenedor padre, para que se funda con el blanco del panel derecho en vez de cortar en seco en la costura de la columna. */}
         <div className="hidden md:flex relative flex-col items-center justify-center text-center px-10 py-14 text-white overflow-hidden">
@@ -74,7 +75,8 @@ export default function LoginPage() {
               <span className="absolute w-[9px] h-[9px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ top: '55px', left: '15px', transform: 'translate(-50%, -50%)' }} />
             </div>
             <div className="absolute inset-[38px] flex items-center justify-center [filter:drop-shadow(0_18px_34px_rgba(0,0,0,0.45))]">
-              <img src={logoSgds} alt="Logo SGDS" className="w-full h-full object-contain" />
+              <span className="absolute -inset-4 rounded-full login-logo-glow pointer-events-none" aria-hidden="true" />
+              <img src={logoSgds} alt="Logo SGDS" className="relative w-full h-full object-contain" />
             </div>
           </div>
 
@@ -204,6 +206,7 @@ export default function LoginPage() {
             ¿Nuevo en SGDS? <Link to="/solicita-acceso" className="text-blue-600 font-semibold hover:underline"><br/>Solicita acceso</Link> 
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
