@@ -1,0 +1,18 @@
+# Evita que estas carpetas/archivos se copien al contexto de build.
+# Sin esto, Podman intentaría empaquetar los binarios ya compilados
+# en Windows (bin/obj), node_modules del frontend, el historial de
+# git, etc. — lo cual es innecesario, pesado, y puede causar
+# conflictos con la compilación que se hace DENTRO del contenedor
+# (Linux), que es distinta a la de tu Windows local.
+
+**/bin/
+**/obj/
+**/node_modules/
+.git/
+.github/
+.claude/
+.vscode/
+SGDS.Api/Almacenamiento/
+tests/
+playwright-report/
+*.user

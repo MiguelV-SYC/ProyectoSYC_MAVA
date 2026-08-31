@@ -16,3 +16,7 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Variables de entorno / secretos locales (Podman compose).
+# Cada máquina tiene el suyo — ver .env.example como plantilla.
+.env

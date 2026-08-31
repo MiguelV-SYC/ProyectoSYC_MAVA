@@ -1,0 +1,62 @@
+# ============================================================
+# ETAPA 1: "build" — compila el código con el SDK completo de .NET
+# ============================================================
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+# --- Soporte de proxy corporativo (SYC) ---
+# Estos ARG reciben el valor del proxy desde afuera, al momento de
+# construir la imagen (los va a llenar Podman Desktop en el campo
+# "Build arguments"). Las ENV de abajo son las que .NET realmente
+# lee para saber que debe salir a internet a través del proxy, en
+# vez de intentar conectarse directo (que es lo que se estaba
+# quedando "colgado" sin respuesta).
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ENV HTTP_PROXY=$HTTP_PROXY \
+    HTTPS_PROXY=$HTTPS_PROXY \
+    NO_PROXY=$NO_PROXY \
+    http_proxy=$HTTP_PROXY \
+    https_proxy=$HTTPS_PROXY \
+    no_proxy=$NO_PROXY
+
+WORKDIR /src
+
+# Copiamos primero SOLO los archivos .csproj de los 4 proyectos
+# (Api, Application, Infrastructure, Domain), sin el código todavía.
+# Truco de optimización: mientras estos .csproj no cambien, Podman
+# puede reutilizar (cachear) el resultado de "dotnet restore" de
+# builds anteriores, en vez de volver a descargar todos los
+# paquetes NuGet cada vez que reconstruyamos la imagen.
+COPY ["SGDS.Api/SGDS.Api.csproj", "SGDS.Api/"]
+COPY ["SGDS.Application/SGDS.Application.csproj", "SGDS.Application/"]
+COPY ["SGDS.Infrastructure/SGDS.Infrastructure.csproj", "SGDS.Infrastructure/"]
+COPY ["SGDS.Domain/SGDS.Domain.csproj", "SGDS.Domain/"]
+
+RUN dotnet restore "SGDS.Api/SGDS.Api.csproj"
+
+# Ahora sí copiamos el código fuente completo de los 4 proyectos.
+COPY SGDS.Api/ SGDS.Api/
+COPY SGDS.Application/ SGDS.Application/
+COPY SGDS.Infrastructure/ SGDS.Infrastructure/
+COPY SGDS.Domain/ SGDS.Domain/
+
+WORKDIR /src/SGDS.Api
+RUN dotnet publish "SGDS.Api.csproj" -c Release -o /app/publish --no-restore
+
+# ============================================================
+# ETAPA 2: "final" — imagen liviana, solo con el runtime de .NET
+# ============================================================
+# Partimos de una imagen mucho más chica: solo trae lo necesario
+# para EJECUTAR una app .NET ya compilada, no para compilarla.
+# No necesita proxy: no descarga nada de internet, solo copia
+# el resultado ya compilado de la Etapa 1.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "SGDS.Api.dll"]

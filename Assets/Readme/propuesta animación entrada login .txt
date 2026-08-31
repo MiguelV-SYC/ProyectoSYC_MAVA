@@ -1,0 +1,249 @@
+Necesito implementar una animación de entrada para el contenedor principal de mi Login de SGDS.
+
+STACK:
+- React
+- Vite
+- Tailwind CSS
+- La implementación debe realizarse únicamente mediante React + CSS/Tailwind, sin incorporar librerías externas de animación.
+- No modificar la estructura visual ni funcional existente del Login.
+
+OBJETIVO:
+Al acceder a la ruta /login, el contenedor completo del Login debe aparecer mediante una transición elegante y tecnológica, incorporando simultáneamente:
+
+1. Animación de aparición del contenedor completo.
+2. Soft Blue Ambient Glow alrededor del contenedor.
+3. Soft White Ambient Glow alrededor del logo ubicado en el panel Navy.
+
+La animación debe ejecutarse cada vez que el componente del Login se monta, por ejemplo:
+- Al ingresar inicialmente a /login.
+- Al cerrar sesión y ser redirigido nuevamente a /login.
+
+--------------------------------------------------
+1. ANIMACIÓN DEL CONTENEDOR
+--------------------------------------------------
+
+El contenedor completo debe iniciar ligeramente reducido y transparente:
+
+- opacity: 0
+- transform: scale(0.97)
+- opcionalmente un desplazamiento vertical muy pequeño de aproximadamente 8px.
+
+Durante la animación debe llegar suavemente a:
+
+- opacity: 1
+- scale(1)
+- translateY(0)
+
+Duración aproximada:
+- 650–750 ms.
+
+Utilizar una función de easing suave, preferiblemente:
+cubic-bezier(0.22, 1, 0.36, 1)
+
+La animación debe sentirse:
+- suave
+- profesional
+- tecnológica
+- elegante
+- no exagerada
+
+NO utilizar:
+- rebotes
+- elasticidad
+- rotaciones
+- zoom agresivo
+- movimientos bruscos.
+
+--------------------------------------------------
+2. SOFT BLUE AMBIENT GLOW
+--------------------------------------------------
+
+Durante la aparición del contenedor debe aparecer progresivamente un resplandor azul ambiental alrededor de todo el container.
+
+IMPORTANTE:
+El glow NO debe convertirse en un borde azul visible.
+
+Debe ser un halo difuso que se proyecte hacia el exterior del contenedor.
+
+Estado inicial:
+- sin glow visible.
+
+Durante la aparición:
+- aumentar suavemente el resplandor azul.
+
+Después de alcanzar el estado final:
+- reducir el glow hasta dejarlo prácticamente imperceptible.
+
+El comportamiento deseado es:
+
+0 ms
+Glow = 0
+
+≈ 250–400 ms
+Glow aumenta suavemente.
+
+≈ 500 ms
+Glow alcanza brevemente una intensidad moderada.
+
+≈ 700–1000 ms
+Glow disminuye y queda en un nivel mínimo.
+
+La iluminación debe utilizar tonos azules coherentes con la identidad visual Navy/Blue existente de SGDS.
+
+Preferir un box-shadow muy difuso o una combinación equivalente de sombras ambientales.
+
+NO crear:
+- outline azul
+- border azul luminoso
+- neon glow
+- efecto cyberpunk exagerado.
+
+El resultado debe parecer una iluminación ambiental alrededor del componente, no un borde.
+
+--------------------------------------------------
+3. SOFT WHITE AMBIENT GLOW DEL LOGO
+--------------------------------------------------
+
+El logo de SGDS ubicado dentro del panel Navy debe tener una iluminación blanca muy sutil durante la aparición.
+
+El logo NO debe cambiar de posición, tamaño ni diseño.
+
+Aplicar únicamente un resplandor blanco suave alrededor del logo.
+
+Secuencia:
+
+Estado inicial:
+- glow blanco prácticamente inexistente.
+
+Durante la aparición del container:
+- el logo comienza a adquirir una ligera luminosidad blanca.
+
+≈ 350–600 ms:
+- alcanzar una intensidad ligeramente mayor.
+
+≈ 700–1000 ms:
+- reducir progresivamente hasta un nivel muy bajo.
+
+El resultado debe parecer que el logo se está iluminando brevemente mientras el sistema termina de cargar.
+
+IMPORTANTE:
+El glow debe ser blanco y no azul.
+
+No modificar:
+- colores originales del logo
+- proporciones
+- tamaño
+- posición
+- imagen/SVG utilizado.
+
+No hacer que el logo:
+- rote
+- rebote
+- pulse continuamente
+- cambie de tamaño
+- parpadee.
+
+Debe tratarse únicamente de un Soft White Ambient Glow temporal.
+
+--------------------------------------------------
+4. SINCRONIZACIÓN
+--------------------------------------------------
+
+Las tres animaciones deben sentirse como una única secuencia:
+
+        Container aparece
+              ↓
+        Blue Ambient Glow aparece
+              ↓
+        Logo adquiere White Glow
+              ↓
+        Glow alcanza brevemente su máximo
+              ↓
+        Ambos glows se desvanecen
+              ↓
+        Login queda completamente estático
+
+El estado final debe ser prácticamente idéntico al Login actual.
+
+La animación no debe mantenerse ejecutándose indefinidamente.
+
+--------------------------------------------------
+5. ESTRUCTURA VISUAL QUE NO DEBE CAMBIARSE
+--------------------------------------------------
+
+Conservar exactamente el diseño actual:
+
+- Fondo tecnológico con circuitos.
+- Container principal.
+- Panel izquierdo Navy.
+- Panel derecho blanco.
+- Transición/difuminado existente entre Navy y blanco.
+- Logo SGDS.
+- Formulario.
+- Campos.
+- reCAPTCHA.
+- Botón "Iniciar sesión".
+- Enlace "¿Olvidaste tu contraseña?".
+- "Solicita acceso".
+- Bordes redondeados.
+- Sombras existentes.
+- Espaciados.
+- Tipografía.
+- Responsive design.
+
+NO rediseñar el Login.
+
+La tarea consiste exclusivamente en incorporar la microinteracción de entrada.
+
+--------------------------------------------------
+6. IMPLEMENTACIÓN
+--------------------------------------------------
+
+Implementar la solución siguiendo buenas prácticas de React + Vite + Tailwind CSS.
+
+Preferir:
+- clases Tailwind para los estados visuales.
+- keyframes CSS personalizados cuando Tailwind no sea suficiente.
+- animaciones mediante clases aplicadas al montaje del componente.
+- pseudo-elementos ::before / ::after si ayudan a construir el glow sin alterar el layout.
+
+Evitar:
+- setInterval.
+- loops de animación permanentes.
+- manipulación directa innecesaria del DOM.
+- librerías externas como Framer Motion, GSAP o similares.
+- JavaScript para controlar manualmente cada frame de la animación.
+
+Si es necesario modificar tailwind.config.js o un archivo CSS global para registrar los keyframes, hacerlo de forma localizada y documentada.
+
+--------------------------------------------------
+7. ACCESIBILIDAD
+--------------------------------------------------
+
+Respetar prefers-reduced-motion.
+
+Si el usuario tiene activada la preferencia del sistema:
+
+prefers-reduced-motion: reduce
+
+la animación debe desactivarse o reducirse al mínimo, mostrando directamente el Login en su estado final.
+
+--------------------------------------------------
+8. RESULTADO ESPERADO
+--------------------------------------------------
+
+Quiero que la sensación final sea:
+
+"El sistema se está activando y el Login acaba de aparecer."
+
+NO quiero que parezca:
+
+"El Login tiene una animación llamativa."
+
+La animación debe reforzar la identidad tecnológica de SGDS sin distraer al usuario.
+
+Nombre conceptual de la interacción:
+
+"SGDS Login — Soft Blue Ambient Glow + Soft White Logo Glow"
+
+Antes de modificar código, analiza la estructura actual del componente Login y reutiliza los elementos existentes. No reemplaces componentes ni estilos que ya funcionan.

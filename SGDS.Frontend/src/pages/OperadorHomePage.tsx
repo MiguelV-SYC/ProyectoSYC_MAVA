@@ -84,7 +84,7 @@ export default function OperadorHomePage() {
       <main className="flex-1 px-4 md:px-[38px] py-7 pt-16 md:pt-7 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-ink-900">Hola, {primerNombre} 👋</h1>
+            <h1 className="font-display text-2xl font-semibold text-ink-900">Hola, {primerNombre}</h1>
             <p className="text-ink-600 text-[13.5px] mt-[3px]">
               Esto es lo que tienes pendiente hoy en tus proyectos.
             </p>

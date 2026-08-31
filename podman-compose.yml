@@ -1,0 +1,105 @@
+# ============================================================
+# podman-compose.yml — levanta los 3 contenedores del proyecto
+# SGDS (base de datos, backend y frontend) con un solo comando.
+#
+# Para prenderlos todos:
+#   podman compose up -d
+#
+# Para apagarlos todos:
+#   podman compose down
+#
+# Los valores marcados como ${ALGO} se leen de un archivo ".env"
+# que vive junto a este archivo y que NO se sube a git (mira
+# ".env.example" para saber qué variables necesitas definir).
+# ============================================================
+
+networks:
+  sgds-network:
+    name: sgds-network
+
+volumes:
+  sgds-pgdata:
+    name: sgds-pgdata
+  sgds-almacenamiento:
+    name: sgds-almacenamiento
+
+services:
+
+  # --------------------------------------------------------
+  # Base de datos (Postgres 18)
+  # --------------------------------------------------------
+  sgds-db:
+    image: docker.io/library/postgres:18
+    container_name: sgds-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      # Postgres 18+ espera el directorio de datos en esta ruta,
+      # no en ".../postgresql/data" (ver notas de la Fase de la BD).
+      - sgds-pgdata:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+    networks:
+      - sgds-network
+
+  # --------------------------------------------------------
+  # Backend (API ASP.NET Core) — se construye desde
+  # Containerfile.backend, en la raíz del repo.
+  # --------------------------------------------------------
+  sgds-backend:
+    build:
+      context: .
+      dockerfile: Containerfile.backend
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+    container_name: sgds-backend
+    restart: unless-stopped
+    depends_on:
+      - sgds-db
+    environment:
+      # Se conecta a la base por el NOMBRE del contenedor
+      # ("sgds-db"), no por "localhost" — así resuelve Podman el
+      # DNS interno de la red "sgds-network".
+      - ConnectionStrings__SgdsConnection=Host=sgds-db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpiresInMinutes=${JWT_EXPIRES_MINUTES}
+      - Recaptcha__SecretKey=${RECAPTCHA_SECRET_KEY}
+      # Proxy en RUNTIME (para la llamada saliente a reCAPTCHA).
+      # En casa quedan vacías y no afectan nada.
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
+    volumes:
+      - sgds-almacenamiento:/app/Almacenamiento
+    ports:
+      - "5158:8080"
+    networks:
+      - sgds-network
+
+  # --------------------------------------------------------
+  # Frontend (React + Vite, servido por nginx) — se construye
+  # desde Containerfile.frontend, en la raíz del repo.
+  # --------------------------------------------------------
+  sgds-frontend:
+    build:
+      context: .
+      dockerfile: Containerfile.frontend
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+    container_name: sgds-frontend
+    restart: unless-stopped
+    depends_on:
+      - sgds-backend
+    ports:
+      - "5173:80"
+    networks:
+      - sgds-network
