@@ -4,6 +4,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Habilita "dotnet user-secrets" para este proyecto: los
+         secretos de desarrollo local (password de BD, Jwt:Key,
+         Recaptcha:SecretKey) viven fuera del repo, identificados
+         por este GUID, y nunca se suben a git. -->
+    <UserSecretsId>ee614a71-261a-49e2-bcc9-c367a6d088c2</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

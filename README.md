@@ -287,6 +287,22 @@ cd ProyectoSYC_MAVA
 
 ---
 
+## Configurar secretos locales
+
+`appsettings.json` ya no trae contraseñas ni claves reales (para que no queden expuestas en git) — se configuran una sola vez por máquina con [`dotnet user-secrets`](https://learn.microsoft.com/aspnet/core/security/app-secrets), que las guarda fuera del repositorio:
+
+```bash
+cd SGDS.Api
+dotnet user-secrets set "ConnectionStrings:SgdsConnection" "Host=localhost;Port=5432;Database=sgds_db;Username=postgres;Password=TU_PASSWORD_REAL"
+dotnet user-secrets set "Jwt:Key" "TU_CLAVE_JWT_REAL"
+dotnet user-secrets set "Recaptcha:SecretKey" "TU_SECRET_DE_RECAPTCHA"
+cd ..
+```
+
+(Pide los valores reales a quien tenga acceso al proyecto si no los tienes. Es un único comando por máquina — no hay que repetirlo en cada `dotnet run`.)
+
+---
+
 ## Backend (SGDS.Api)
 
 ```bash
