@@ -321,6 +321,53 @@ npx playwright test
 
 Se ejecuta desde la raíz del repositorio (no desde <code>SGDS.Frontend</code>), con el backend y el frontend ya corriendo.
 
+---
+
+## Con contenedores (Podman)
+
+Además de correr el proyecto de forma nativa (como se describe arriba), todo el stack puede levantarse contenedorizado con **Podman** — útil para reproducir el mismo entorno en distintas máquinas (por ejemplo, oficina y casa) sin reinstalar ni reconfigurar nada a mano. Cumple además el requisito RNF-09 del proyecto (despliegue vía contenedores).
+
+### Requisitos previos
+
+* **Podman Desktop** instalado, con la máquina de Podman (`podman machine`) corriendo.
+* Soporte de **Compose** habilitado dentro de Podman Desktop (**Settings → Resources → Compose → Set up...**).
+
+### Qué se contenedoriza
+
+| Servicio | Contenedor | Se construye desde | Puerto local |
+|---|---|---|---|
+| Base de datos (Postgres 18) | `sgds-db` | imagen oficial `postgres:18` | `5433` → `5432` |
+| API (ASP.NET Core) | `sgds-backend` | `Containerfile.backend` | `5158` → `8080` |
+| Frontend (React + nginx) | `sgds-frontend` | `Containerfile.frontend` | `5173` → `80` |
+
+Los tres se orquestan desde `compose.yaml`, en la raíz del repo, compartiendo la red `sgds-network` y los volúmenes `sgds-pgdata` (datos de Postgres) y `sgds-almacenamiento` (archivos subidos por la app).
+
+### Configurar el `.env`
+
+`compose.yaml` no trae contraseñas ni claves escritas directamente — las lee de un archivo `.env` local, que **no se sube a git** (cada máquina tiene el suyo). Antes del primer arranque:
+
+```bash
+cp .env.example .env
+```
+
+Y completa los valores reales en `.env` (contraseña de la base de datos, `Jwt:Key`, `Recaptcha:SecretKey` — deben coincidir con los que ya usa el proyecto). Las variables `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` solo son necesarias si se construye desde una red con proxy corporativo (como la oficina de SYC); en una red sin proxy (por ejemplo, en casa) se pueden dejar vacías.
+
+### Levantar todo el stack
+
+```bash
+podman compose up -d --build
+```
+
+`--build` solo hace falta la primera vez, o cuando cambie el código del backend/frontend y se quiera probar la versión contenedorizada. Para apagar todo sin perder datos:
+
+```bash
+podman compose down
+```
+
+(Los volúmenes `sgds-pgdata` y `sgds-almacenamiento` no se borran con `down` — los datos persisten entre arranques.)
+
+> Nota: para el día a día de desarrollo (cambios de código frecuentes, hot-reload) sigue siendo más ágil trabajar de forma nativa (`dotnet run` / `npm run dev`, sección de arriba) apuntando a la base de datos del contenedor `sgds-db` (expuesta en `localhost:5433`). Los contenedores completos son para validar el empaquetado real y para replicar el entorno en otra máquina.
+
 <p align="center">
   <a href="#tabla-contenido">⬆️ Volver a la Tabla de Contenido</a>
 </p>
