@@ -296,6 +296,9 @@ cd SGDS.Api
 dotnet user-secrets set "ConnectionStrings:SgdsConnection" "Host=localhost;Port=5432;Database=sgds_db;Username=postgres;Password=TU_PASSWORD_REAL"
 dotnet user-secrets set "Jwt:Key" "TU_CLAVE_JWT_REAL"
 dotnet user-secrets set "Recaptcha:SecretKey" "TU_SECRET_DE_RECAPTCHA"
+dotnet user-secrets set "Anthropic:ApiKey" "TU_API_KEY_DE_ANTHROPIC"
+dotnet user-secrets set "Gemini:ApiKey" "TU_API_KEY_DE_GEMINI"
+dotnet user-secrets set "Groq:ApiKey" "TU_API_KEY_DE_GROQ"
 cd ..
 ```
 

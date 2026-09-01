@@ -97,6 +97,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
     public DbSet<Reporte> Reportes => Set<Reporte>();
+    public DbSet<OperacionIA> OperacionesIA => Set<OperacionIA>();
     public DbSet<TornaguiaInfoconsumo> TornaguiasInfoconsumo => Set<TornaguiaInfoconsumo>();
     public DbSet<EstampillaFisica> EstampillasFisicas => Set<EstampillaFisica>();
     public DbSet<LoteGoTrace> LotesGoTrace => Set<LoteGoTrace>();
@@ -280,6 +281,7 @@ private static int? ObtenerProyectoId(object entidad)
         modelBuilder.Entity<SolicitudAcceso>().ToTable("solicitud_acceso");
         modelBuilder.Entity<SolicitudAccesoProyecto>().ToTable("solicitud_acceso_proyecto");
         modelBuilder.Entity<Reporte>().ToTable("reportes");
+        modelBuilder.Entity<OperacionIA>().ToTable("operaciones_ia");
 
 
     }

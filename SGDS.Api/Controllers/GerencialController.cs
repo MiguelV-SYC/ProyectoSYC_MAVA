@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SGDS.Application.DTOs;
+using SGDS.Application.Interfaces;
 using SGDS.Domain.Entities;
 using SGDS.Infrastructure.Data;
 
@@ -17,6 +18,8 @@ namespace SGDS.Api.Controllers;
 public class GerencialController : ControllerBase
 {
     private readonly SgdsDbContext _context;
+    private readonly IIAService _iaService;
+    private readonly ILogger<GerencialController> _logger;
 
     // Umbral de cumplimiento (creación -> cierre) usado como referencia general del sistema —
     // mismo valor ya usado como plazo de legalización de Infoconsumo (Decreto 3071/1997).
@@ -36,9 +39,11 @@ public class GerencialController : ControllerBase
         "Rechazada", "Anulada", "No asistió", "Vencida",
     };
 
-    public GerencialController(SgdsDbContext context)
+    public GerencialController(SgdsDbContext context, IIAService iaService, ILogger<GerencialController> logger)
     {
         _context = context;
+        _iaService = iaService;
+        _logger = logger;
     }
 
     private IActionResult? VerificarAcceso()
@@ -216,12 +221,147 @@ public class GerencialController : ControllerBase
             .Where(s => s.FechaCreacion >= desdeAnterior && s.FechaCreacion < desde)
             .ToListAsync();
 
+        var insights = ConstruirInsights(actual, anterior);
+
+        var resumenIA = await GenerarResumenEjecutivoAsync(insights, actual.Count, anterior.Count);
+        if (resumenIA != null)
+        {
+            insights.Insert(0, resumenIA);
+        }
+
         return Ok(new InsightsGerencialResponseDto
         {
             Desde = desde,
             Hasta = hasta,
-            Insights = ConstruirInsights(actual, anterior),
+            Insights = insights,
         });
+    }
+
+    // Redacta, mediante IA, un resumen ejecutivo breve a partir de los insights que ya calculó
+    // ConstruirInsights (por reglas) — la IA interpreta datos ya validados por SGDS, no accede
+    // a la base de datos ni recalcula nada (RF-IA-GER-01). Si el servicio de IA falla (sin
+    // API key configurada, rate limit, etc.) se omite la tarjeta y el resto de Insights sigue
+    // funcionando igual que hoy.
+    private async Task<InsightGerencialDto?> GenerarResumenEjecutivoAsync(List<InsightGerencialDto> insightsPorReglas, int totalActual, int totalAnterior)
+    {
+        // Sin datos en ninguno de los dos períodos no hay nada que interpretar. Pero que las
+        // reglas de ConstruirInsights no hayan disparado ninguna tarjeta (dataset chico, sin
+        // variaciones relevantes) no debe impedir el resumen — en ese caso se le da a la IA el
+        // volumen crudo como contexto en vez de la lista de insights.
+        if (totalActual == 0 && totalAnterior == 0) return null;
+
+        var contexto = insightsPorReglas.Count > 0
+            ? string.Join("\n", insightsPorReglas.Select(i => $"- {i.Titulo}: {i.Texto}"))
+            : $"Solicitudes en el período actual: {totalActual}. Solicitudes en el período anterior: {totalAnterior}. Ninguna de las reglas de variación configuradas se activó (sin cambios relevantes detectados).";
+        const string systemPrompt = "Eres un analista que redacta un resumen ejecutivo breve (máximo 3 frases) para un gerente, a partir de indicadores que el sistema ya calculó. Usa únicamente los datos entregados en el contexto, sin inventar cifras ni mencionar datos que no estén ahí. Responde en español, con tono profesional y directo.";
+
+        try
+        {
+            var respuesta = await _iaService.GenerarAsync(systemPrompt, contexto, "Redacta el resumen ejecutivo del período.");
+            await RegistrarOperacionIaAsync("InsightGerencial", respuesta, contexto);
+
+            return new InsightGerencialDto
+            {
+                Titulo = "Resumen ejecutivo",
+                Texto = respuesta.Texto,
+                Categoria = "Resumen ejecutivo",
+                EsGeneradoPorIa = true,
+            };
+        }
+        catch (IAServiceException ex)
+        {
+            _logger.LogWarning(ex, "No se pudo generar el resumen ejecutivo de IA para Insights Gerencial.");
+            return null;
+        }
+    }
+
+    // POST: api/Gerencial/asistente
+    [HttpPost("asistente")]
+    public async Task<IActionResult> Preguntar([FromBody] PreguntaAsistenteDto solicitud)
+    {
+        var errorAcceso = VerificarAcceso();
+        if (errorAcceso != null) return errorAcceso;
+
+        if (string.IsNullOrWhiteSpace(solicitud.Pregunta))
+        {
+            return BadRequest("La pregunta no puede estar vacía.");
+        }
+
+        var hasta = DateTime.UtcNow;
+        var desde = hasta.AddDays(-DiasContextoAsistente);
+
+        var periodo = await _context.Solicitudes
+            .Include(s => s.Proyecto)
+            .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
+            .ToListAsync();
+
+        var criticas = await ConstruirCriticasAsync();
+        var contexto = ConstruirContextoAsistente(periodo, desde, hasta, criticas);
+        const string systemPrompt = "Eres el asistente de SGDS Intelligence para el perfil Gerencial. Respondes en español, con tono profesional, únicamente con base en el contexto de datos entregado. Si la pregunta no se puede responder con esos datos, dilo explícitamente en vez de inventar una cifra o un dato que no esté en el contexto.";
+
+        try
+        {
+            var respuesta = await _iaService.GenerarAsync(systemPrompt, contexto, solicitud.Pregunta);
+            await RegistrarOperacionIaAsync("AsistenteGerencial", respuesta, solicitud.Pregunta);
+
+            return Ok(new RespuestaAsistenteDto { Texto = respuesta.Texto });
+        }
+        catch (IAServiceException ex)
+        {
+            _logger.LogWarning(ex, "El Asistente IA de Gerencial no pudo responder.");
+            return StatusCode(503, "El asistente no está disponible en este momento. Intenta de nuevo más tarde.");
+        }
+    }
+
+    private string ConstruirContextoAsistente(List<Solicitud> periodo, DateTime desde, DateTime hasta, List<SolicitudCriticaDto> criticas)
+    {
+        var kpis = ConstruirKpis(periodo, new List<DateTime?>(), desde, desde);
+        var slaPorProyecto = ConstruirSlaPorProyecto(periodo);
+        var porProyecto = ConstruirPorProyecto(periodo);
+
+        var lineas = new List<string>
+        {
+            $"Período analizado: {desde:yyyy-MM-dd} a {hasta:yyyy-MM-dd} (últimos {DiasContextoAsistente} días).",
+            $"Total de solicitudes: {kpis.Total}.",
+            $"Solicitudes finalizadas: {kpis.Finalizadas}, pendientes: {kpis.Pendientes}.",
+            "Solicitudes por proyecto:",
+        };
+        lineas.AddRange(porProyecto.Select(p => $"- {p.ProyectoNombre}: {p.Total} solicitudes."));
+        lineas.Add("Cumplimiento de SLA por proyecto:");
+        lineas.AddRange(slaPorProyecto.Where(s => s.CumplimientoPorcentaje.HasValue)
+            .Select(s => $"- {s.ProyectoNombre}: {s.CumplimientoPorcentaje}%."));
+
+        if (criticas.Count > 0)
+        {
+            lineas.Add("Solicitudes críticas (abiertas, más próximas a vencer, con su prioridad):");
+            lineas.AddRange(criticas.Select(c => $"- {c.Numero} ({c.ProyectoNombre}): {c.Asunto}, vence en {c.DiasParaVencer} día(s), prioridad {c.Prioridad}."));
+
+            var porProyectoCriticas = criticas.GroupBy(c => c.ProyectoNombre).Select(g => $"- {g.Key}: {g.Count()} solicitud(es) crítica(s).");
+            lineas.Add("Conteo de solicitudes críticas por proyecto:");
+            lineas.AddRange(porProyectoCriticas);
+        }
+        else
+        {
+            lineas.Add("No hay solicitudes críticas (próximas a vencer) registradas actualmente.");
+        }
+
+        return string.Join("\n", lineas);
+    }
+
+    private const int DiasContextoAsistente = 30;
+
+    private async Task RegistrarOperacionIaAsync(string tipoAnalisis, RespuestaIADto respuesta, string entrada)
+    {
+        var usuarioId = int.Parse(User.FindFirst("sub")!.Value);
+        _context.OperacionesIA.Add(new OperacionIA
+        {
+            UsuarioId = usuarioId,
+            TipoAnalisis = tipoAnalisis,
+            Modelo = respuesta.Modelo,
+            Entrada = entrada,
+            Resultado = respuesta.Texto,
+        });
+        await _context.SaveChangesAsync();
     }
 
     // GET: api/Gerencial/alertas?dias=30
@@ -243,12 +383,55 @@ public class GerencialController : ControllerBase
             .Where(s => s.FechaCreacion >= desde && s.FechaCreacion < hasta)
             .ToListAsync();
 
+        var alertas = ConstruirAlertasDetalladas(periodo, ConstruirSlaPorProyecto(periodo));
+
+        var resumenIA = await GenerarResumenAlertasAsync(alertas, periodo.Count);
+        if (resumenIA != null)
+        {
+            alertas.Insert(0, resumenIA);
+        }
+
         return Ok(new AlertasGerencialResponseDto
         {
             Desde = desde,
             Hasta = hasta,
-            Alertas = ConstruirAlertasDetalladas(periodo, ConstruirSlaPorProyecto(periodo)),
+            Alertas = alertas,
         });
+    }
+
+    // Interpreta, mediante IA, las alertas que ya detectó el motor de reglas (RF-IA-GER-04:
+    // "combinando reglas y, cuando aporte, interpretación por IA") — no inventa riesgos nuevos,
+    // solo prioriza/explica los que ConstruirAlertasDetalladas ya encontró. Si no hay ninguna
+    // alerta pero sí hay solicitudes en el período, igual redacta una nota breve en vez del
+    // mensaje genérico "sin alertas relevantes". Si el servicio de IA falla, se omite la tarjeta
+    // y el resto de Alertas sigue funcionando igual que hoy (solo reglas).
+    private async Task<AlertaDetalladaDto?> GenerarResumenAlertasAsync(List<AlertaDetalladaDto> alertasPorReglas, int totalSolicitudesPeriodo)
+    {
+        if (totalSolicitudesPeriodo == 0) return null;
+
+        var contexto = alertasPorReglas.Count > 0
+            ? string.Join("\n", alertasPorReglas.Select(a => $"- [{a.Etiqueta}] {a.Texto}"))
+            : $"No se activó ninguna de las reglas configuradas (vencimientos próximos, incrementos relevantes, SLA bajo) sobre las {totalSolicitudesPeriodo} solicitudes del período.";
+        const string systemPrompt = "Eres un analista de riesgos que interpreta brevemente (máximo 3 frases) las alertas que el sistema ya detectó por reglas de negocio, priorizando lo más urgente para un gerente. Usa únicamente los datos del contexto, sin inventar riesgos ni cifras. Si el contexto indica que no hay alertas, dilo con un tono breve y tranquilizador. Responde en español.";
+
+        try
+        {
+            var respuesta = await _iaService.GenerarAsync(systemPrompt, contexto, "Interpreta el panorama de riesgos del período.");
+            await RegistrarOperacionIaAsync("AlertaGerencial", respuesta, contexto);
+
+            return new AlertaDetalladaDto
+            {
+                Severidad = "info",
+                Texto = respuesta.Texto,
+                Etiqueta = "Resumen",
+                EsGeneradoPorIa = true,
+            };
+        }
+        catch (IAServiceException ex)
+        {
+            _logger.LogWarning(ex, "No se pudo generar el resumen de IA para Alertas Inteligentes.");
+            return null;
+        }
     }
 
     // GET: api/Gerencial/comparativos?dias=30

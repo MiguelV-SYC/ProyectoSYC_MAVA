@@ -221,3 +221,14 @@ public class AlertasGerencialResponseDto
     public DateTime Hasta { get; set; }
     public List<AlertaDetalladaDto> Alertas { get; set; } = new();
 }
+
+public class PreguntaAsistenteDto
+{
+    public string Pregunta { get; set; } = string.Empty;
+}
+
+public class RespuestaAsistenteDto
+{
+    public string Texto { get; set; } = string.Empty;
+    public DateTime FechaHora { get; set; } = DateTime.UtcNow;
+}

@@ -71,6 +71,12 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE}
       - Jwt__ExpiresInMinutes=${JWT_EXPIRES_MINUTES}
       - Recaptcha__SecretKey=${RECAPTCHA_SECRET_KEY}
+      - Anthropic__ApiKey=${ANTHROPIC_API_KEY}
+      - Anthropic__Model=${ANTHROPIC_MODEL:-claude-opus-5}
+      - Gemini__ApiKey=${GEMINI_API_KEY}
+      - Gemini__Model=${GEMINI_MODEL:-gemini-3.6-flash}
+      - Groq__ApiKey=${GROQ_API_KEY}
+      - Groq__Model=${GROQ_MODEL:-openai/gpt-oss-20b}
       # Proxy en RUNTIME (para la llamada saliente a reCAPTCHA).
       # En casa quedan vacías y no afectan nada.
       - HTTP_PROXY=${HTTP_PROXY:-}

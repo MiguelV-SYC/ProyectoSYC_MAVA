@@ -244,3 +244,17 @@ export async function getAlertasDetalladasGerencial(dias = 30): Promise<AlertasG
   });
   return data;
 }
+
+export interface RespuestaAsistenteDto {
+  texto: string;
+  fechaHora: string;
+}
+
+export async function preguntarAsistenteGerencial(pregunta: string): Promise<RespuestaAsistenteDto> {
+  const { data } = await axios.post<RespuestaAsistenteDto>(
+    `${API_URL}/Gerencial/asistente`,
+    { pregunta },
+    { headers: authHeader() },
+  );
+  return data;
+}

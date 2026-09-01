@@ -79,6 +79,11 @@ builder.Services.Configure<ConfiguracionImpuestoConsumo>(builder.Configuration.G
 var rutaAlmacenamiento = Path.Combine(builder.Environment.ContentRootPath, "Almacenamiento");
 builder.Services.AddSingleton<IAlmacenamientoService>(new AlmacenamientoLocalService(rutaAlmacenamiento));
 
+// SGDS Intelligence — proveedor de IA. Hoy Groq (capa gratuita, límites más predecibles que
+// Gemini) mientras no haya créditos de Anthropic; para cambiar de proveedor, esta es la única
+// línea a tocar — ningún otro archivo depende del proveedor concreto (RNF-IA-05).
+builder.Services.AddScoped<IIAService, GroqAIService>();
+
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();

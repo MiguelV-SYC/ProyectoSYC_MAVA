@@ -62,8 +62,9 @@ export default function GerencialAlertasPage() {
         </div>
 
         <p className="text-[11px] text-ink-400 mb-5">
-          Hoy se detectan por umbrales fijos (vencimientos próximos, incrementos relevantes, SLA bajo). Cuando se
-          integre IA, se sumará la detección de desviaciones sin umbral fijo, sobre esta misma estructura.
+          Las alertas se detectan por umbrales fijos (vencimientos próximos, incrementos relevantes, SLA bajo). La
+          tarjeta superior es una interpretación por IA de ese mismo panorama, priorizando lo más urgente — no
+          reemplaza las reglas, las explica.
         </p>
 
         {loading || !alertas ? (
@@ -83,6 +84,11 @@ export default function GerencialAlertasPage() {
                   <div className="text-[12.5px] leading-relaxed text-ink-900">{a.texto}</div>
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className={`text-[11px] font-bold ${ALERTA_TAG_COLOR[a.severidad]}`}>{a.etiqueta}</span>
+                    {a.esGeneradoPorIa && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide bg-[#ede9fe] text-[#6d28d9] rounded-full px-2 py-0.5">
+                        Generado por IA
+                      </span>
+                    )}
                     {a.enlaceRuta && (
                       <button onClick={() => navigate(a.enlaceRuta!)} className="text-[11px] font-bold text-ink-400 hover:text-ink-600">
                         · Ver detalle →
