@@ -57,6 +57,11 @@ public static class GeografiaColombia
         return Haversine(origen.Lat, origen.Lng, destino.Lat, destino.Lng);
     }
 
+    // Línea recta entre dos coordenadas cualesquiera — usado como respaldo cuando ya se
+    // resolvió un punto más preciso que la capital departamental (municipio o dirección exacta).
+    public static double DistanciaKmEntre(double lat1, double lng1, double lat2, double lng2) =>
+        Haversine(lat1, lng1, lat2, lng2);
+
     private static double Haversine(double lat1, double lon1, double lat2, double lon2)
     {
         const double radioTierraKm = 6371;

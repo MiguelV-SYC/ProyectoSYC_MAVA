@@ -84,6 +84,17 @@ builder.Services.AddSingleton<IAlmacenamientoService>(new AlmacenamientoLocalSer
 // línea a tocar — ningún otro archivo depende del proveedor concreto (RNF-IA-05).
 builder.Services.AddScoped<IIAService, GroqAIService>();
 
+// Distancia real por carretera (Infoconsumo — tornaguías). Servidor demo público de OSRM.
+builder.Services.AddScoped<IServicioEnrutamiento, OsrmServicioEnrutamiento>();
+
+// Municipios de Colombia con coordenadas reales (dataset DIVIPOLA-DANE, ver Assets/geo) —
+// dato estático, se carga una sola vez en memoria (Singleton).
+var rutaMunicipios = Path.Combine(builder.Environment.ContentRootPath, "Assets", "geo", "municipios-colombia.json");
+builder.Services.AddSingleton<IServicioGeografia>(new GeografiaService(rutaMunicipios));
+
+// Geocodificación de direcciones libres en vivo (Nominatim/OSM, servidor demo público).
+builder.Services.AddScoped<IServicioGeocodificacion, NominatimServicioGeocodificacion>();
+
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();

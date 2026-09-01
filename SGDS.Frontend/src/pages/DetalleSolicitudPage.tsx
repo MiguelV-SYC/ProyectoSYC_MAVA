@@ -502,15 +502,17 @@ export default function DetalleSolicitudPage() {
                   lngOrigen={tornaguiaInfo.lngOrigen}
                   latDestino={tornaguiaInfo.latDestino}
                   lngDestino={tornaguiaInfo.lngDestino}
-                  labelOrigen={`${tornaguiaInfo.municipioOrigen}, ${tornaguiaInfo.departamentoOrigen}`}
-                  labelDestino={`${tornaguiaInfo.municipioDestino}, ${tornaguiaInfo.departamentoDestino}`}
+                  labelOrigen={tornaguiaInfo.direccionEspecificaOrigen || `${tornaguiaInfo.municipioOrigen}, ${tornaguiaInfo.departamentoOrigen}`}
+                  labelDestino={tornaguiaInfo.direccionEspecificaDestino || `${tornaguiaInfo.municipioDestino}, ${tornaguiaInfo.departamentoDestino}`}
                   tipoTransporte={tornaguiaInfo.tipoTransporte}
                   color={color.primario}
                   alturaPx={260}
                 />
                 {tornaguiaInfo.distanciaAproximadaKm != null && (
                   <p className="text-[11px] text-ink-400 mt-2">
-                    Distancia aproximada entre capitales de departamento: {tornaguiaInfo.distanciaAproximadaKm.toFixed(0)} km (línea recta, no distancia vial real).
+                    {tornaguiaInfo.distanciaEsPorCarretera
+                      ? <>Distancia real por carretera: {tornaguiaInfo.distanciaAproximadaKm.toFixed(0)} km (calculada con OSRM).</>
+                      : <>Distancia aproximada: {tornaguiaInfo.distanciaAproximadaKm.toFixed(0)} km (línea recta, no distancia vial real).</>}
                   </p>
                 )}
               </div>

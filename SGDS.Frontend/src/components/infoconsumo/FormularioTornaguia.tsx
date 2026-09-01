@@ -1,4 +1,5 @@
 import { CATEGORIAS_PRODUCTO_INFOCONSUMO, CATEGORIAS_SIN_ICL, type DatosTornaguia } from '../../config/infoconsumoConfig';
+import SelectorTipoVehiculo from './SelectorTipoVehiculo';
 
 const inputClase = 'w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500';
 const labelClase = 'block text-xs font-semibold text-ink-900 mb-1.5';
@@ -89,12 +90,12 @@ export default function FormularioTornaguia({ value, onChange }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-4 mb-3.5">
           <div>
-            <label className={labelClase}>Placa del vehículo</label>
-            <input value={value.placaVehiculo} onChange={(e) => set('placaVehiculo', e.target.value.toUpperCase())} placeholder="SLK-204" className={inputClase} />
+            <label className={labelClase}>Tipo de vehículo</label>
+            <SelectorTipoVehiculo value={value.tipoVehiculo} onChange={(tipoVehiculo) => set('tipoVehiculo', tipoVehiculo)} />
           </div>
           <div>
-            <label className={labelClase}>Tipo de vehículo</label>
-            <input value={value.tipoVehiculo} onChange={(e) => set('tipoVehiculo', e.target.value)} placeholder="Camión furgón — 2 ejes" className={inputClase} />
+            <label className={labelClase}>Placa del vehículo</label>
+            <input value={value.placaVehiculo} onChange={(e) => set('placaVehiculo', e.target.value.toUpperCase())} placeholder="SLK-204" className={inputClase} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 mb-3.5">

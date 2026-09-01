@@ -18,8 +18,6 @@ import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTorna
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
-import MapaRuta from '../components/infoconsumo/MapaRuta';
-import { CAPITALES_COLOMBIA } from '../config/geografiaColombia';
 import { crearSolicitudInfoconsumo } from '../services/infoconsumoService';
 import BuscadorLoteGoTrace from '../components/infoconsumo/BuscadorLoteGoTrace';
 import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
@@ -282,8 +280,6 @@ export default function NuevaSolicitudPage() {
     : [];
   const volverAActual = `/solicitudes/nueva?proyectoId=${proyectoId}${vehiculoIdUrl ? `&vehiculoId=${vehiculoIdUrl}` : ''}`;
   const color = getColorProyecto(proyecto?.nombre);
-  const capitalOrigen = CAPITALES_COLOMBIA[datosTornaguia.departamentoOrigen];
-  const capitalDestino = CAPITALES_COLOMBIA[datosTornaguia.departamentoDestino];
 
   if (proyectoId && !proyecto) {
     return (
@@ -488,6 +484,12 @@ export default function NuevaSolicitudPage() {
           municipioOrigen: datosTornaguia.municipioOrigen,
           departamentoDestino: datosTornaguia.departamentoDestino,
           municipioDestino: datosTornaguia.municipioDestino,
+          direccionEspecificaOrigen: datosTornaguia.direccionEspecificaOrigen || undefined,
+          latOrigen: datosTornaguia.latOrigen ?? undefined,
+          lngOrigen: datosTornaguia.lngOrigen ?? undefined,
+          direccionEspecificaDestino: datosTornaguia.direccionEspecificaDestino || undefined,
+          latDestino: datosTornaguia.latDestino ?? undefined,
+          lngDestino: datosTornaguia.lngDestino ?? undefined,
           empresaTransportadora: datosTornaguia.empresaTransportadora,
           nitTransportador: datosTornaguia.nitTransportador || undefined,
           placaVehiculo: datosTornaguia.placaVehiculo,
@@ -706,23 +708,6 @@ export default function NuevaSolicitudPage() {
               </button>
             ))}
           </div>
-
-          {esInfoconsumo && capitalOrigen && capitalDestino && (
-            <div className="mt-4">
-              <label className="block text-xs font-semibold text-ink-900 mb-1.5">Vista previa de la ruta</label>
-              <MapaRuta
-                latOrigen={capitalOrigen.lat}
-                lngOrigen={capitalOrigen.lng}
-                latDestino={capitalDestino.lat}
-                lngDestino={capitalDestino.lng}
-                labelOrigen={`${datosTornaguia.municipioOrigen || datosTornaguia.departamentoOrigen}, ${datosTornaguia.departamentoOrigen}`}
-                labelDestino={`${datosTornaguia.municipioDestino || datosTornaguia.departamentoDestino}, ${datosTornaguia.departamentoDestino}`}
-                tipoTransporte={datosTornaguia.tipoTransporte}
-                color={color.primario}
-                alturaPx={220}
-              />
-            </div>
-          )}
         </div>
 
         {esIUVA ? (

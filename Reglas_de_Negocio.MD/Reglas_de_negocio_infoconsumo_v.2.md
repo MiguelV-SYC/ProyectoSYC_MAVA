@@ -13,7 +13,7 @@
 
 
 
-Reglas de Negocio Críticas: 
+*Reglas de Negocio Críticas:*
 Para la arquitectura y lógica de validación de tu desarrollo, debes asegurar que el sistema aplique las siguientes restricciones automáticas:
 
 * Validación de Origen/Destino: Si el tipo de trámite es Tránsito Local, el sistema debe forzar que el campo Departamento de origen y Departamento de destino sean idénticos. Si es Movilización o Reenvío, deben ser obligatoriamente diferentes.
@@ -66,10 +66,7 @@ Se suman ambos componentes para obtener el valor global de la liquidación del i
 
 
 
-
-
-
-Reglas de Excepción en la Lógica para el Backend: 
+*Reglas de Excepción en la Lógica para el Backend:*
 
 
 * Excepción Geográfica (San Andrés): Si en el bloque 4 de tu interfaz, el Departamento de destino es Archipiélago de San Andrés, Providencia y Santa Catalina, la lógica debe ignorar la tarifa estándar de $360/$243 y aplicar la tarifa preferencial reducida de $57 COP por grado de alcohol.
@@ -85,11 +82,7 @@ Supongamos que en el bloque 3. Producto gravado de tu pantalla, un usuario está
 **Tiempos de generación de la preliquidación impuesto al consumo**
 
 
-
-
-
 La generación de la liquidación del impuesto y los plazos legales para su pago ordinario se rigen bajo reglas estrictas de la Federación Nacional de Departamentos (FND) y el Decreto 3071 de 1997:
-
 
 
 1. Tiempo de generación de la liquidaciónLa liquidación del Impuesto al Consumo de Licores (ICL) se genera de forma inmediata y automática en la plataforma en el mismo instante en que se radica y aprueba la solicitud de la tornaguía.Al guardar el formulario de la tornaguía de movilización o reenvío, el backend realiza el cálculo matemático expuesto en el paso anterior y emite simultáneamente el recibo de pago o la declaración sugerida.
@@ -169,7 +162,10 @@ export default function SeccionLiquidacion({ producto }: { producto: Producto | 
   );
 }
 
+Tipos de Vehículos según su Carrocería (Logística de Bebidas y Tabaco)
+Para estos productos se utilizan principalmente tres configuraciones de carrocería:Furgón Cerrado (Caja Seca): Es el más común para el tabaco y licores de alta gama. Protege la mercancía de la humedad, la luz solar directa y ofrece mayor seguridad contra robos.Camión Botellero / Sider (Cortinas Laterales): Es el diseño estándar utilizado por las grandes cervecerías y distribuidoras de bebidas. Las lonas laterales permiten una carga y descarga rápida con montacargas en estibas (palés).Estacas con Carpa: Utilizado por distribuidores minoristas o en zonas rurales. Exige que la carpa esté completamente sellada y cumpla con los requisitos de seguridad exigidos por las autoridades viales
 
+2. Clasificación por Capacidad y Configuración de Ejes (Norma NTC 4788)De acuerdo con el Ministerio de Transporte de Colombia y la norma NTC 4788, los vehículos de carga se dividen según su peso y número de ejes:Tipo de VehículoDesignación RNDCCapacidad de Carga AproximadaUso Común en Bebidas y TabacoTurboC2 (Liviano)Hasta 4.5 toneladasDistribución urbana de cigarrillos y licores en almacenes de cadena o tiendas.Camión SencilloC2 (Mediano)Hasta 8.5 toneladasDespachos regionales o entregas masivas en centros urbanos.Doble TroqueC3Hasta 17 toneladasTransporte intermunicipal de producto terminado desde plantas de producción.Cuatro ManosC4Hasta 22 toneladasAbastecimiento mayorista y movimiento de carga pesada a nivel nacional.Tractocamión (Mula)C3S2 / C3S3Hasta 32 - 35 toneladasTransporte masivo de materias primas o distribución de cerveza y licores a grandes centros de acopio.
 
 
 

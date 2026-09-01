@@ -21,12 +21,21 @@ public class InfoconsumoController : ControllerBase
     private readonly SgdsDbContext _context;
     private readonly ConfiguracionImpuestoConsumo _configImpoConsumo;
     private readonly SGDS.Application.Interfaces.IAlmacenamientoService _almacenamiento;
+    private readonly SGDS.Application.Interfaces.IServicioEnrutamiento _enrutamiento;
+    private readonly SGDS.Application.Interfaces.IServicioGeografia _geografia;
 
-    public InfoconsumoController(SgdsDbContext context, IOptions<ConfiguracionImpuestoConsumo> configImpoConsumo, SGDS.Application.Interfaces.IAlmacenamientoService almacenamiento)
+    public InfoconsumoController(
+        SgdsDbContext context,
+        IOptions<ConfiguracionImpuestoConsumo> configImpoConsumo,
+        SGDS.Application.Interfaces.IAlmacenamientoService almacenamiento,
+        SGDS.Application.Interfaces.IServicioEnrutamiento enrutamiento,
+        SGDS.Application.Interfaces.IServicioGeografia geografia)
     {
         _context = context;
         _configImpoConsumo = configImpoConsumo.Value;
         _almacenamiento = almacenamiento;
+        _enrutamiento = enrutamiento;
+        _geografia = geografia;
     }
 
     // El logo de la empresa remitente es opcional (Empresa.RutaLogo) — si no lo ha cargado
@@ -102,6 +111,12 @@ public class InfoconsumoController : ControllerBase
                 MunicipioOrigen = dto.MunicipioOrigen,
                 DepartamentoDestino = dto.DepartamentoDestino,
                 MunicipioDestino = dto.MunicipioDestino,
+                DireccionEspecificaOrigen = dto.DireccionEspecificaOrigen,
+                LatOrigen = dto.LatOrigen,
+                LngOrigen = dto.LngOrigen,
+                DireccionEspecificaDestino = dto.DireccionEspecificaDestino,
+                LatDestino = dto.LatDestino,
+                LngDestino = dto.LngDestino,
                 EmpresaTransportadora = dto.EmpresaTransportadora,
                 NitTransportador = dto.NitTransportador,
                 PlacaVehiculo = dto.PlacaVehiculo,
@@ -155,6 +170,12 @@ public class InfoconsumoController : ControllerBase
         t.MunicipioOrigen = dto.MunicipioOrigen;
         t.DepartamentoDestino = dto.DepartamentoDestino;
         t.MunicipioDestino = dto.MunicipioDestino;
+        t.DireccionEspecificaOrigen = dto.DireccionEspecificaOrigen;
+        t.LatOrigen = dto.LatOrigen;
+        t.LngOrigen = dto.LngOrigen;
+        t.DireccionEspecificaDestino = dto.DireccionEspecificaDestino;
+        t.LatDestino = dto.LatDestino;
+        t.LngDestino = dto.LngDestino;
         t.EmpresaTransportadora = dto.EmpresaTransportadora;
         t.NitTransportador = dto.NitTransportador;
         t.PlacaVehiculo = dto.PlacaVehiculo;
@@ -263,7 +284,7 @@ public class InfoconsumoController : ControllerBase
     public async Task<IActionResult> GetTornaguia(int id)
     {
         var (error, solicitud) = await ObtenerSolicitudInfoconsumoAsync(id, incluirTipo: true);
-        return error ?? Ok(ConstruirTornaguiaDto(solicitud!));
+        return error ?? Ok(await ConstruirTornaguiaDtoAsync(solicitud!));
     }
 
     // GET: api/Infoconsumo/solicitudes/5/tornaguia-pdf
@@ -273,7 +294,7 @@ public class InfoconsumoController : ControllerBase
         var (error, solicitud) = await ObtenerSolicitudInfoconsumoAsync(id, incluirTipo: true);
         if (error != null) return error;
 
-        var dto = ConstruirTornaguiaDto(solicitud!);
+        var dto = await ConstruirTornaguiaDtoAsync(solicitud!);
         var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
         var logoEmpresa = await ObtenerLogoEmpresaAsync(dto.EmpresaId);
         var pdfBytes = GenerarTornaguiaPdf(dto, qrBytes, logoEmpresa);
@@ -287,7 +308,7 @@ public class InfoconsumoController : ControllerBase
         var (error, solicitud) = await ObtenerSolicitudInfoconsumoAsync(id, incluirTipo: true);
         if (error != null) return error;
 
-        var dto = ConstruirTornaguiaDto(solicitud!);
+        var dto = await ConstruirTornaguiaDtoAsync(solicitud!);
         var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
         return File(qrBytes, "image/png");
     }
@@ -551,12 +572,40 @@ public class InfoconsumoController : ControllerBase
         return s.Estado;
     }
 
-    private static TornaguiaResponseDto ConstruirTornaguiaDto(Solicitud s)
+    // Cascada de precisión: dirección exacta (Nominatim, si el usuario la eligió) -> centroide
+    // del municipio (dataset DIVIPOLA-DANE) -> capital del departamento (último respaldo, ver
+    // GeografiaColombia — cubre casos donde el municipio escrito no matchea el dataset).
+    private (double Lat, double Lng)? ResolverCoordenada(double? latManual, double? lngManual, string departamento, string municipio)
+    {
+        if (latManual.HasValue && lngManual.HasValue) return (latManual.Value, lngManual.Value);
+
+        var porMunicipio = _geografia.ObtenerCoordenada(departamento, municipio);
+        if (porMunicipio.HasValue) return porMunicipio;
+
+        var capital = GeografiaColombia.ObtenerCapital(departamento);
+        return capital != null ? (capital.Lat, capital.Lng) : null;
+    }
+
+    private async Task<TornaguiaResponseDto> ConstruirTornaguiaDtoAsync(Solicitud s)
     {
         var t = s.TornaguiaInfoconsumo!;
         var numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString();
-        var origen = GeografiaColombia.ObtenerCapital(t.DepartamentoOrigen);
-        var destino = GeografiaColombia.ObtenerCapital(t.DepartamentoDestino);
+        var origen = ResolverCoordenada(t.LatOrigen, t.LngOrigen, t.DepartamentoOrigen, t.MunicipioOrigen);
+        var destino = ResolverCoordenada(t.LatDestino, t.LngDestino, t.DepartamentoDestino, t.MunicipioDestino);
+
+        // Distancia real por carretera (OSRM) — solo tiene sentido pedirla si hay transporte
+        // terrestre entre dos capitales distintas; si OSRM no responde, se cae a Haversine
+        // (línea recta) para no dejar el campo vacío.
+        double? distanciaKm = null;
+        var distanciaEsPorCarretera = false;
+        if (origen != null && destino != null && t.TipoTransporte == "Terrestre" &&
+            (origen.Value.Lat != destino.Value.Lat || origen.Value.Lng != destino.Value.Lng))
+        {
+            distanciaKm = await _enrutamiento.ObtenerDistanciaCarreteraKmAsync(origen.Value.Lat, origen.Value.Lng, destino.Value.Lat, destino.Value.Lng);
+            distanciaEsPorCarretera = distanciaKm.HasValue;
+        }
+        if (distanciaKm == null && origen != null && destino != null)
+            distanciaKm = GeografiaColombia.DistanciaKmEntre(origen.Value.Lat, origen.Value.Lng, destino.Value.Lat, destino.Value.Lng);
 
         return new TornaguiaResponseDto
         {
@@ -577,7 +626,10 @@ public class InfoconsumoController : ControllerBase
             MunicipioOrigen = t.MunicipioOrigen,
             DepartamentoDestino = t.DepartamentoDestino,
             MunicipioDestino = t.MunicipioDestino,
-            DistanciaAproximadaKm = GeografiaColombia.DistanciaAproximadaKm(t.DepartamentoOrigen, t.DepartamentoDestino),
+            DireccionEspecificaOrigen = t.DireccionEspecificaOrigen,
+            DireccionEspecificaDestino = t.DireccionEspecificaDestino,
+            DistanciaAproximadaKm = distanciaKm,
+            DistanciaEsPorCarretera = distanciaEsPorCarretera,
             LatOrigen = origen?.Lat,
             LngOrigen = origen?.Lng,
             LatDestino = destino?.Lat,
@@ -694,11 +746,15 @@ public class InfoconsumoController : ControllerBase
 
                     var filasMovilizacion = new List<(string, string)>
                     {
-                        ("Origen", $"{dto.MunicipioOrigen}, {dto.DepartamentoOrigen}"),
-                        ("Destino", $"{dto.MunicipioDestino}, {dto.DepartamentoDestino}"),
+                        ("Origen", dto.DireccionEspecificaOrigen ?? $"{dto.MunicipioOrigen}, {dto.DepartamentoOrigen}"),
+                        ("Destino", dto.DireccionEspecificaDestino ?? $"{dto.MunicipioDestino}, {dto.DepartamentoDestino}"),
                     };
                     if (dto.DistanciaAproximadaKm.HasValue)
-                        filasMovilizacion.Add(("Distancia aproximada", $"{dto.DistanciaAproximadaKm:N0} km (línea recta entre capitales)"));
+                        filasMovilizacion.Add((
+                            dto.DistanciaEsPorCarretera ? "Distancia por carretera" : "Distancia aproximada",
+                            dto.DistanciaEsPorCarretera
+                                ? $"{dto.DistanciaAproximadaKm:N0} km (ruta real, OSRM)"
+                                : $"{dto.DistanciaAproximadaKm:N0} km (línea recta)"));
                     DisenoPdfSgds.SeccionTabla(col, "Movilización autorizada", filasMovilizacion.ToArray());
 
                     col.Item().PaddingTop(10).Text(

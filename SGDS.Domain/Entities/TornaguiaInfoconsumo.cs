@@ -24,6 +24,17 @@ public class TornaguiaInfoconsumo
     public string MunicipioOrigen { get; set; } = string.Empty;
     public string DepartamentoDestino { get; set; } = string.Empty;
     public string MunicipioDestino { get; set; } = string.Empty;
+
+    // Punto exacto opcional, resultado de la búsqueda en vivo de direcciones (Nominatim/OSM) —
+    // cuando el usuario elige una dirección específica en vez de quedarse en el centroide del
+    // municipio. Si es null, la coordenada se resuelve por municipio (o por capital de
+    // departamento como último respaldo) — ver InfoconsumoController.ConstruirTornaguiaDtoAsync.
+    public string? DireccionEspecificaOrigen { get; set; }
+    public double? LatOrigen { get; set; }
+    public double? LngOrigen { get; set; }
+    public string? DireccionEspecificaDestino { get; set; }
+    public double? LatDestino { get; set; }
+    public double? LngDestino { get; set; }
     public string EmpresaTransportadora { get; set; } = string.Empty;
     public string? NitTransportador { get; set; }
     public string PlacaVehiculo { get; set; } = string.Empty;

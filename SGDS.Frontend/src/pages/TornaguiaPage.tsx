@@ -294,14 +294,16 @@ export default function TornaguiaPage() {
                         lngOrigen={tornaguia.lngOrigen}
                         latDestino={tornaguia.latDestino}
                         lngDestino={tornaguia.lngDestino}
-                        labelOrigen={`${tornaguia.municipioOrigen}, ${tornaguia.departamentoOrigen}`}
-                        labelDestino={`${tornaguia.municipioDestino}, ${tornaguia.departamentoDestino}`}
+                        labelOrigen={tornaguia.direccionEspecificaOrigen || `${tornaguia.municipioOrigen}, ${tornaguia.departamentoOrigen}`}
+                        labelDestino={tornaguia.direccionEspecificaDestino || `${tornaguia.municipioDestino}, ${tornaguia.departamentoDestino}`}
                         tipoTransporte={tornaguia.tipoTransporte}
                         color={color.primario}
                       />
                       {tornaguia.distanciaAproximadaKm != null && (
                         <p className="text-[11px] text-ink-400 mt-2">
-                          Distancia aproximada entre capitales de departamento (línea recta): {tornaguia.distanciaAproximadaKm.toFixed(0)} km — no es distancia vial real.
+                          {tornaguia.distanciaEsPorCarretera
+                            ? <>Distancia real por carretera (OSRM): {tornaguia.distanciaAproximadaKm.toFixed(0)} km.</>
+                            : <>Distancia aproximada (línea recta): {tornaguia.distanciaAproximadaKm.toFixed(0)} km — no es distancia vial real.</>}
                         </p>
                       )}
                     </>

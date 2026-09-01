@@ -16,6 +16,16 @@ public class CrearSolicitudInfoconsumoDto
     public string MunicipioOrigen { get; set; } = string.Empty;
     public string DepartamentoDestino { get; set; } = string.Empty;
     public string MunicipioDestino { get; set; } = string.Empty;
+
+    // Dirección exacta opcional (búsqueda en vivo vía Nominatim) — cuando se envían, tienen
+    // prioridad sobre el centroide del municipio para el mapa y el cálculo de distancia.
+    public string? DireccionEspecificaOrigen { get; set; }
+    public double? LatOrigen { get; set; }
+    public double? LngOrigen { get; set; }
+    public string? DireccionEspecificaDestino { get; set; }
+    public double? LatDestino { get; set; }
+    public double? LngDestino { get; set; }
+
     public string EmpresaTransportadora { get; set; } = string.Empty;
     public string? NitTransportador { get; set; }
     public string PlacaVehiculo { get; set; } = string.Empty;
@@ -41,6 +51,14 @@ public class ActualizarSolicitudInfoconsumoDto
     public string MunicipioOrigen { get; set; } = string.Empty;
     public string DepartamentoDestino { get; set; } = string.Empty;
     public string MunicipioDestino { get; set; } = string.Empty;
+
+    public string? DireccionEspecificaOrigen { get; set; }
+    public double? LatOrigen { get; set; }
+    public double? LngOrigen { get; set; }
+    public string? DireccionEspecificaDestino { get; set; }
+    public double? LatDestino { get; set; }
+    public double? LngDestino { get; set; }
+
     public string EmpresaTransportadora { get; set; } = string.Empty;
     public string? NitTransportador { get; set; }
     public string PlacaVehiculo { get; set; } = string.Empty;
@@ -72,7 +90,12 @@ public class TornaguiaResponseDto
     public string MunicipioOrigen { get; set; } = string.Empty;
     public string DepartamentoDestino { get; set; } = string.Empty;
     public string MunicipioDestino { get; set; } = string.Empty;
+    public string? DireccionEspecificaOrigen { get; set; }
+    public string? DireccionEspecificaDestino { get; set; }
     public double? DistanciaAproximadaKm { get; set; }
+    // true = distancia real por carretera (OSRM); false = línea recta entre capitales
+    // (Haversine, respaldo cuando OSRM no responde).
+    public bool DistanciaEsPorCarretera { get; set; }
     public double? LatOrigen { get; set; }
     public double? LngOrigen { get; set; }
     public double? LatDestino { get; set; }

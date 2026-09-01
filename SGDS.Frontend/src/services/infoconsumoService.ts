@@ -21,6 +21,12 @@ export interface CrearSolicitudInfoconsumoDto {
   municipioOrigen: string;
   departamentoDestino: string;
   municipioDestino: string;
+  direccionEspecificaOrigen?: string;
+  latOrigen?: number | null;
+  lngOrigen?: number | null;
+  direccionEspecificaDestino?: string;
+  latDestino?: number | null;
+  lngDestino?: number | null;
   empresaTransportadora: string;
   nitTransportador?: string;
   placaVehiculo: string;
@@ -74,7 +80,10 @@ export interface TornaguiaResponseDto {
   municipioOrigen: string;
   departamentoDestino: string;
   municipioDestino: string;
+  direccionEspecificaOrigen?: string;
+  direccionEspecificaDestino?: string;
   distanciaAproximadaKm?: number;
+  distanciaEsPorCarretera?: boolean;
   latOrigen?: number;
   lngOrigen?: number;
   latDestino?: number;
