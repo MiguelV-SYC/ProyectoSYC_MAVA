@@ -133,7 +133,7 @@ export default function Sidebar({ active }: { active: string }) {
       )}
 
       <aside
-        className={`w-[260px] shrink-0 fixed md:relative inset-y-0 left-0 md:inset-auto md:h-screen z-[1095] md:z-auto flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))] transition-transform duration-300 md:translate-x-0 ${
+        className={`w-[260px] shrink-0 fixed md:sticky inset-y-0 left-0 md:inset-auto md:top-0 md:h-screen z-[1095] md:z-auto flex flex-col p-[26px_18px] overflow-hidden text-white bg-[radial-gradient(circle_at_20%_0%,rgba(79,139,255,0.18),transparent_55%),linear-gradient(180deg,var(--color-navy-950),var(--color-navy-900)_55%,var(--color-navy-800))] transition-transform duration-300 md:translate-x-0 ${
           abierto ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
