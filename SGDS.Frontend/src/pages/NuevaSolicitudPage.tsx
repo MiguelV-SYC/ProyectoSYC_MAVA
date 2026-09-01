@@ -178,6 +178,7 @@ export default function NuevaSolicitudPage() {
           razonSocial: e.razonSocial,
           proyectosConActividad: [],
           totalSolicitudes: 0,
+          tieneLogo: e.tieneLogo,
         })
       );
     }
@@ -208,6 +209,7 @@ export default function NuevaSolicitudPage() {
           razonSocial: e.razonSocial,
           proyectosConActividad: [],
           totalSolicitudes: 0,
+          tieneLogo: e.tieneLogo,
         })
       );
     }

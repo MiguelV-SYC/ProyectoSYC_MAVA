@@ -6,6 +6,8 @@ import {
   buscarPorNit,
   crearEmpresa,
   actualizarEmpresa,
+  subirLogoEmpresa,
+  obtenerLogoEmpresaBlobUrl,
   type BusquedaNitResponse,
 } from '../services/empresaService';
 import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
@@ -32,6 +34,11 @@ export default function FormularioEmpresaPage() {
   const [cargandoInicial, setCargandoInicial] = useState(esEdicion);
   const color = useColorProyectoActivo();
 
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [archivoLogo, setArchivoLogo] = useState<File | null>(null);
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const [errorLogo, setErrorLogo] = useState<string | null>(null);
+
   // Carga los datos existentes si estamos editando
   useEffect(() => {
     if (!esEdicion || !id) return;
@@ -44,9 +51,34 @@ export default function FormularioEmpresaPage() {
         setCorreo(e.correo ?? '');
         setCiudad(e.ciudad ?? '');
         setDireccion(e.direccion ?? '');
+        if (e.tieneLogo) {
+          obtenerLogoEmpresaBlobUrl(Number(id)).then(setLogoUrl).catch(() => {});
+        }
       })
       .finally(() => setCargandoInicial(false));
   }, [esEdicion, id]);
+
+  function handleSeleccionarLogo(archivo: File | null) {
+    setArchivoLogo(archivo);
+    setErrorLogo(null);
+    if (archivo) {
+      setLogoUrl(URL.createObjectURL(archivo));
+    }
+  }
+
+  async function handleSubirLogo() {
+    if (!archivoLogo || !id) return;
+    setSubiendoLogo(true);
+    setErrorLogo(null);
+    try {
+      await subirLogoEmpresa(Number(id), archivoLogo);
+      setArchivoLogo(null);
+    } catch {
+      setErrorLogo('No se pudo subir el logo. Intenta de nuevo.');
+    } finally {
+      setSubiendoLogo(false);
+    }
+  }
 
   // Verificación de duplicados en tiempo real (solo al crear, con debounce)
   useEffect(() => {
@@ -253,6 +285,45 @@ export default function FormularioEmpresaPage() {
               </div>
             </div>
           </div>
+
+          {esEdicion && id && (
+            <div className="bg-white border border-line rounded-[14px] p-5">
+              <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-1">Logo</h3>
+              <p className="text-[11.5px] text-ink-400 mb-4">
+                Se usa en los documentos generados para esta empresa (ej. tornaguías) — PNG, JPG o SVG.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-[10px] border border-line bg-paper flex items-center justify-center overflow-hidden shrink-0">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo de la empresa" className="w-full h-full object-contain" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" className="w-7 h-7 stroke-ink-400">
+                      <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="M21 15l-5-5L5 21" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    onChange={(e) => handleSeleccionarLogo(e.target.files?.[0] ?? null)}
+                    className="text-[12.5px] text-ink-600"
+                  />
+                  {archivoLogo && (
+                    <button
+                      type="button"
+                      onClick={handleSubirLogo}
+                      disabled={subiendoLogo}
+                      className="self-start py-1.5 px-3.5 rounded-[8px] bg-[var(--color-accento)] text-white text-[12px] font-semibold disabled:opacity-60"
+                    >
+                      {subiendoLogo ? 'Subiendo...' : 'Guardar logo'}
+                    </button>
+                  )}
+                  {errorLogo && <p className="text-[11px] text-red-600">{errorLogo}</p>}
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">

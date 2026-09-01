@@ -48,6 +48,7 @@ export default function BuscadorLoteGoTrace({ value, onChange, onEmpresaResuelta
       razonSocial: detalle.razonSocial,
       proyectosConActividad: [],
       totalSolicitudes: 0,
+      tieneLogo: detalle.tieneLogo,
     });
   }
 

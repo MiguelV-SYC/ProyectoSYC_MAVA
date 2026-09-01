@@ -33,4 +33,9 @@
     <ProjectReference Include="..\SGDS.Infrastructure\SGDS.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Logo SGDS y escudo de Santander usados en el encabezado de los PDFs (DisenoPdfSgds). -->
+  <ItemGroup>
+    <None Include="Assets\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -8,9 +8,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
-using ZXing;
-using ZXing.Windows.Compatibility;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -222,7 +220,7 @@ public class SycTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirEstampillaDto(solicitud!);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         var pdfBytes = GenerarEstampillaPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"Estampilla_{dto.Numero}.pdf");
     }
@@ -235,7 +233,7 @@ public class SycTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirEstampillaDto(solicitud!);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         return File(qrBytes, "image/png");
     }
 
@@ -247,7 +245,7 @@ public class SycTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirEstampillaDto(solicitud!);
-        var barcodeBytes = GenerarBarcodePng(dto.CodigoCompleto);
+        var barcodeBytes = DisenoPdfSgds.GenerarBarcodePng(dto.CodigoCompleto);
         return File(barcodeBytes, "image/png");
     }
 
@@ -261,8 +259,8 @@ public class SycTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirEstampillaDto(solicitud!);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
-        var barcodeBytes = GenerarBarcodePng(dto.CodigoCompleto);
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
+        var barcodeBytes = DisenoPdfSgds.GenerarBarcodePng(dto.CodigoCompleto);
         var pdfBytes = GenerarEstampillaArtePdf(dto, qrBytes, barcodeBytes);
         return File(pdfBytes, "application/pdf", $"Estampilla_Arte_{dto.Numero}.pdf");
     }
@@ -516,36 +514,6 @@ public class SycTraceController : ControllerBase
         };
     }
 
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
-
-    // Código de barras Code128 real (escaneable), no la banda decorativa del mockup —
-    // codifica el código completo de la estampilla (prefijo + código inicial).
-    // Requiere System.Drawing (Windows) para el renderizado a Bitmap.
-    private static byte[] GenerarBarcodePng(string contenido)
-    {
-        var escritor = new BarcodeWriter
-        {
-            Format = BarcodeFormat.CODE_128,
-            Options = new ZXing.Common.EncodingOptions
-            {
-                Width = 360,
-                Height = 90,
-                Margin = 5,
-                PureBarcode = false,
-            },
-        };
-        using var bitmap = escritor.Write(contenido);
-        using var stream = new MemoryStream();
-        bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-        return stream.ToArray();
-    }
-
     private static byte[] GenerarEstampillaPdf(EstampillaResponseDto dto, byte[] qrBytes)
     {
         var documento = Document.Create(contenedor =>
@@ -553,83 +521,51 @@ public class SycTraceController : ControllerBase
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A5);
-                pagina.Margin(30);
-                pagina.DefaultTextStyle(x => x.FontSize(10));
+                pagina.Margin(0);
+                pagina.DefaultTextStyle(x => x.FontSize(9));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "SYCTrace · Control de Rentas", "Estampilla de control", dto.Numero, DisenoPdfSgds.EscudoSantander));
+
+                pagina.Content().Padding(18).Column(col =>
                 {
-                    col.Item().Text("Secretaría de Hacienda Departamental de Santander — Control de Rentas").FontSize(10);
-                    col.Item().Text("Estampilla de control — SYCTrace").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Número: {dto.Numero}").FontSize(10).Bold();
-                });
-
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(10);
-
                     if (dto.OrigenProducto == "Importado")
-                        col.Item().Text("IMPORTADO").FontColor(Colors.Orange.Darken2).Bold();
+                        col.Item().Background("#fef3c7").Padding(4).Text("PRODUCTO IMPORTADO").FontSize(9).Bold().FontColor("#92400e");
 
-                    col.Item().Text("Producto").Bold();
-                    col.Item().Table(t =>
+                    var filasProducto = new List<(string, string)>
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Nombre comercial", dto.NombreProducto);
-                        Fila("Marca", dto.Marca ?? "—");
-                        Fila("Categoría", dto.CategoriaProducto);
-                        if (dto.GradoAlcoholimetrico.HasValue || dto.ContenidoNetoCc.HasValue)
-                            Fila("Grado / Contenido neto", $"{dto.GradoAlcoholimetrico?.ToString("0.#°") ?? "—"} · {dto.ContenidoNetoCc?.ToString() ?? "—"} cc");
-                        if (dto.UnidadesPorCajetilla.HasValue)
-                            Fila("Unidades por cajetilla", dto.UnidadesPorCajetilla.Value.ToString());
-                        Fila("Registro INVIMA", dto.RegistroInvima);
-                        Fila("Lote de producción", dto.LoteProduccion);
-                    });
+                        ("Nombre comercial", dto.NombreProducto),
+                        ("Marca", dto.Marca ?? "—"),
+                        ("Categoría", dto.CategoriaProducto),
+                    };
+                    if (dto.GradoAlcoholimetrico.HasValue || dto.ContenidoNetoCc.HasValue)
+                        filasProducto.Add(("Grado / Contenido neto", $"{dto.GradoAlcoholimetrico?.ToString("0.#°") ?? "—"} · {dto.ContenidoNetoCc?.ToString() ?? "—"} cc"));
+                    if (dto.UnidadesPorCajetilla.HasValue)
+                        filasProducto.Add(("Unidades por cajetilla", dto.UnidadesPorCajetilla.Value.ToString()));
+                    filasProducto.Add(("Registro INVIMA", dto.RegistroInvima));
+                    filasProducto.Add(("Lote de producción", dto.LoteProduccion));
+                    DisenoPdfSgds.SeccionTabla(col, "Producto", filasProducto.ToArray());
 
-                    col.Item().Text("Empresa").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Razón social"); t.Cell().Text(dto.EmpresaRazonSocial);
-                        t.Cell().Text("NIT"); t.Cell().Text(dto.EmpresaNit);
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Empresa",
+                        ("Razón social", dto.EmpresaRazonSocial),
+                        ("NIT", dto.EmpresaNit));
 
-                    col.Item().Text("Origen").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        if (dto.OrigenProducto == "Nacional")
-                        {
-                            t.Cell().Text("Tornaguía de movilización"); t.Cell().Text(dto.NumeroTornaguia ?? "—");
-                        }
-                        else
-                        {
-                            t.Cell().Text("Declaración de importación"); t.Cell().Text(dto.NumeroDeclaracionImportacion ?? "—");
-                            t.Cell().Text("Registro de introducción"); t.Cell().Text(dto.RegistroIntroduccion ?? "—");
-                        }
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Origen", dto.OrigenProducto == "Nacional"
+                        ? [("Tornaguía de movilización", dto.NumeroTornaguia ?? "—")]
+                        : [("Declaración de importación", dto.NumeroDeclaracionImportacion ?? "—"), ("Registro de introducción", dto.RegistroIntroduccion ?? "—")]);
 
-                    col.Item().Text("Rango de expedición").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Código"); t.Cell().Text(dto.CodigoCompleto).Bold();
-                        t.Cell().Text("Cantidad expedida"); t.Cell().Text($"{dto.CantidadEstampillas:N0}");
-                        t.Cell().Text("Rango"); t.Cell().Text($"{dto.Prefijo}-{dto.CodigoInicial:00000} a {dto.Prefijo}-{dto.CodigoFinal:00000}");
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Rango de expedición",
+                        ("Código", dto.CodigoCompleto),
+                        ("Cantidad expedida", $"{dto.CantidadEstampillas:N0}"),
+                        ("Rango", $"{dto.Prefijo}-{dto.CodigoInicial:00000} a {dto.Prefijo}-{dto.CodigoFinal:00000}"));
 
-                    col.Item().PaddingTop(4).Text("Para distribuir en el Departamento de Santander — prohibida su comercialización fuera de este territorio.")
-                        .FontSize(9).Italic();
+                    col.Item().PaddingTop(8).Text("Para distribuir en el Departamento de Santander — prohibida su comercialización fuera de este territorio.")
+                        .FontSize(8).Italic().FontColor(DisenoPdfSgds.Ink600);
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.CodigoCompleto).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.CodigoCompleto);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(18).PaddingBottom(14).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Respaldo administrativo — ver también el arte de estampilla para impresión."));
             });
         });
 
@@ -644,7 +580,7 @@ public class SycTraceController : ControllerBase
     // circular sólido, no se finge un holograma que un PDF no puede reproducir.
     private static byte[] GenerarEstampillaArtePdf(EstampillaResponseDto dto, byte[] qrBytes, byte[] barcodeBytes)
     {
-        var colorDept = "#0f1a2e";
+        var colorDept = DisenoPdfSgds.Navy900;
         var colorAccento = "#ea580c";
 
         var documento = Document.Create(contenedor =>

@@ -69,6 +69,7 @@ export default function FormularioVehiculoPage() {
             razonSocial: v.empresaNombre ?? '',
             proyectosConActividad: [],
             totalSolicitudes: 0,
+            tieneLogo: false,
           });
         }
       })

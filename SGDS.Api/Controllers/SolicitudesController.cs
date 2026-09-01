@@ -11,7 +11,7 @@ using System.Text.Json;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -673,7 +673,7 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
             ? $"{solicitud.Ciudadano.TipoDocumento} {solicitud.Ciudadano.NumeroDocumento}"
             : solicitud.Empresa?.Nit ?? "—";
 
-        var qrBytes = GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
 
         var pdfBytes = GenerarPreliquidacionPdf(
             numero, solicitud.Vehiculo, propietarioNombre, propietarioDocumento, datos,
@@ -715,7 +715,7 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         var numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString();
         var fechaLimiteOportuno = solicitud.FechaCreacion.AddDays(15);
 
-        var qrBytes = GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQrPreliquidacion(numero, solicitud.Vehiculo.Placa, Math.Round(impuesto, 0), fechaLimiteOportuno));
 
         return File(qrBytes, "image/png");
     }
@@ -740,14 +740,6 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
 
     private static string ContenidoQrPreliquidacion(string numero, string placa, decimal valorAPagar, DateTime fechaLimite) =>
         $"SGDS-IUVA|{numero}|Placa:{placa}|Valor:{valorAPagar:0}|Vence:{fechaLimite:yyyy-MM-dd}";
-
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
 
     private static (decimal baseGravable, decimal tarifa, decimal impuesto) CalcularImpuestoVehicular(decimal avaluo, bool antiguoClasico, bool blindado)
     {
@@ -777,76 +769,62 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "IUVA · Impuesto Vehicular", "Preliquidación", numero, DisenoPdfSgds.EscudoSantander));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Liquidación de Impuesto Vehicular").FontSize(16).Bold();
-                    col.Item().Text("Departamento de Santander · SGDS").FontSize(11);
-                    col.Item().PaddingTop(4).Text($"Referencia: {numero}").FontSize(10).Bold();
+                    DisenoPdfSgds.SeccionTabla(col, "Vehículo",
+                        ("Placa", vehiculo.Placa),
+                        ("Marca / Línea", $"{vehiculo.Marca} {vehiculo.Linea}".Trim()),
+                        ("Modelo", vehiculo.Modelo?.ToString() ?? "—"),
+                        ("Número de chasis", vehiculo.NumeroChasis ?? "—"),
+                        ("Tipo de vehículo", datos.GetValueOrDefault("tipoVehiculo", "—")),
+                        ("Cilindraje", datos.GetValueOrDefault("cilindraje", "—")),
+                        ("Departamento", datos.GetValueOrDefault("departamento", "—")));
+
+                    DisenoPdfSgds.SeccionTabla(col, "Propietario",
+                        ("Nombre", propietarioNombre),
+                        ("Documento", propietarioDocumento));
+
+                    DisenoPdfSgds.SeccionTabla(col, "Base gravable",
+                        ("Avalúo comercial", Moneda(avaluo)),
+                        ("¿Antiguo o clásico?", datos.GetValueOrDefault("antiguoClasico", "No")),
+                        ("¿Blindado?", datos.GetValueOrDefault("blindado", "No")),
+                        ("Base gravable ajustada", Moneda(baseGravable)),
+                        ("Tarifa aplicada", $"{tarifa * 100:0.0}%"),
+                        ("Valor del impuesto", Moneda(impuesto)));
+
+                    col.Item().PaddingTop(12).Text("Fechas y valores de pago").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                    col.Item().PaddingTop(4).Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(2); c.RelativeColumn(2); });
+                        DisenoPdfSgds.TablaEncabezado(t, "Concepto", "Fecha límite", "Valor a pagar");
+                        (string, string, string)[] filas =
+                        [
+                            ("Pago oportuno", fechaLimiteOportuno.ToString("dd/MM/yyyy"), Moneda(impuesto)),
+                            ("Pago extraordinario (+5% recargo)", fechaLimiteExtraordinario.ToString("dd/MM/yyyy"), Moneda(totalExtraordinario)),
+                        ];
+                        for (var i = 0; i < filas.Length; i++)
+                        {
+                            var (concepto, fecha, valor) = filas[i];
+                            var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(concepto).FontSize(9);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(fecha).FontSize(9);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(valor).FontSize(9);
+                        }
+                    });
+
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, numero);
+
+                    col.Item().PaddingTop(10).Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá — también disponible por PSE (tarjeta débito/crédito, cuentas de ahorro).")
+                        .FontSize(8.5f).FontColor(DisenoPdfSgds.Ink600);
                 });
 
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Datos del vehículo").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Placa", vehiculo.Placa);
-                        Fila("Marca / Línea", $"{vehiculo.Marca} {vehiculo.Linea}".Trim());
-                        Fila("Modelo", vehiculo.Modelo?.ToString() ?? "—");
-                        Fila("Número de chasis", vehiculo.NumeroChasis ?? "—");
-                        Fila("Tipo de vehículo", datos.GetValueOrDefault("tipoVehiculo", "—"));
-                        Fila("Cilindraje", datos.GetValueOrDefault("cilindraje", "—"));
-                        Fila("Departamento", datos.GetValueOrDefault("departamento", "—"));
-                    });
-
-                    col.Item().Text("Propietario").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Nombre"); t.Cell().Text(propietarioNombre);
-                        t.Cell().Text("Documento"); t.Cell().Text(propietarioDocumento);
-                    });
-
-                    col.Item().Text("Base gravable").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Avalúo comercial", Moneda(avaluo));
-                        Fila("¿Antiguo o clásico?", datos.GetValueOrDefault("antiguoClasico", "No"));
-                        Fila("¿Blindado?", datos.GetValueOrDefault("blindado", "No"));
-                        Fila("Base gravable ajustada", Moneda(baseGravable));
-                        Fila("Tarifa aplicada", $"{tarifa * 100:0.0}%");
-                        Fila("Valor del impuesto", Moneda(impuesto));
-                    });
-
-                    col.Item().Text("Fechas y valores de pago").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Concepto").Bold(); t.Cell().Text("Fecha límite").Bold(); t.Cell().Text("Valor a pagar").Bold();
-                        t.Cell().Text("Pago oportuno"); t.Cell().Text(fechaLimiteOportuno.ToString("dd/MM/yyyy")); t.Cell().Text(Moneda(impuesto));
-                        t.Cell().Text("Pago extraordinario (+5% recargo)"); t.Cell().Text(fechaLimiteExtraordinario.ToString("dd/MM/yyyy")); t.Cell().Text(Moneda(totalExtraordinario));
-                    });
-
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(numero).FontSize(8);
-
-                    col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
-                    col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
-                });
-
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Preliquidación sujeta a verificación por la Secretaría de Hacienda Departamental de Santander."));
             });
         });
 
@@ -870,7 +848,7 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         var (error, _, dto) = await CalcularLiquidacionEstampillasAsync(id);
         if (error != null) return error;
 
-        var qrBytes = GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
         var pdfBytes = GenerarEstampillasPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"Liquidacion_Estampillas_{dto.Numero}.pdf");
     }
@@ -882,7 +860,7 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
         var (error, _, dto) = await CalcularLiquidacionEstampillasAsync(id);
         if (error != null) return error;
 
-        var qrBytes = GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQrEstampillas(dto!.Numero, dto.Total));
         return File(qrBytes, "image/png");
     }
 
@@ -971,69 +949,52 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Estampillas Departamentales", "Preliquidación", dto.Numero, DisenoPdfSgds.EscudoSantander));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Secretaría de Hacienda Departamental — Unidad de Rentas").FontSize(11);
-                    col.Item().Text("Liquidación de Estampillas Departamentales").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Referencia: {dto.Numero}").FontSize(10).Bold();
-                });
+                    DisenoPdfSgds.SeccionTabla(col, "Contribuyente",
+                        ("Nombre / Razón social", dto.ContribuyenteNombre),
+                        ("Documento / NIT", dto.ContribuyenteDocumento));
 
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
+                    DisenoPdfSgds.SeccionTabla(col, "Contrato",
+                        ("Hecho generador", dto.HechoGenerador ?? "—"),
+                        ("Objeto", dto.ObjetoContrato ?? "—"),
+                        ("Fecha de suscripción", dto.FechaSuscripcion ?? "—"),
+                        ("Valor del contrato", Moneda(dto.ValorContrato)),
+                        ("Base gravable", Moneda(dto.BaseGravable)));
 
-                    col.Item().Text("Contribuyente").Bold();
-                    col.Item().Table(t =>
+                    col.Item().PaddingTop(12).Text("Estampillas aplicables").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                    col.Item().PaddingTop(4).Table(t =>
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Nombre / Razón social"); t.Cell().Text(dto.ContribuyenteNombre);
-                        t.Cell().Text("Documento / NIT"); t.Cell().Text(dto.ContribuyenteDocumento);
-                    });
-
-                    col.Item().Text("Contrato").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Hecho generador", dto.HechoGenerador ?? "—");
-                        Fila("Objeto", dto.ObjetoContrato ?? "—");
-                        Fila("Fecha de suscripción", dto.FechaSuscripcion ?? "—");
-                        Fila("Valor del contrato", Moneda(dto.ValorContrato));
-                        Fila("Base gravable", Moneda(dto.BaseGravable));
-                    });
-
-                    col.Item().Text("Liquidación — Estampillas Departamentales (Santander)").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Estampilla").Bold(); t.Cell().Text("Tarifa").Bold(); t.Cell().Text("Valor").Bold();
-                        foreach (var item in dto.Items.Where(i => i.Aplica))
+                        t.ColumnsDefinition(c => { c.RelativeColumn(3); c.RelativeColumn(); c.RelativeColumn(2); });
+                        DisenoPdfSgds.TablaEncabezado(t, "Estampilla", "Tarifa", "Valor");
+                        var itemsAplican = dto.Items.Where(i => i.Aplica).ToList();
+                        for (var i = 0; i < itemsAplican.Count; i++)
                         {
-                            t.Cell().Text(item.Nombre);
-                            t.Cell().Text($"{item.Tarifa * 100:0.0}%");
-                            t.Cell().Text(Moneda(item.Valor));
+                            var item = itemsAplican[i];
+                            var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(item.Nombre).FontSize(9);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text($"{item.Tarifa * 100:0.0}%").FontSize(9);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(Moneda(item.Valor)).FontSize(9);
                         }
                     });
 
-                    col.Item().PaddingTop(4).AlignRight().Text($"Total a pagar: {Moneda(dto.Total)}").FontSize(14).Bold();
+                    DisenoPdfSgds.ValorDestacado(col, "Total a pagar", Moneda(dto.Total));
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Numero).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Numero);
 
-                    col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
-                    col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
-
-                    col.Item().PaddingTop(10).Text("Tarifas de referencia — deben validarse contra el Estatuto de Rentas del Departamento de Santander vigente. No se aplica ningún recargo adicional sobre el total (Ordenanza 012/2005 anulada judicialmente).").FontSize(8).Italic();
+                    col.Item().PaddingTop(10).Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá — también disponible por PSE (tarjeta débito/crédito, cuentas de ahorro).")
+                        .FontSize(8.5f).FontColor(DisenoPdfSgds.Ink600);
+                    col.Item().PaddingTop(6).Text("Tarifas de referencia — deben validarse contra el Estatuto de Rentas del Departamento de Santander vigente. No se aplica ningún recargo adicional sobre el total (Ordenanza 012/2005 anulada judicialmente).")
+                        .FontSize(8).Italic().FontColor(DisenoPdfSgds.Ink400);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Preliquidación informativa — no constituye recibo de pago oficial."));
             });
         });
 

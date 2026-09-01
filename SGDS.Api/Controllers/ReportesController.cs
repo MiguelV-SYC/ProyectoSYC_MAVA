@@ -9,6 +9,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -134,62 +135,53 @@ public class ReportesController : ControllerBase
     }
 
 
-    private byte[] GenerarPdf(List<Solicitud> solicitudes)
+    private byte[] GenerarPdf(List<Solicitud> solicitudes, GenerarReporteDto dto)
     {
+        var periodo = dto.Desde.HasValue && dto.Hasta.HasValue
+            ? $"Período: {dto.Desde:yyyy-MM-dd} a {dto.Hasta:yyyy-MM-dd}"
+            : "Todas las fechas";
+
         var documento = Document.Create(contenedor =>
         {
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4.Landscape());
-                pagina.Margin(30);
+                pagina.Margin(0);
 
-                pagina.Header()
-                    .Text("Reporte de Solicitudes - SGDS")
-                    .FontSize(16)
-                    .Bold();
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Reportes · Vista multi-proyecto", "Reporte de solicitudes", periodo));
 
-                pagina.Content().Table(tabla =>
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    tabla.ColumnsDefinition(columnas =>
+                    col.Item().Table(tabla =>
                     {
-                        columnas.RelativeColumn();
-                        columnas.RelativeColumn();
-                        columnas.RelativeColumn(2);
-                        columnas.RelativeColumn();
-                        columnas.RelativeColumn();
-                        columnas.RelativeColumn();
-                    });
-
-                    tabla.Header(encabezado =>
-                    {
-                        string[] titulos = { "Número", "Proyecto", "Ciudadano/Empresa", "Estado", "Fecha", "Asignado a" };
-                        foreach (var titulo in titulos)
+                        tabla.ColumnsDefinition(columnas =>
                         {
-                            encabezado.Cell().Text(titulo).Bold();
+                            columnas.RelativeColumn();
+                            columnas.RelativeColumn();
+                            columnas.RelativeColumn(2);
+                            columnas.RelativeColumn();
+                            columnas.RelativeColumn();
+                            columnas.RelativeColumn();
+                        });
+
+                        DisenoPdfSgds.TablaEncabezado(tabla, "Número", "Proyecto", "Ciudadano/Empresa", "Estado", "Fecha", "Asignado a");
+
+                        for (var i = 0; i < solicitudes.Count; i++)
+                        {
+                            var s = solicitudes[i];
+                            var numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString();
+                            var nombreAfiliado = s.Ciudadano?.NombreCompleto ?? s.Empresa?.RazonSocial ?? "";
+                            var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+
+                            foreach (var valor in new[] { numero, s.Proyecto?.Nombre ?? "", nombreAfiliado, EstadoEfectivoReporte(s), s.FechaCreacion.ToString("yyyy-MM-dd"), s.UsuarioAsignado?.NombreCompleto ?? "Sin asignar" })
+                                tabla.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(valor).FontSize(9);
                         }
                     });
 
-                    foreach (var s in solicitudes)
-                    {
-                        var numero = s.Proyecto != null ? $"{s.Proyecto.Codigo}-{s.Id:0000}" : s.Id.ToString();
-                        var nombreAfiliado = s.Ciudadano?.NombreCompleto ?? s.Empresa?.RazonSocial ?? "";
-
-                        tabla.Cell().Text(numero);
-                        tabla.Cell().Text(s.Proyecto?.Nombre ?? "");
-                        tabla.Cell().Text(nombreAfiliado);
-                        tabla.Cell().Text(EstadoEfectivoReporte(s));
-                        tabla.Cell().Text(s.FechaCreacion.ToString("yyyy-MM-dd"));
-                        tabla.Cell().Text(s.UsuarioAsignado?.NombreCompleto ?? "Sin asignar");
-                    }
+                    col.Item().PaddingTop(10).Text($"Total: {solicitudes.Count} solicitud(es).").FontSize(9).Bold().FontColor(DisenoPdfSgds.Ink900);
                 });
 
-                pagina.Footer()
-                    .AlignCenter()
-                    .Text(texto =>
-                    {
-                        texto.Span("Generado el ");
-                        texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                    });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f, "Reporte generado desde SGDS — vista de solo lectura."));
             });
         });
 
@@ -288,7 +280,7 @@ public class ReportesController : ControllerBase
         }
         else
         {
-            contenido = GenerarPdf(solicitudes);
+            contenido = GenerarPdf(solicitudes, dto);
             extension = "pdf";
         }
 

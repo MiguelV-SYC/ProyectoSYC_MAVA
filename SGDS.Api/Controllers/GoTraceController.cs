@@ -7,7 +7,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -166,7 +166,7 @@ public class GoTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirCertificadoDto(solicitud!);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         var pdfBytes = GenerarCertificadoPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"Certificado_Trazabilidad_{dto.NumeroLote}.pdf");
     }
@@ -179,7 +179,7 @@ public class GoTraceController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirCertificadoDto(solicitud!);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         return File(qrBytes, "image/png");
     }
 
@@ -289,14 +289,6 @@ public class GoTraceController : ControllerBase
         };
     }
 
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
-
     private static byte[] GenerarCertificadoPdf(CertificadoTrazabilidadResponseDto dto, byte[] qrBytes)
     {
         var documento = Document.Create(contenedor =>
@@ -304,72 +296,54 @@ public class GoTraceController : ControllerBase
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "GoTrace · Trazabilidad logística", "Certificado de trazabilidad", dto.NumeroLote));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Gotrace — Trazabilidad Logística").FontSize(11).FontColor(Colors.Amber.Darken2);
-                    col.Item().Text("Certificado de Trazabilidad").FontSize(18).Bold();
-                    col.Item().PaddingTop(4).Text($"Lote: {dto.NumeroLote}").FontSize(11).Bold();
-                });
-
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Producto").Bold();
-                    col.Item().Table(t =>
+                    var filasProducto = new List<(string, string)>
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Producto", dto.Producto);
-                        Fila("Unidades del lote", $"{dto.UnidadesLote:N0} botellas");
-                        Fila("Fecha de producción", dto.FechaProduccion.ToString("dd/MM/yyyy"));
-                        if (dto.RangoUidCompleto != null)
-                            Fila("Rango de UIDs", dto.RangoUidCompleto);
-                    });
+                        ("Producto", dto.Producto),
+                        ("Unidades del lote", $"{dto.UnidadesLote:N0} botellas"),
+                        ("Fecha de producción", dto.FechaProduccion.ToString("dd/MM/yyyy")),
+                    };
+                    if (dto.RangoUidCompleto != null)
+                        filasProducto.Add(("Rango de UIDs", dto.RangoUidCompleto));
+                    DisenoPdfSgds.SeccionTabla(col, "Producto", filasProducto.ToArray());
 
-                    col.Item().Text("Empresa productora").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Razón social"); t.Cell().Text(dto.EmpresaRazonSocial);
-                        t.Cell().Text("NIT"); t.Cell().Text(dto.EmpresaNit);
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Empresa productora",
+                        ("Razón social", dto.EmpresaRazonSocial),
+                        ("NIT", dto.EmpresaNit));
 
-                    col.Item().Text("Cadena de custodia").Bold();
-                    col.Item().Table(t =>
+                    col.Item().PaddingTop(12).Text("Cadena de custodia").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                    col.Item().PaddingTop(4).Table(t =>
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(); c.RelativeColumn(2); });
-                        t.Cell().Text("Punto de control").Bold();
-                        t.Cell().Text("Estado").Bold();
-                        t.Cell().Text("Fecha").Bold();
-                        foreach (var p in dto.PuntosControl.Where(p => p.Habilitado))
+                        t.ColumnsDefinition(c => { c.RelativeColumn(3); c.RelativeColumn(2); c.RelativeColumn(2); });
+                        DisenoPdfSgds.TablaEncabezado(t, "Punto de control", "Estado", "Fecha");
+                        var habilitados = dto.PuntosControl.Where(p => p.Habilitado).ToList();
+                        for (var i = 0; i < habilitados.Count; i++)
                         {
-                            t.Cell().Text(p.Nombre);
-                            t.Cell().Text(p.Confirmado ? "Confirmado" : "Pendiente")
-                                .FontColor(p.Confirmado ? Colors.Green.Darken1 : Colors.Grey.Medium);
-                            t.Cell().Text(p.FechaConfirmacion.HasValue ? p.FechaConfirmacion.Value.ToString("dd/MM/yyyy HH:mm") : "—");
+                            var p = habilitados[i];
+                            var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(p.Nombre).FontSize(9);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6)
+                                .Text(p.Confirmado ? "Confirmado" : "Pendiente").FontSize(9).Bold()
+                                .FontColor(p.Confirmado ? "#16a34a" : DisenoPdfSgds.Ink400);
+                            t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6)
+                                .Text(p.FechaConfirmacion.HasValue ? p.FechaConfirmacion.Value.ToString("dd/MM/yyyy HH:mm") : "—").FontSize(9).FontColor(DisenoPdfSgds.Ink600);
                         }
                     });
 
-                    col.Item().PaddingTop(4).Text($"{dto.TotalPuntosConfirmados} de {dto.TotalPuntosHabilitados} puntos de control confirmados.")
-                        .FontSize(11).Bold();
+                    col.Item().PaddingTop(8).Text($"{dto.TotalPuntosConfirmados} de {dto.TotalPuntosHabilitados} puntos de control confirmados.")
+                        .FontSize(9).Italic().FontColor(DisenoPdfSgds.Ink600);
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Numero).FontSize(8);
-
-                    col.Item().PaddingTop(6).Text(
-                        "Este certificado se actualiza conforme cada punto de control registra el paso del lote. Es una herramienta de la empresa productora, distinta de la estampilla oficial que expide SYCTrace para el control departamental del impuesto al consumo.")
-                        .FontSize(8.5f).Italic().FontColor(Colors.Grey.Medium);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Numero);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Certificado de la empresa productora — distinto de la estampilla oficial que expide SYCTrace para el control departamental del impuesto al consumo."));
             });
         });
 

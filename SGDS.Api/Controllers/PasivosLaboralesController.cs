@@ -7,7 +7,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -141,7 +141,7 @@ public class PasivosLaboralesController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirLiquidacionDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-PASIVOSLABORALES|{dto.Referencia}|{dto.EmpresaNit}|{dto.ValorMensualACargo?.ToString("0") ?? "NA"}");
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-PASIVOSLABORALES|{dto.Referencia}|{dto.EmpresaNit}|{dto.ValorMensualACargo?.ToString("0") ?? "NA"}");
         var pdfBytes = GenerarLiquidacionPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"Liquidacion_{dto.Referencia}.pdf");
     }
@@ -154,7 +154,7 @@ public class PasivosLaboralesController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirLiquidacionDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-PASIVOSLABORALES|{dto.Referencia}|{dto.EmpresaNit}|{dto.ValorMensualACargo?.ToString("0") ?? "NA"}");
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-PASIVOSLABORALES|{dto.Referencia}|{dto.EmpresaNit}|{dto.ValorMensualACargo?.ToString("0") ?? "NA"}");
         return File(qrBytes, "image/png");
     }
 
@@ -357,14 +357,6 @@ public class PasivosLaboralesController : ControllerBase
         return dto;
     }
 
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
-
     private static byte[] GenerarLiquidacionPdf(LiquidacionCuotaParteResponseDto dto, byte[] qrBytes)
     {
         string Meses(int? m) => m.HasValue ? $"{m.Value / 12} años, {m.Value % 12} meses ({m.Value} meses)" : "—";
@@ -375,66 +367,45 @@ public class PasivosLaboralesController : ControllerBase
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Pasivos Laborales · Cuota parte pensional", "Liquidación de cuota parte", dto.Referencia));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Secretaría de Hacienda Departamental — Unidad de Rentas").FontSize(11);
-                    col.Item().Text("Liquidación de Pasivo Laboral").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Referencia: {dto.Referencia}").FontSize(10).Bold();
-                });
+                    DisenoPdfSgds.SeccionTabla(col, "Entidad concurrente",
+                        ("Razón social", dto.EmpresaRazonSocial),
+                        ("NIT", dto.EmpresaNit));
 
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Entidad concurrente").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Razón social"); t.Cell().Text(dto.EmpresaRazonSocial);
-                        t.Cell().Text("NIT"); t.Cell().Text(dto.EmpresaNit);
-                    });
-
-                    col.Item().Text("Servidor / Pensionado").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Nombre"); t.Cell().Text(dto.ServidorNombre ?? "—");
-                        t.Cell().Text("Documento"); t.Cell().Text(dto.ServidorDocumento ?? "—");
-                        t.Cell().Text("Régimen pensional"); t.Cell().Text(dto.RegimenPensional ?? "—");
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Servidor / Pensionado",
+                        ("Nombre", dto.ServidorNombre ?? "—"),
+                        ("Documento", dto.ServidorDocumento ?? "—"),
+                        ("Régimen pensional", dto.RegimenPensional ?? "—"));
 
                     if (!dto.Soportado)
                     {
-                        col.Item().Text(dto.MotivoNoSoportado ?? "Liquidación no soportada para este instrumento.").FontColor(Colors.Red.Medium);
+                        col.Item().PaddingTop(10).Background("#fdeaea").Padding(8)
+                            .Text(dto.MotivoNoSoportado ?? "Liquidación no soportada para este instrumento.").FontColor(Colors.Red.Medium).Bold();
                     }
                     else
                     {
-                        col.Item().Text("Cálculo de la cuota parte").Bold();
-                        col.Item().Table(t =>
-                        {
-                            t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(); });
-                            void Fila(string l, string v) { t.Cell().Text(l); t.Cell().AlignRight().Text(v); }
-                            Fila("Tiempo laborado en la entidad", Meses(dto.TiempoLaboradoMeses));
-                            Fila("Tiempo total de aportes", Meses(dto.TiempoTotalAportesMeses));
-                            Fila("Valor de la mesada pensional", Moneda(dto.ValorMesadaPensional));
-                            Fila("% de concurrencia", $"{dto.TiempoLaboradoMeses} / {dto.TiempoTotalAportesMeses} = {dto.PorcentajeConcurrencia:0.0}%");
-                        });
-                        col.Item().PaddingTop(4).AlignRight().Text($"Valor mensual a cargo de la entidad: {Moneda(dto.ValorMensualACargo)}").FontSize(13).Bold();
-                        col.Item().Text("Pago mensual mientras subsista la pensión — se recalcula ante cambios en la mesada o novedades del régimen.").FontSize(9).Italic();
+                        DisenoPdfSgds.SeccionTabla(col, "Cálculo de la cuota parte",
+                            ("Tiempo laborado en la entidad", Meses(dto.TiempoLaboradoMeses)),
+                            ("Tiempo total de aportes", Meses(dto.TiempoTotalAportesMeses)),
+                            ("Valor de la mesada pensional", Moneda(dto.ValorMesadaPensional)),
+                            ("% de concurrencia", $"{dto.TiempoLaboradoMeses} / {dto.TiempoTotalAportesMeses} = {dto.PorcentajeConcurrencia:0.0}%"));
+
+                        DisenoPdfSgds.ValorDestacado(col, "Valor mensual a cargo de la entidad", Moneda(dto.ValorMensualACargo));
+                        col.Item().PaddingTop(6).Text("Pago mensual mientras subsista la pensión — se recalcula ante cambios en la mesada o novedades del régimen.")
+                            .FontSize(8.5f).Italic().FontColor(DisenoPdfSgds.Ink600);
                     }
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Referencia).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Referencia);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Liquidación de referencia — sujeta a revisión por la entidad pensional concurrente."));
             });
         });
 

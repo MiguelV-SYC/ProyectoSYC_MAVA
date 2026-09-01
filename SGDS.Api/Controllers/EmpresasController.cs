@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SGDS.Application.DTOs;
 using SGDS.Application.Helpers;
+using SGDS.Application.Interfaces;
 using SGDS.Domain.Entities;
 using SGDS.Infrastructure.Data;
 
@@ -14,10 +15,12 @@ namespace SGDS.Api.Controllers;
 public class EmpresasController : ControllerBase
 {
     private readonly SgdsDbContext _context;
+    private readonly IAlmacenamientoService _almacenamiento;
 
-    public EmpresasController(SgdsDbContext context)
+    public EmpresasController(SgdsDbContext context, IAlmacenamientoService almacenamiento)
     {
         _context = context;
+        _almacenamiento = almacenamiento;
     }
 
     // GET: api/Empresas?buscar=texto&pagina=1&tamanoPagina=20
@@ -60,7 +63,8 @@ public class EmpresasController : ControllerBase
                 .Select(s => s.Proyecto!.Nombre)
                 .Distinct()
                 .ToList(),
-            TotalSolicitudes = e.Solicitudes.Count
+            TotalSolicitudes = e.Solicitudes.Count,
+            TieneLogo = e.RutaLogo != null
         }).ToList();
 
         var respuesta = new PaginacionResponseDto<EmpresaResponseDto>
@@ -118,10 +122,59 @@ public class EmpresasController : ControllerBase
             Ciudad = empresa.Ciudad,
             Direccion = empresa.Direccion,
             FechaRegistro = empresa.FechaRegistro,
-            ProyectosConActividad = proyectosConActividad
+            ProyectosConActividad = proyectosConActividad,
+            TieneLogo = empresa.RutaLogo != null
         };
 
         return Ok(dto);
+    }
+
+    // POST: api/Empresas/5/logo
+    [HttpPost("{id}/logo")]
+    public async Task<IActionResult> SubirLogo(int id, IFormFile logo)
+    {
+        var empresa = await _context.Empresas.FindAsync(id);
+        if (empresa == null)
+            return NotFound();
+
+        if (logo == null || logo.Length == 0)
+            return BadRequest(new { mensaje = "Debe adjuntar una imagen" });
+
+        if (!logo.ContentType.StartsWith("image/"))
+            return BadRequest(new { mensaje = "El logo debe ser una imagen (PNG, JPG o SVG)" });
+
+        using var stream = logo.OpenReadStream();
+        empresa.RutaLogo = await _almacenamiento.GuardarArchivoAsync(stream, logo.FileName, $"empresas/{id}");
+        await _context.SaveChangesAsync();
+
+        return Ok(new { tieneLogo = true });
+    }
+
+    // GET: api/Empresas/5/logo
+    [HttpGet("{id}/logo")]
+    public async Task<IActionResult> GetLogo(int id)
+    {
+        var empresa = await _context.Empresas.FindAsync(id);
+        if (empresa?.RutaLogo == null)
+            return NotFound();
+
+        try
+        {
+            var stream = await _almacenamiento.ObtenerArchivoAsync(empresa.RutaLogo);
+            var tipoContenido = Path.GetExtension(empresa.RutaLogo).ToLowerInvariant() switch
+            {
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".svg" => "image/svg+xml",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream",
+            };
+            return File(stream, tipoContenido);
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound(new { mensaje = "El archivo físico no se encuentra disponible" });
+        }
     }
 
     // GET: api/Empresas/buscar-por-nit?nit=X

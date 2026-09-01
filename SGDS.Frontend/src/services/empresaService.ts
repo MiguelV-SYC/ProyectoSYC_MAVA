@@ -15,6 +15,7 @@ export interface EmpresaResponseDto {
   razonSocial: string;
   proyectosConActividad: string[];
   totalSolicitudes: number;
+  tieneLogo: boolean;
 }
 
 export interface PagedResult<T> {
@@ -56,6 +57,7 @@ export interface EmpresaDetalleResponseDto {
   direccion?: string;
   fechaRegistro: string;
   proyectosConActividad: ProyectoActividadDto[];
+  tieneLogo: boolean;
 }
 
 export async function getEmpresaDetalle(id: number): Promise<EmpresaDetalleResponseDto> {
@@ -108,4 +110,20 @@ export interface ActualizarEmpresaDto {
 
 export async function actualizarEmpresa(id: number, dto: ActualizarEmpresaDto): Promise<void> {
   await axios.put(`${API_URL}/Empresas/${id}`, dto, { headers: authHeader() });
+}
+
+export async function subirLogoEmpresa(id: number, logo: File): Promise<void> {
+  const formData = new FormData();
+  formData.append('logo', logo);
+  await axios.post(`${API_URL}/Empresas/${id}/logo`, formData, {
+    headers: { ...authHeader(), 'Content-Type': 'multipart/form-data' },
+  });
+}
+
+export async function obtenerLogoEmpresaBlobUrl(id: number): Promise<string> {
+  const response = await axios.get(`${API_URL}/Empresas/${id}/logo`, {
+    headers: authHeader(),
+    responseType: 'blob',
+  });
+  return window.URL.createObjectURL(new Blob([response.data]));
 }

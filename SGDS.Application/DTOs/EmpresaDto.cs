@@ -8,6 +8,7 @@ public class EmpresaResponseDto
   public string RazonSocial { get; set; } = string.Empty;
   public List<string> ProyectosConActividad { get; set; } = new();
   public int TotalSolicitudes { get; set; }
+  public bool TieneLogo { get; set; }
 }
 
 public class CrearEmpresaDto
@@ -42,6 +43,7 @@ public class EmpresaDetalleResponseDto
   public string? Direccion { get; set; }
   public DateTime FechaRegistro { get; set; }
   public List<ProyectoActividadEmpresaDto> ProyectosConActividad { get; set; } = new();
+  public bool TieneLogo { get; set; }
 }
 
 public class EmpresaBusquedaResponseDto

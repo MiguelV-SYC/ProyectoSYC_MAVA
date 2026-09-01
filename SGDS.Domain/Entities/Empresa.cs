@@ -13,4 +13,8 @@ public class Empresa
     public string? Ciudad { get; set; }
     public string? Direccion { get; set; }
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+
+    // Ruta relativa devuelta por IAlmacenamientoService (mismo mecanismo que Documento.RutaArchivo)
+    // — el logo se sirve vía GET /api/Empresas/{id}/logo, nunca como URL estática directa.
+    public string? RutaLogo { get; set; }
 }

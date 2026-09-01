@@ -9,7 +9,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -20,11 +20,33 @@ public class InfoconsumoController : ControllerBase
 {
     private readonly SgdsDbContext _context;
     private readonly ConfiguracionImpuestoConsumo _configImpoConsumo;
+    private readonly SGDS.Application.Interfaces.IAlmacenamientoService _almacenamiento;
 
-    public InfoconsumoController(SgdsDbContext context, IOptions<ConfiguracionImpuestoConsumo> configImpoConsumo)
+    public InfoconsumoController(SgdsDbContext context, IOptions<ConfiguracionImpuestoConsumo> configImpoConsumo, SGDS.Application.Interfaces.IAlmacenamientoService almacenamiento)
     {
         _context = context;
         _configImpoConsumo = configImpoConsumo.Value;
+        _almacenamiento = almacenamiento;
+    }
+
+    // El logo de la empresa remitente es opcional (Empresa.RutaLogo) — si no lo ha cargado
+    // todavía, la tornaguía se genera igual, sin ese bloque.
+    private async Task<byte[]?> ObtenerLogoEmpresaAsync(int empresaId)
+    {
+        var rutaLogo = await _context.Empresas.Where(e => e.Id == empresaId).Select(e => e.RutaLogo).FirstOrDefaultAsync();
+        if (rutaLogo == null) return null;
+
+        try
+        {
+            using var stream = await _almacenamiento.ObtenerArchivoAsync(rutaLogo);
+            using var memoria = new MemoryStream();
+            await stream.CopyToAsync(memoria);
+            return memoria.ToArray();
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
     }
 
     // ===== Creación y edición =====
@@ -252,8 +274,9 @@ public class InfoconsumoController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirTornaguiaDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
-        var pdfBytes = GenerarTornaguiaPdf(dto, qrBytes);
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
+        var logoEmpresa = await ObtenerLogoEmpresaAsync(dto.EmpresaId);
+        var pdfBytes = GenerarTornaguiaPdf(dto, qrBytes, logoEmpresa);
         return File(pdfBytes, "application/pdf", $"Tornaguia_{dto.Numero}.pdf");
     }
 
@@ -265,7 +288,7 @@ public class InfoconsumoController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirTornaguiaDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-TG|{dto.Numero}|Placa:{dto.PlacaVehiculo}|Vence:{dto.FechaVigenciaLimite:yyyy-MM-dd}");
         return File(qrBytes, "image/png");
     }
 
@@ -287,7 +310,7 @@ public class InfoconsumoController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirLiquidacionDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-INFOCONSUMO-ICL|{dto.Numero}|Total:{dto.TotalAPagar:0}");
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-ICL|{dto.Numero}|Total:{dto.TotalAPagar:0}");
         var pdfBytes = GenerarLiquidacionPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"Liquidacion_ICL_{dto.Numero}.pdf");
     }
@@ -300,7 +323,7 @@ public class InfoconsumoController : ControllerBase
         if (error != null) return error;
 
         var dto = ConstruirLiquidacionDto(solicitud!);
-        var qrBytes = GenerarQrPng($"SGDS-INFOCONSUMO-ICL|{dto.Numero}|Total:{dto.TotalAPagar:0}");
+        var qrBytes = DisenoPdfSgds.GenerarQrPng($"SGDS-INFOCONSUMO-ICL|{dto.Numero}|Total:{dto.TotalAPagar:0}");
         return File(qrBytes, "image/png");
     }
 
@@ -624,91 +647,70 @@ public class InfoconsumoController : ControllerBase
         };
     }
 
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
-
-    private static byte[] GenerarTornaguiaPdf(TornaguiaResponseDto dto, byte[] qrBytes)
+    private static byte[] GenerarTornaguiaPdf(TornaguiaResponseDto dto, byte[] qrBytes, byte[]? logoEmpresa)
     {
         var documento = Document.Create(contenedor =>
         {
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Infoconsumo · Impuesto al Consumo", $"Tornaguía de {dto.TipoTramite}", dto.Numero));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Secretaría de Hacienda Departamental — Unidad de Rentas").FontSize(11);
-                    col.Item().Text($"Tornaguía de {dto.TipoTramite}").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Número: {dto.Numero}").FontSize(10).Bold();
-                });
-
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Producto amparado").Bold();
-                    col.Item().Table(t =>
+                    // Logo de la empresa remitente (Empresa.RutaLogo) — si aún no lo ha
+                    // cargado, se omite el bloque en vez de mostrar un espacio vacío.
+                    if (logoEmpresa != null)
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Categoría", dto.CategoriaProducto);
-                        Fila("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)");
-                        Fila("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—");
-                    });
-
-                    col.Item().Text("Empresa remitente").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Razón social"); t.Cell().Text(dto.EmpresaRazonSocial);
-                        t.Cell().Text("NIT"); t.Cell().Text(dto.EmpresaNit);
-                    });
-
-                    col.Item().Text("Transportador").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Empresa transportadora", dto.EmpresaTransportadora);
-                        Fila("Conductor", dto.Conductor ?? "—");
-                        Fila("Cédula del conductor", dto.CedulaConductor ?? "—");
-                        Fila("Placa del vehículo", dto.PlacaVehiculo);
-                        Fila("Tipo de vehículo", dto.TipoVehiculo ?? "—");
-                    });
-
-                    col.Item().Text("Movilización autorizada").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Origen"); t.Cell().Text($"{dto.MunicipioOrigen}, {dto.DepartamentoOrigen}");
-                        t.Cell().Text("Destino"); t.Cell().Text($"{dto.MunicipioDestino}, {dto.DepartamentoDestino}");
-                        if (dto.DistanciaAproximadaKm.HasValue)
+                        col.Item().PaddingBottom(8).Row(row =>
                         {
-                            t.Cell().Text("Distancia aproximada"); t.Cell().Text($"{dto.DistanciaAproximadaKm:N0} km (línea recta entre capitales)");
-                        }
-                    });
+                            row.ConstantItem(60).Height(60).Image(logoEmpresa).FitArea();
+                            row.RelativeItem().PaddingLeft(12).AlignMiddle().Column(c2 =>
+                            {
+                                c2.Item().Text(dto.EmpresaRazonSocial).FontSize(11).Bold().FontColor(DisenoPdfSgds.Ink900);
+                                c2.Item().Text($"NIT {dto.EmpresaNit} — Empresa remitente").FontSize(8.5f).FontColor(DisenoPdfSgds.Ink600);
+                            });
+                        });
+                    }
 
-                    col.Item().PaddingTop(4).Text(
+                    DisenoPdfSgds.SeccionTabla(col, "Producto amparado",
+                        ("Categoría", dto.CategoriaProducto),
+                        ("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
+                        ("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—"));
+
+                    DisenoPdfSgds.SeccionTabla(col, "Empresa remitente",
+                        ("Razón social", dto.EmpresaRazonSocial),
+                        ("NIT", dto.EmpresaNit));
+
+                    DisenoPdfSgds.SeccionTabla(col, "Transportador",
+                        ("Empresa transportadora", dto.EmpresaTransportadora),
+                        ("Conductor", dto.Conductor ?? "—"),
+                        ("Cédula del conductor", dto.CedulaConductor ?? "—"),
+                        ("Placa del vehículo", dto.PlacaVehiculo),
+                        ("Tipo de vehículo", dto.TipoVehiculo ?? "—"));
+
+                    var filasMovilizacion = new List<(string, string)>
+                    {
+                        ("Origen", $"{dto.MunicipioOrigen}, {dto.DepartamentoOrigen}"),
+                        ("Destino", $"{dto.MunicipioDestino}, {dto.DepartamentoDestino}"),
+                    };
+                    if (dto.DistanciaAproximadaKm.HasValue)
+                        filasMovilizacion.Add(("Distancia aproximada", $"{dto.DistanciaAproximadaKm:N0} km (línea recta entre capitales)"));
+                    DisenoPdfSgds.SeccionTabla(col, "Movilización autorizada", filasMovilizacion.ToArray());
+
+                    col.Item().PaddingTop(10).Text(
                         dto.FechaVigenciaLimite.HasValue
                             ? $"Vigente hasta el {dto.FechaVigenciaLimite:dd/MM/yyyy} — {(dto.TipoTramite == "Tránsito" ? "10 días calendario" : "15 días calendario")} para legalización (Decreto 3071 de 1997)."
-                            : "Aún no expedida — sin fecha de vigencia.").FontSize(9).Italic();
+                            : "Aún no expedida — sin fecha de vigencia.").FontSize(8.5f).Italic().FontColor(DisenoPdfSgds.Ink600);
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Numero).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Numero);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Tornaguía válida únicamente para la movilización descrita — no transferible."));
             });
         });
 
@@ -724,78 +726,69 @@ public class InfoconsumoController : ControllerBase
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Infoconsumo · Impuesto al Consumo", "Preliquidación Impuesto al Consumo", dto.Numero));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("Secretaría de Hacienda Departamental — Unidad de Rentas").FontSize(11);
-                    col.Item().Text("Preliquidación Impuesto al Consumo").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Referencia: {dto.Numero}").FontSize(10).Bold();
-                });
+                    DisenoPdfSgds.SeccionTabla(col, "Contribuyente",
+                        ("Razón social", dto.ContribuyenteNombre),
+                        ("NIT", dto.ContribuyenteNit));
 
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Contribuyente").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Razón social"); t.Cell().Text(dto.ContribuyenteNombre);
-                        t.Cell().Text("NIT"); t.Cell().Text(dto.ContribuyenteNit);
-                    });
-
-                    col.Item().Text("Producto gravado").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        void Fila(string l, string v) { t.Cell().Text(l); t.Cell().Text(v); }
-                        Fila("Categoría", dto.CategoriaProducto);
-                        Fila("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)");
-                        Fila("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—");
-                    });
+                    DisenoPdfSgds.SeccionTabla(col, "Producto gravado",
+                        ("Categoría", dto.CategoriaProducto),
+                        ("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
+                        ("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—"));
 
                     if (!dto.Soportado)
                     {
-                        col.Item().Text(dto.MotivoNoSoportado ?? "Categoría no soportada.").FontColor(Colors.Red.Medium);
+                        col.Item().PaddingTop(10).Background("#fdeaea").Padding(8)
+                            .Text(dto.MotivoNoSoportado ?? "Categoría no soportada.").FontColor(Colors.Red.Medium).Bold();
                     }
                     else
                     {
-                        col.Item().Text("Liquidación — Impuesto al Consumo de Licores (ICL)").Bold();
-                        col.Item().Table(t =>
+                        col.Item().PaddingTop(12).Text("Liquidación — Impuesto al Consumo de Licores (ICL)").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                        col.Item().PaddingTop(4).Table(t =>
                         {
-                            t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(); c.RelativeColumn(); });
-                            t.Cell().Text("Concepto").Bold(); t.Cell().Text("Tarifa").Bold(); t.Cell().Text("Valor").Bold();
-                            t.Cell().Text(dto.AplicaExcepcionSanAndres ? "Componente específico (tarifa San Andrés)" : "Componente específico");
-                            t.Cell().Text($"${dto.TarifaEspecifica:N0} × grado");
-                            t.Cell().Text(Moneda(dto.ComponenteEspecifico));
-                            t.Cell().Text("Componente ad valorem");
-                            t.Cell().Text($"{dto.TarifaAdValorem * 100:0.#}% sobre PVP");
-                            t.Cell().Text(Moneda(dto.ComponenteAdValorem));
+                            t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(2); c.RelativeColumn(2); });
+                            DisenoPdfSgds.TablaEncabezado(t, "Concepto", "Tarifa", "Valor");
+                            (string, string, string)[] filas =
+                            [
+                                (dto.AplicaExcepcionSanAndres ? "Componente específico (tarifa San Andrés)" : "Componente específico",
+                                    $"${dto.TarifaEspecifica:N0} × grado", Moneda(dto.ComponenteEspecifico)),
+                                ("Componente ad valorem", $"{dto.TarifaAdValorem * 100:0.#}% sobre PVP", Moneda(dto.ComponenteAdValorem)),
+                            ];
+                            for (var i = 0; i < filas.Length; i++)
+                            {
+                                var (concepto, tarifa, valor) = filas[i];
+                                var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(concepto).FontSize(9);
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(tarifa).FontSize(9);
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(valor).FontSize(9);
+                            }
                         });
 
-                        col.Item().PaddingTop(4).AlignRight().Text($"ICL informativo: {Moneda(dto.IclInformativo)}").FontSize(11);
-                        col.Item().AlignRight().Text($"Total a pagar: {Moneda(dto.TotalAPagar)}").FontSize(14).Bold();
+                        col.Item().PaddingTop(6).AlignRight().Text($"ICL informativo: {Moneda(dto.IclInformativo)}").FontSize(9.5f).FontColor(DisenoPdfSgds.Ink600);
+                        DisenoPdfSgds.ValorDestacado(col, "Total a pagar", Moneda(dto.TotalAPagar));
 
                         if (dto.EsSoloInformativo)
                         {
-                            col.Item().Text($"El trámite es de {dto.TipoTramite} — el impuesto no se causa en este departamento; el valor se muestra solo de forma informativa.").FontSize(9).Italic();
+                            col.Item().PaddingTop(8).Background("#fdf3e7").Padding(8)
+                                .Text($"El trámite es de {dto.TipoTramite} — el impuesto no se causa en este departamento; el valor se muestra solo de forma informativa.")
+                                .FontSize(8.5f).Bold().FontColor("#96631a");
                         }
                     }
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Numero).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Numero);
 
-                    col.Item().PaddingTop(6).AlignCenter().Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá").FontSize(9);
-                    col.Item().AlignCenter().Text("PSE: tarjeta débito/crédito · cuentas de ahorro").FontSize(9);
+                    col.Item().PaddingTop(10).Text("Bancos habilitados: Davivienda, BBVA, Bancolombia, Banco de Bogotá — también disponible por PSE (tarjeta débito/crédito, cuentas de ahorro).")
+                        .FontSize(8.5f).FontColor(DisenoPdfSgds.Ink600);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Preliquidación sujeta a verificación por la Secretaría de Hacienda Departamental."));
             });
         });
 

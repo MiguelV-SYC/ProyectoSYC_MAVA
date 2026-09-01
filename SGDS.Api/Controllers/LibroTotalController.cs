@@ -7,7 +7,7 @@ using SGDS.Infrastructure.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder;
+using SGDS.Api.Pdf;
 
 namespace SGDS.Api.Controllers;
 
@@ -269,7 +269,7 @@ public class LibroTotalController : ControllerBase
 
         var consulta = await ConstruirConsultaConsolidadaAsync(ciudadano);
         var dto = ConstruirEstadoCuentaDto(consulta, sedeNombre: null, operadorNombre: null);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         var pdfBytes = GenerarEstadoCuentaPdf(dto, qrBytes);
         return File(pdfBytes, "application/pdf", $"EstadoCuenta_{dto.Referencia}.pdf");
     }
@@ -287,7 +287,7 @@ public class LibroTotalController : ControllerBase
 
         var consulta = await ConstruirConsultaConsolidadaAsync(ciudadano);
         var dto = ConstruirEstadoCuentaDto(consulta, sedeNombre: null, operadorNombre: null);
-        var qrBytes = GenerarQrPng(ContenidoQr(dto));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto));
         return File(qrBytes, "image/png");
     }
 
@@ -329,7 +329,7 @@ public class LibroTotalController : ControllerBase
         var (error, dto) = await ConstruirEstadoCuentaDesdeTurnoAsync(id);
         if (error != null) return error;
 
-        var qrBytes = GenerarQrPng(ContenidoQr(dto!));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto!));
         var pdfBytes = GenerarEstadoCuentaPdf(dto!, qrBytes);
         return File(pdfBytes, "application/pdf", $"EstadoCuenta_{dto!.Referencia}.pdf");
     }
@@ -341,7 +341,7 @@ public class LibroTotalController : ControllerBase
         var (error, dto) = await ConstruirEstadoCuentaDesdeTurnoAsync(id);
         if (error != null) return error;
 
-        var qrBytes = GenerarQrPng(ContenidoQr(dto!));
+        var qrBytes = DisenoPdfSgds.GenerarQrPng(ContenidoQr(dto!));
         return File(qrBytes, "image/png");
     }
 
@@ -503,14 +503,6 @@ public class LibroTotalController : ControllerBase
     private static string ContenidoQr(EstadoCuentaResponseDto dto) =>
         $"SGDS-LIBROTOTAL|{dto.Referencia}|{dto.CiudadanoDocumento}|Tramites:{dto.TotalTramitesActivos}|Proyectos:{dto.TotalProyectos}";
 
-    private static byte[] GenerarQrPng(string contenido)
-    {
-        using var generador = new QRCodeGenerator();
-        using var datosQr = generador.CreateQrCode(contenido, QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(datosQr);
-        return pngQr.GetGraphic(20);
-    }
-
     private static byte[] GenerarEstadoCuentaPdf(EstadoCuentaResponseDto dto, byte[] qrBytes)
     {
         var documento = Document.Create(contenedor =>
@@ -518,67 +510,55 @@ public class LibroTotalController : ControllerBase
             contenedor.Page(pagina =>
             {
                 pagina.Size(PageSizes.A4);
-                pagina.Margin(30);
+                pagina.Margin(0);
                 pagina.DefaultTextStyle(x => x.FontSize(10));
 
-                pagina.Header().Column(col =>
+                pagina.Header().Element(h => DisenoPdfSgds.Encabezado(h, "Libro Total · Consulta consolidada", "Estado de cuenta", dto.Referencia));
+
+                pagina.Content().Padding(24).Column(col =>
                 {
-                    col.Item().Text("SYC — Libro Total").FontSize(11);
-                    col.Item().Text("Estado de Cuenta Consolidado").FontSize(16).Bold();
-                    col.Item().PaddingTop(4).Text($"Referencia: {dto.Referencia}").FontSize(10).Bold();
-                });
+                    DisenoPdfSgds.SeccionTabla(col, "Ciudadano",
+                        ("Nombre", dto.CiudadanoNombre),
+                        ("Documento", dto.CiudadanoDocumento));
 
-                pagina.Content().PaddingTop(15).Column(col =>
-                {
-                    col.Spacing(12);
-
-                    col.Item().Text("Ciudadano").Bold();
-                    col.Item().Table(t =>
+                    col.Item().PaddingTop(12).Text("Resumen por proyecto").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                    col.Item().PaddingTop(4).Table(t =>
                     {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); });
-                        t.Cell().Text("Nombre"); t.Cell().Text(dto.CiudadanoNombre);
-                        t.Cell().Text("Documento"); t.Cell().Text(dto.CiudadanoDocumento);
-                    });
+                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(3); c.RelativeColumn(2); });
+                        DisenoPdfSgds.TablaEncabezado(t, "Proyecto", "Trámite", "Estado");
 
-                    col.Item().Text("Resumen por proyecto").Bold();
-                    col.Item().Table(t =>
-                    {
-                        t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(3); c.RelativeColumn(); });
-                        t.Cell().Text("Proyecto").FontColor(Colors.Grey.Darken1).FontSize(9);
-                        t.Cell().Text("Trámite").FontColor(Colors.Grey.Darken1).FontSize(9);
-                        t.Cell().AlignRight().Text("Estado").FontColor(Colors.Grey.Darken1).FontSize(9);
-
+                        var filaIndex = 0;
                         foreach (var proyecto in dto.Proyectos)
                         {
                             if (proyecto.Solicitudes.Count == 0)
                             {
-                                t.Cell().Text(proyecto.ProyectoNombre).Bold();
-                                t.Cell().Text("Sin trámites registrados").Italic().FontColor(Colors.Grey.Medium);
-                                t.Cell().AlignRight().Text("—").FontColor(Colors.Grey.Medium);
+                                var fondoVacio = filaIndex % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                                t.Cell().Background(fondoVacio).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(proyecto.ProyectoNombre).FontSize(9).Bold();
+                                t.Cell().Background(fondoVacio).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text("Sin trámites registrados").FontSize(9).Italic().FontColor(DisenoPdfSgds.Ink400);
+                                t.Cell().Background(fondoVacio).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text("—").FontSize(9).FontColor(DisenoPdfSgds.Ink400);
+                                filaIndex++;
                                 continue;
                             }
                             foreach (var s in proyecto.Solicitudes)
                             {
-                                t.Cell().Text(proyecto.ProyectoNombre).Bold();
-                                t.Cell().Text($"#{s.Numero} — {s.Descripcion}");
-                                t.Cell().AlignRight().Text(s.Estado);
+                                var fondo = filaIndex % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(proyecto.ProyectoNombre).FontSize(9).Bold();
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text($"#{s.Numero} — {s.Descripcion}").FontSize(9);
+                                t.Cell().Background(fondo).BorderBottom(0.5f).BorderColor(DisenoPdfSgds.Line).Padding(6).Text(s.Estado).FontSize(9).FontColor(DisenoPdfSgds.Ink600);
+                                filaIndex++;
                             }
                         }
                     });
 
-                    col.Item().PaddingTop(4).Text($"{dto.TotalTramitesActivos} trámites activos en {dto.TotalProyectos} proyectos.").FontSize(11).Bold();
+                    col.Item().PaddingTop(10).Text($"{dto.TotalTramitesActivos} trámites activos en {dto.TotalProyectos} proyectos.").FontSize(9).Bold().FontColor(DisenoPdfSgds.Ink900);
                     if (dto.SedeNombre != null)
-                        col.Item().Text($"Consultado en sede {dto.SedeNombre}" + (dto.OperadorNombre != null ? $" — Operador {dto.OperadorNombre}" : "")).FontSize(9).Italic();
+                        col.Item().Text($"Consultado en sede {dto.SedeNombre}" + (dto.OperadorNombre != null ? $" — Operador {dto.OperadorNombre}" : "")).FontSize(8.5f).Italic().FontColor(DisenoPdfSgds.Ink600);
 
-                    col.Item().PaddingTop(10).AlignCenter().Width(110).Image(qrBytes);
-                    col.Item().AlignCenter().Text(dto.Referencia).FontSize(8);
+                    DisenoPdfSgds.BloqueQr(col, qrBytes, dto.Referencia);
                 });
 
-                pagina.Footer().AlignCenter().Text(texto =>
-                {
-                    texto.Span("Generado el ");
-                    texto.Span(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")).Bold();
-                });
+                pagina.Footer().PaddingHorizontal(24).PaddingBottom(16).Element(f => DisenoPdfSgds.PiePagina(f,
+                    "Consulta consolidada de solo lectura — no constituye certificación oficial de paz y salvo."));
             });
         });
 
