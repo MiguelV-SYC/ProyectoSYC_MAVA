@@ -31,7 +31,7 @@ Para la arquitectura y lógica de validación de tu desarrollo, debes asegurar q
 
 
 
-IMPUESTO AL CONSUMO
+*IMPUESTO AL CONSUMO*
 
 La lógica de liquidación del Impuesto al Consumo de Licores, Vinos, Aperitivos y Similares (ICL) en Colombia está regida por la Ley 1816 de 2016 y se actualiza anualmente de acuerdo con la inflación. Para el año en curso (2026), el Ministerio de Hacienda fijó los valores mediante la Certificación 003.
 
@@ -54,8 +54,6 @@ Para realizar la liquidación de cada ítem de la tornaguía, tu base de datos d
 
 * Algoritmo Matemático de Cálculo (Paso a Paso)Paso A: Calcular el Componente EspecíficoEste componente castiga la concentración de alcohol y es proporcional al volumen total movilizado en la tornaguía en relación con la medida estándar de una botella (750 cc).
 \\(\\text{Comp.\\ Específico}=G\\times \\text{Tarifa}\_{esp}\\times \\left(\\frac{V\_{total}}{750}\\right)\\)
-
-
 
 * Paso B: Calcular el Componente Ad Valorem: Aplica el porcentaje de ley directamente sobre el precio base comercial acumulado de los productos transportados, tomando como referencia el precio certificado DANE
 \\(\\text{Comp.\\ Ad\\ Valorem}=\\text{Total\\ Unidades\\ Físicas}\\times PVP\\times \\%\_{ad}\\)
@@ -162,7 +160,7 @@ export default function SeccionLiquidacion({ producto }: { producto: Producto | 
   );
 }
 
-Tipos de Vehículos según su Carrocería (Logística de Bebidas y Tabaco)
+*Tipos de Vehículos según su Carrocería (Logística de Bebidas y Tabaco)*
 Para estos productos se utilizan principalmente tres configuraciones de carrocería:Furgón Cerrado (Caja Seca): Es el más común para el tabaco y licores de alta gama. Protege la mercancía de la humedad, la luz solar directa y ofrece mayor seguridad contra robos.Camión Botellero / Sider (Cortinas Laterales): Es el diseño estándar utilizado por las grandes cervecerías y distribuidoras de bebidas. Las lonas laterales permiten una carga y descarga rápida con montacargas en estibas (palés).Estacas con Carpa: Utilizado por distribuidores minoristas o en zonas rurales. Exige que la carpa esté completamente sellada y cumpla con los requisitos de seguridad exigidos por las autoridades viales
 
 2. Clasificación por Capacidad y Configuración de Ejes (Norma NTC 4788)De acuerdo con el Ministerio de Transporte de Colombia y la norma NTC 4788, los vehículos de carga se dividen según su peso y número de ejes:Tipo de VehículoDesignación RNDCCapacidad de Carga AproximadaUso Común en Bebidas y TabacoTurboC2 (Liviano)Hasta 4.5 toneladasDistribución urbana de cigarrillos y licores en almacenes de cadena o tiendas.Camión SencilloC2 (Mediano)Hasta 8.5 toneladasDespachos regionales o entregas masivas en centros urbanos.Doble TroqueC3Hasta 17 toneladasTransporte intermunicipal de producto terminado desde plantas de producción.Cuatro ManosC4Hasta 22 toneladasAbastecimiento mayorista y movimiento de carga pesada a nivel nacional.Tractocamión (Mula)C3S2 / C3S3Hasta 32 - 35 toneladasTransporte masivo de materias primas o distribución de cerveza y licores a grandes centros de acopio.

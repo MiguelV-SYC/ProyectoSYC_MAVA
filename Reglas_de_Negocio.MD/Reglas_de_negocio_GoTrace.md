@@ -153,8 +153,94 @@ A diferencia del flujo de la estampilla de SycTrace, el UID de GoTrace vive más
 * Vendido / Consumido: Activado cuando el consumidor final escanea el QR en el bar o restaurante para verificar autenticidad.
 * Alerta de Duplicidad: Si un mismo UID es escaneado en dos ubicaciones geográficas distintas en un periodo de tiempo imposible (ej: Bucaramanga y Cali con 10 minutos de diferencia), el sistema marca el producto como Potencialmente Adulterado/Contrabando.
 
+_________________________________________________________________
+
+GOTRACE
+
+FORMULACIO DE:
+**Nueva Empresa**
+
+Identificación de la empresa
+* nit
+* razón social
+* tipo de empresa
+* estado
+* logo (campo opcional) (se debe colocar el acceso para cargar archivo)
+
+Información de contacto y ubicación 
+* representante legal
+* teléfono 
+* email
+* ciudad/municipio
+* departamento
+* dirección 
+
+Productos que comercializa y/o produce              
+
+Nombre | tipo | presentación | contenido | und de medida | relación|
+
+producto 1 | (especificar el tipo de bebida) | (lata, botella, tetrapack)  | 1, 100,170,300 etc.. | (correspondiente a mL, L, etc)  | selección de produce o comercializa| [editar(símbolo de lapiz)] [eliminar(símbolo de papelera)]
+
+[+ Agregar Producto]
 
 
+_________________________________________________________________________________________________________________
+
+
+
+FORMULARIO DE: 
+**NUEVA SOLICITUD**
+
+Registro de Trazabilidad del lote
+
+(se deja la selección tal cual está )
+
+2. Empresa 
+
+[persona natural] [Empresa]
+
+buscar por razón social o NIT
+[...buscador...]
+No aparece en el sistema - + crear nueva empresa
+
+(una vez seleccionada la empresa, se debe mostrar la siguiente estructura) 
+[Razón social de la empresa]
+[NIT]
+[Productos agregados : #]
+
+3. Datos de Producto
+
+[Producto ↓]							[Número de Lote]
+(cargar lista de productos de la empresa)			(una vez seleccionado el producto, aplicar la
+(una vez seleccionado el producto, mostar			siguiente lógica para creación automática
+su información como; nombre + presentación + 			del consecutivo)
+und de medida + produce/comercializa)				[GT + Producto + fecha + consecutivo]
+
+
+[Fecha de producción]						[Unidades Producidas]
+(tal como está actualmente)					(cantidad)
+
+
+4. Identificación de Unidades
+Generación de UIDs
+
+[(x)Generar automáticamente]
+[(x)Cargar archivo de UIDs]
+(al seleccionar, deben mostrar el aviso de: se generarán # identificadores únicos, correspondientes al
+número de unidades producidas en el lote) 
+
+Rango
+[desde (GT + Producto + fecha + consecutivo) → hasta (GT + Producto + fecha + consecutivo)]
+
+
+5. Etapas de Trazabilidad
+
+[][Fábrica]
+[][Bodega]
+[][Distribuidor]
+[][Punto de venta]
+
+							[Cancelar] [Registrar Solicitud →]
 
 
 
