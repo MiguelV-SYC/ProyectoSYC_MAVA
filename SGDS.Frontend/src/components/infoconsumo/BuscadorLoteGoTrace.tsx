@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getLotesGoTraceDisponibles, type LoteGoTraceDisponibleDto } from '../../services/infoconsumoService';
 import { getEmpresaDetalle, type EmpresaResponseDto } from '../../services/empresaService';
-import type { DatosTornaguia } from '../../config/infoconsumoConfig';
+import { categoriaReconocida, subcategoriasDe, type DatosTornaguia } from '../../config/infoconsumoConfig';
 
 interface Props {
   value: DatosTornaguia;
@@ -29,6 +29,17 @@ export default function BuscadorLoteGoTrace({ value, onChange, onEmpresaResuelta
   }, [expandido, busqueda, value.loteGoTraceSolicitudId]);
 
   async function elegir(l: LoteGoTraceDisponibleDto) {
+    // Un lote puede apuntar a un producto de GoTrace registrado antes de esta taxonomía
+    // (Tipo/Subtipo en texto libre que no coincide con ninguna de las 3 categorías de ley).
+    // En ese caso no se hereda un valor inválido — queda en blanco para que el usuario la
+    // elija a mano (FormularioTornaguia desbloquea el campo cuando detecta esto).
+    const categoriaValida = l.categoriaProducto != null && categoriaReconocida(l.categoriaProducto);
+    const categoriaFinal = categoriaValida ? l.categoriaProducto! : '';
+    const subcategoriaFinal =
+      categoriaFinal && l.subcategoriaProducto && subcategoriasDe(categoriaFinal).includes(l.subcategoriaProducto)
+        ? l.subcategoriaProducto
+        : '';
+
     onChange({
       ...value,
       loteGoTraceSolicitudId: l.id,
@@ -37,7 +48,17 @@ export default function BuscadorLoteGoTrace({ value, onChange, onEmpresaResuelta
       loteGoTraceEmpresaNit: l.empresaNit,
       loteGoTraceProducto: l.producto,
       loteGoTraceNumeroLote: l.numeroLote,
-      unidadesFisicas: value.unidadesFisicas || String(l.unidadesLote),
+      // "Si la solicitud viene de GoTrace... debe autocompletar todos los datos disponibles:
+      // categoría, subcategoría, unidades, # de lote" — y todas las especificaciones del
+      // producto que ya quedaron guardadas en GoTrace. Solo PVP se sigue diligenciando a mano.
+      datosDesdeGoTrace: true,
+      clasificacionSinReconocer: !categoriaValida,
+      categoriaProducto: categoriaFinal,
+      subcategoriaProducto: subcategoriaFinal,
+      gradosAlcoholimetricos: l.gradosAlcoholimetricos != null ? String(l.gradosAlcoholimetricos) : value.gradosAlcoholimetricos,
+      origenProducto: l.origenProducto ?? value.origenProducto,
+      numeroLote: l.numeroLote,
+      unidadesFisicas: String(l.unidadesLote),
     });
 
     const detalle = await getEmpresaDetalle(l.empresaId);
@@ -61,6 +82,10 @@ export default function BuscadorLoteGoTrace({ value, onChange, onEmpresaResuelta
       loteGoTraceEmpresaNit: '',
       loteGoTraceProducto: '',
       loteGoTraceNumeroLote: '',
+      // Al desvincular el lote, los campos de producto quedan editables a mano de nuevo — no
+      // es lo ideal (regla de negocio), pero debe permitirse.
+      datosDesdeGoTrace: false,
+      clasificacionSinReconocer: false,
     });
     setBusqueda('');
     setExpandido(false);

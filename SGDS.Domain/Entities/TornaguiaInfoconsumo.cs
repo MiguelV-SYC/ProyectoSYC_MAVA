@@ -13,11 +13,26 @@ public class TornaguiaInfoconsumo
     // (routing real) o como referencia en línea recta (agua/aire, sin motor de rutas disponible).
     public string TipoTransporte { get; set; } = "Terrestre";
 
-    // Producto gravado
+    // Producto gravado — Categoria/Subcategoria usan el mismo catálogo legal de 3 categorías
+    // que GoTrace.TIPOS_PRODUCTO_GOTRACE (Reglas_de_negocio_infoconsumo_v.2.md, "REGLAS PARA
+    // LA APLICACIÓN DEL IMPUESTO AL CONSUMO POR CATEGORÍAS"), para que el puente GoTrace ->
+    // Infoconsumo autocomplete sin tabla de traducción.
     public string CategoriaProducto { get; set; } = string.Empty;
+    public string SubcategoriaProducto { get; set; } = string.Empty;
+    // Nacional | Importado — informativo salvo en Cervezas Importadas, donde cambia la fórmula
+    // de liquidación (ver CalculadoraImpuestoConsumo.CervezaImportada).
+    public string? OrigenProducto { get; set; }
+    // Número de lote — se hereda de GoTrace cuando la solicitud viene de allí; si se radica a
+    // mano, queda como referencia libre del contribuyente.
+    public string? NumeroLote { get; set; }
     public decimal? GradosAlcoholimetricos { get; set; }
     public int UnidadesFisicas { get; set; }
     public decimal PvpCertificado { get; set; }
+    // Exclusivo de Picadura y Tabaco para Pipa (unidad de liquidación por peso, no por cajetilla).
+    public decimal? PesoGramos { get; set; }
+    // Exclusivos de Cervezas Importadas (5.3 del documento — base = ValorAduana + Gravámenes + 30% margen).
+    public decimal? ValorAduana { get; set; }
+    public decimal? GravamenesArancelarios { get; set; }
 
     // Movilización
     public string DepartamentoOrigen { get; set; } = string.Empty;

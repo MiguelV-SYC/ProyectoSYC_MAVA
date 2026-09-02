@@ -1,13 +1,84 @@
-export const CATEGORIAS_PRODUCTO_INFOCONSUMO = [
-  { value: 'Licores_Aperitivos', label: 'Licores, aperitivos y similares' },
-  { value: 'Vinos_Aperitivos_Vinicos', label: 'Vinos y aperitivos vínicos' },
-  { value: 'Cervezas_Sifones_Refajos', label: 'Cervezas, sifones, refajos y mezclas' },
-  { value: 'Cigarrillos_Tabaco', label: 'Cigarrillos y tabaco elaborado' },
+// Catálogo legal de 3 categorías — Reglas_de_negocio_infoconsumo_v.2.md, "REGLAS PARA LA
+// APLICACIÓN DEL IMPUESTO AL CONSUMO POR CATEGORÍAS". Mismo catálogo (mismos nombres) que
+// GoTrace.TIPOS_PRODUCTO_GOTRACE a propósito, para que un lote heredado de GoTrace autocomplete
+// categoría/subcategoría sin tabla de traducción — "Sistema Electrónico de Vapeo" es la única
+// subcategoría que no existe en GoTrace (solo se puede radicar a mano en Infoconsumo).
+export const CATEGORIAS_PRODUCTO_INFOCONSUMO: { categoria: string; subcategorias: string[] }[] = [
+  {
+    categoria: 'Licores, Vinos, Aperitivos y Similares',
+    subcategorias: [
+      'Licores Destilados Nacionales',
+      'Licores Destilados Importados',
+      'Vinos (Nacionales e Importados)',
+      'Aperitivos y Similares',
+      'Aperitivos Vínicos',
+    ],
+  },
+  {
+    categoria: 'Cervezas, Sifones, Refajos y Mezclas',
+    subcategorias: [
+      'Cervezas Nacionales',
+      'Cervezas Importadas',
+      'Sifones',
+      'Refajos',
+      'Mezclas de Bebidas Fermentadas',
+      'Cervezas Artesanales',
+    ],
+  },
+  {
+    categoria: 'Cigarrillos y Tabaco Elaborado',
+    subcategorias: [
+      'Cigarrillos Nacionales',
+      'Cigarrillos Importados',
+      'Cigarrillos y Tabacos (puros)',
+      'Picadura y Tabaco para Pipa',
+      'Sistema Electrónico de Vapeo',
+    ],
+  },
 ];
 
-// Categorías sin fórmula de ICL soportada — régimen tributario independiente
-// (Ley 223 de 1995 para cerveza, tarifa por cajetilla para cigarrillos).
-export const CATEGORIAS_SIN_ICL = ['Cervezas_Sifones_Refajos', 'Cigarrillos_Tabaco'];
+export function subcategoriasDe(categoria: string): string[] {
+  return CATEGORIAS_PRODUCTO_INFOCONSUMO.find((c) => c.categoria === categoria)?.subcategorias ?? [];
+}
+
+// Un lote de GoTrace puede apuntar a un producto del catálogo registrado antes de esta
+// taxonomía (Tipo/Subtipo en texto libre, ej. "Licores Destilados" sin categoría de ley
+// asociada) — se usa para no heredar/bloquear un valor que no existe en las 3 categorías
+// vigentes y así no dejar el formulario sin salida.
+export function categoriaReconocida(categoria: string): boolean {
+  return CATEGORIAS_PRODUCTO_INFOCONSUMO.some((c) => c.categoria === categoria);
+}
+
+// Subcategorías sin componente específico por grado de alcohol — usan solo porcentaje sobre
+// base gravable (Ley 223/1995). El campo "Grados alcoholimétricos" no aplica para estas.
+const SUBCATEGORIAS_SIN_GRADO_ALCOHOL = new Set([
+  'Cervezas Nacionales', 'Cervezas Importadas', 'Sifones', 'Refajos',
+  'Mezclas de Bebidas Fermentadas', 'Cervezas Artesanales',
+  'Cigarrillos Nacionales', 'Cigarrillos Importados', 'Cigarrillos y Tabacos (puros)',
+  'Picadura y Tabaco para Pipa', 'Sistema Electrónico de Vapeo',
+]);
+export function usaGradoAlcohol(subcategoria: string): boolean {
+  return subcategoria !== '' && !SUBCATEGORIAS_SIN_GRADO_ALCOHOL.has(subcategoria);
+}
+
+// Solo se pide el origen como campo aparte cuando la subcategoría NO ya lo distingue en su
+// propio nombre (a diferencia de "Cigarrillos Nacionales/Importados" o "Cervezas
+// Nacionales/Importadas", que ya son subcategorías separadas) — puros y picadura no tienen
+// esa distinción en el nombre, pero GoTrace sí la trae en su propio campo Origen.
+export function usaOrigenNacionalImportado(subcategoria: string): boolean {
+  return ['Cigarrillos y Tabacos (puros)', 'Picadura y Tabaco para Pipa'].includes(subcategoria);
+}
+export function usaPesoGramos(subcategoria: string): boolean {
+  return subcategoria === 'Picadura y Tabaco para Pipa';
+}
+export function usaDatosImportacion(subcategoria: string): boolean {
+  return subcategoria === 'Cervezas Importadas';
+}
+
+// Subcategorías sin fórmula de liquidación soportada todavía en el motor de cálculo — Vapeo
+// queda explícitamente sin parametrizar (Decreto 1474/2025 inexequible, Sentencia C-079/2026);
+// las demás sí calculan (algunas requieren configurar una tarifa 2026 pendiente).
+export const SUBCATEGORIAS_SIN_CALCULO = ['Sistema Electrónico de Vapeo'];
 
 export const TIPOS_TRANSPORTE_INFOCONSUMO = [
   { value: 'Terrestre', label: 'Terrestre' },
@@ -52,9 +123,15 @@ export const CARROCERIAS_VEHICULO: CarroceriaVehiculoInfo[] = [
 export interface DatosTornaguia {
   tipoTransporte: string;
   categoriaProducto: string;
+  subcategoriaProducto: string;
+  origenProducto: string;
+  numeroLote: string;
   gradosAlcoholimetricos: string;
   unidadesFisicas: string;
   pvpCertificado: string;
+  pesoGramos: string;
+  valorAduana: string;
+  gravamenesArancelarios: string;
   departamentoOrigen: string;
   municipioOrigen: string;
   departamentoDestino: string;
@@ -77,22 +154,37 @@ export interface DatosTornaguia {
   tipoVehiculo: string;
   observaciones: string;
 
-  // Puente GoTrace -> Infoconsumo (opcional): lote ya Aprobado en GoTrace del que se
-  // heredan empresa y unidades físicas.
+  // Puente GoTrace -> Infoconsumo (opcional): lote ya Aprobado en GoTrace del que se heredan
+  // empresa y toda la ficha del producto. datosDesdeGoTrace=true bloquea la edición manual de
+  // los campos de producto en el formulario — el único que se sigue diligenciando a mano es PVP.
   loteGoTraceSolicitudId: number | null;
   loteGoTraceNumero: string;
   loteGoTraceEmpresaNombre: string;
   loteGoTraceEmpresaNit: string;
   loteGoTraceProducto: string;
   loteGoTraceNumeroLote: string;
+  datosDesdeGoTrace: boolean;
+
+  // true cuando el lote vinculado apunta a un producto de GoTrace cuya clasificación (Tipo/
+  // Subtipo) no existe en las 3 categorías vigentes (dato registrado antes de esta taxonomía).
+  // Se fija una sola vez al vincular el lote — a diferencia de soloLectura (=datosDesdeGoTrace),
+  // NO se recalcula sobre categoriaProducto/subcategoriaProducto, porque esos dos campos quedan
+  // editables a mano en este caso y su valor cambia según lo que el usuario vaya eligiendo.
+  clasificacionSinReconocer: boolean;
 }
 
 export const DATOS_TORNAGUIA_VACIOS: DatosTornaguia = {
   tipoTransporte: 'Terrestre',
-  categoriaProducto: CATEGORIAS_PRODUCTO_INFOCONSUMO[0].value,
+  categoriaProducto: '',
+  subcategoriaProducto: '',
+  origenProducto: '',
+  numeroLote: '',
   gradosAlcoholimetricos: '',
   unidadesFisicas: '',
   pvpCertificado: '',
+  pesoGramos: '',
+  valorAduana: '',
+  gravamenesArancelarios: '',
   departamentoOrigen: 'Cundinamarca',
   municipioOrigen: '',
   departamentoDestino: 'Santander',
@@ -119,6 +211,8 @@ export const DATOS_TORNAGUIA_VACIOS: DatosTornaguia = {
   loteGoTraceEmpresaNit: '',
   loteGoTraceProducto: '',
   loteGoTraceNumeroLote: '',
+  datosDesdeGoTrace: false,
+  clasificacionSinReconocer: false,
 };
 
 // Reglas de negocio, sección 2.1: coherencia origen/destino según el tipo de trámite.

@@ -104,9 +104,15 @@ public class InfoconsumoController : ControllerBase
             {
                 TipoTransporte = dto.TipoTransporte,
                 CategoriaProducto = dto.CategoriaProducto,
+                SubcategoriaProducto = dto.SubcategoriaProducto,
+                OrigenProducto = dto.OrigenProducto,
+                NumeroLote = dto.NumeroLote,
                 GradosAlcoholimetricos = dto.GradosAlcoholimetricos,
                 UnidadesFisicas = dto.UnidadesFisicas,
                 PvpCertificado = dto.PvpCertificado,
+                PesoGramos = dto.PesoGramos,
+                ValorAduana = dto.ValorAduana,
+                GravamenesArancelarios = dto.GravamenesArancelarios,
                 DepartamentoOrigen = dto.DepartamentoOrigen,
                 MunicipioOrigen = dto.MunicipioOrigen,
                 DepartamentoDestino = dto.DepartamentoDestino,
@@ -163,9 +169,15 @@ public class InfoconsumoController : ControllerBase
         var t = solicitud.TornaguiaInfoconsumo!;
         t.TipoTransporte = dto.TipoTransporte;
         t.CategoriaProducto = dto.CategoriaProducto;
+        t.SubcategoriaProducto = dto.SubcategoriaProducto;
+        t.OrigenProducto = dto.OrigenProducto;
+        t.NumeroLote = dto.NumeroLote;
         t.GradosAlcoholimetricos = dto.GradosAlcoholimetricos;
         t.UnidadesFisicas = dto.UnidadesFisicas;
         t.PvpCertificado = dto.PvpCertificado;
+        t.PesoGramos = dto.PesoGramos;
+        t.ValorAduana = dto.ValorAduana;
+        t.GravamenesArancelarios = dto.GravamenesArancelarios;
         t.DepartamentoOrigen = dto.DepartamentoOrigen;
         t.MunicipioOrigen = dto.MunicipioOrigen;
         t.DepartamentoDestino = dto.DepartamentoDestino;
@@ -400,7 +412,7 @@ public class InfoconsumoController : ControllerBase
         var query = _context.Solicitudes
             .Include(s => s.Proyecto)
             .Include(s => s.Empresa)
-            .Include(s => s.LoteGoTrace)
+            .Include(s => s.LoteGoTrace!).ThenInclude(l => l.ProductoCatalogo)
             .Where(s => s.Proyecto != null && s.Proyecto.Nombre == "Gotrace"
                      && s.Estado == "Aprobada" && s.LoteGoTrace != null);
 
@@ -409,6 +421,10 @@ public class InfoconsumoController : ControllerBase
 
         var solicitudes = await query.OrderByDescending(s => s.FechaCreacion).Take(200).ToListAsync();
 
+        // Categoria/Subcategoria/GradosAlcoholimetricos/Origen solo se pueden autocompletar si
+        // el lote quedó vinculado a una fila del catálogo Producto de GoTrace — lotes viejos
+        // con el producto en texto libre (ProductoCatalogo null) siguen apareciendo en la
+        // búsqueda, pero esos 4 campos quedan null y el usuario los completa a mano.
         var resultado = solicitudes
             .Select(s => new LoteGoTraceDisponibleDto
             {
@@ -418,6 +434,10 @@ public class InfoconsumoController : ControllerBase
                 EmpresaNombre = s.Empresa?.RazonSocial ?? string.Empty,
                 EmpresaNit = s.Empresa?.Nit ?? string.Empty,
                 Producto = s.LoteGoTrace!.Producto,
+                CategoriaProducto = s.LoteGoTrace.ProductoCatalogo?.Tipo,
+                SubcategoriaProducto = s.LoteGoTrace.ProductoCatalogo?.Subtipo,
+                GradosAlcoholimetricos = s.LoteGoTrace.ProductoCatalogo?.GradoAlcoholimetrico,
+                OrigenProducto = s.LoteGoTrace.ProductoCatalogo?.Origen,
                 NumeroLote = s.LoteGoTrace.NumeroLote,
                 UnidadesLote = s.LoteGoTrace.UnidadesLote,
                 RangoUidCompleto = FormatearRangoUid(s.LoteGoTrace),
@@ -618,10 +638,17 @@ public class InfoconsumoController : ControllerBase
             EmpresaNit = s.Empresa?.Nit ?? string.Empty,
             TipoTransporte = t.TipoTransporte,
             CategoriaProducto = t.CategoriaProducto,
+            SubcategoriaProducto = t.SubcategoriaProducto,
+            OrigenProducto = t.OrigenProducto,
+            NumeroLote = t.NumeroLote,
             GradosAlcoholimetricos = t.GradosAlcoholimetricos,
             UnidadesFisicas = t.UnidadesFisicas,
             VolumenTotalCc = t.UnidadesFisicas * CalculadoraImpuestoConsumo.PresentacionEstandarCc,
             PvpCertificado = t.PvpCertificado,
+            PesoGramos = t.PesoGramos,
+            ValorAduana = t.ValorAduana,
+            GravamenesArancelarios = t.GravamenesArancelarios,
+            DatosDesdeGoTrace = t.LoteGoTraceSolicitudId.HasValue,
             DepartamentoOrigen = t.DepartamentoOrigen,
             MunicipioOrigen = t.MunicipioOrigen,
             DepartamentoDestino = t.DepartamentoDestino,
@@ -665,9 +692,13 @@ public class InfoconsumoController : ControllerBase
 
         var entrada = new CalculadoraImpuestoConsumo.Entrada(
             t.CategoriaProducto,
+            t.SubcategoriaProducto,
             t.UnidadesFisicas,
-            t.GradosAlcoholimetricos ?? 0,
+            t.GradosAlcoholimetricos,
             t.PvpCertificado,
+            t.PesoGramos,
+            t.ValorAduana,
+            t.GravamenesArancelarios,
             t.DepartamentoDestino,
             s.TipoSolicitud?.Nombre ?? string.Empty);
 
@@ -681,10 +712,13 @@ public class InfoconsumoController : ControllerBase
             ContribuyenteNombre = s.Empresa?.RazonSocial ?? string.Empty,
             ContribuyenteNit = s.Empresa?.Nit ?? string.Empty,
             CategoriaProducto = t.CategoriaProducto,
+            SubcategoriaProducto = t.SubcategoriaProducto,
+            OrigenProducto = t.OrigenProducto,
             UnidadesFisicas = t.UnidadesFisicas,
             GradosAlcoholimetricos = t.GradosAlcoholimetricos,
             VolumenTotalCc = resultado.VolumenTotalCc,
             PvpCertificado = t.PvpCertificado,
+            PesoGramos = t.PesoGramos,
             DepartamentoDestino = t.DepartamentoDestino,
             Soportado = resultado.Soportado,
             MotivoNoSoportado = resultado.MotivoNoSoportado,
@@ -692,7 +726,7 @@ public class InfoconsumoController : ControllerBase
             TarifaAdValorem = resultado.TarifaAdValorem,
             ComponenteEspecifico = resultado.ComponenteEspecifico,
             ComponenteAdValorem = resultado.ComponenteAdValorem,
-            IclInformativo = resultado.IclInformativo,
+            ImpuestoInformativo = resultado.ImpuestoInformativo,
             TotalAPagar = resultado.TotalAPagar,
             AplicaExcepcionSanAndres = resultado.AplicaExcepcionSanAndres,
             EsSoloInformativo = resultado.EsSoloInformativo,
@@ -728,10 +762,21 @@ public class InfoconsumoController : ControllerBase
                         });
                     }
 
-                    DisenoPdfSgds.SeccionTabla(col, "Producto amparado",
-                        ("Categoría", dto.CategoriaProducto),
-                        ("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
-                        ("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—"));
+                    {
+                        var filasProducto = new List<(string, string)>
+                        {
+                            ("Categoría", dto.CategoriaProducto),
+                            ("Subcategoría", dto.SubcategoriaProducto),
+                            ("Unidades físicas", dto.PesoGramos.HasValue ? $"{dto.PesoGramos:N0} g" : $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
+                        };
+                        if (dto.GradosAlcoholimetricos.HasValue)
+                            filasProducto.Add(("Grados alcoholimétricos", dto.GradosAlcoholimetricos.Value.ToString("0.#°")));
+                        if (!string.IsNullOrWhiteSpace(dto.OrigenProducto))
+                            filasProducto.Add(("Origen", dto.OrigenProducto));
+                        if (!string.IsNullOrWhiteSpace(dto.NumeroLote))
+                            filasProducto.Add(("Número de lote", dto.NumeroLote));
+                        DisenoPdfSgds.SeccionTabla(col, "Producto amparado", filasProducto.ToArray());
+                    }
 
                     DisenoPdfSgds.SeccionTabla(col, "Empresa remitente",
                         ("Razón social", dto.EmpresaRazonSocial),
@@ -793,10 +838,19 @@ public class InfoconsumoController : ControllerBase
                         ("Razón social", dto.ContribuyenteNombre),
                         ("NIT", dto.ContribuyenteNit));
 
-                    DisenoPdfSgds.SeccionTabla(col, "Producto gravado",
-                        ("Categoría", dto.CategoriaProducto),
-                        ("Unidades físicas", $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
-                        ("Grados alcoholimétricos", dto.GradosAlcoholimetricos?.ToString("0.#°") ?? "—"));
+                    {
+                        var filasProducto = new List<(string, string)>
+                        {
+                            ("Categoría", dto.CategoriaProducto),
+                            ("Subcategoría", dto.SubcategoriaProducto),
+                            ("Unidades físicas", dto.PesoGramos.HasValue ? $"{dto.PesoGramos:N0} g" : $"{dto.UnidadesFisicas:N0} ({dto.VolumenTotalCc:N0} cc)"),
+                        };
+                        if (dto.GradosAlcoholimetricos.HasValue)
+                            filasProducto.Add(("Grados alcoholimétricos", dto.GradosAlcoholimetricos.Value.ToString("0.#°")));
+                        if (!string.IsNullOrWhiteSpace(dto.OrigenProducto))
+                            filasProducto.Add(("Origen", dto.OrigenProducto));
+                        DisenoPdfSgds.SeccionTabla(col, "Producto gravado", filasProducto.ToArray());
+                    }
 
                     if (!dto.Soportado)
                     {
@@ -805,18 +859,23 @@ public class InfoconsumoController : ControllerBase
                     }
                     else
                     {
-                        col.Item().PaddingTop(12).Text("Liquidación — Impuesto al Consumo de Licores (ICL)").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
+                        col.Item().PaddingTop(12).Text("Liquidación — Impuesto al Consumo").FontSize(10.5f).Bold().FontColor(DisenoPdfSgds.Blue600);
                         col.Item().PaddingTop(4).Table(t =>
                         {
                             t.ColumnsDefinition(c => { c.RelativeColumn(2); c.RelativeColumn(2); c.RelativeColumn(2); });
                             DisenoPdfSgds.TablaEncabezado(t, "Concepto", "Tarifa", "Valor");
-                            (string, string, string)[] filas =
-                            [
-                                (dto.AplicaExcepcionSanAndres ? "Componente específico (tarifa San Andrés)" : "Componente específico",
-                                    $"${dto.TarifaEspecifica:N0} × grado", Moneda(dto.ComponenteEspecifico)),
-                                ("Componente ad valorem", $"{dto.TarifaAdValorem * 100:0.#}% sobre PVP", Moneda(dto.ComponenteAdValorem)),
-                            ];
-                            for (var i = 0; i < filas.Length; i++)
+                            var filas = new List<(string, string, string)>();
+                            // El componente específico no aplica a Cervezas/Sifones/Refajos/Mezclas
+                            // (Ley 223/1995 — solo porcentual sobre base gravable).
+                            if (dto.TarifaEspecifica > 0)
+                            {
+                                var unidadTarifa = dto.PesoGramos.HasValue ? "gramo" : dto.CategoriaProducto == "Cigarrillos y Tabaco Elaborado" ? "cajetilla/contenido" : "grado / 750cc";
+                                filas.Add((
+                                    dto.AplicaExcepcionSanAndres ? "Componente específico (tarifa San Andrés)" : "Componente específico",
+                                    $"${dto.TarifaEspecifica:N0} × {unidadTarifa}", Moneda(dto.ComponenteEspecifico)));
+                            }
+                            filas.Add(("Componente ad valorem", $"{dto.TarifaAdValorem * 100:0.#}% sobre base gravable", Moneda(dto.ComponenteAdValorem)));
+                            for (var i = 0; i < filas.Count; i++)
                             {
                                 var (concepto, tarifa, valor) = filas[i];
                                 var fondo = i % 2 == 0 ? "#FFFFFF" : DisenoPdfSgds.Paper;
@@ -826,7 +885,7 @@ public class InfoconsumoController : ControllerBase
                             }
                         });
 
-                        col.Item().PaddingTop(6).AlignRight().Text($"ICL informativo: {Moneda(dto.IclInformativo)}").FontSize(9.5f).FontColor(DisenoPdfSgds.Ink600);
+                        col.Item().PaddingTop(6).AlignRight().Text($"Impuesto informativo: {Moneda(dto.ImpuestoInformativo)}").FontSize(9.5f).FontColor(DisenoPdfSgds.Ink600);
                         DisenoPdfSgds.ValorDestacado(col, "Total a pagar", Moneda(dto.TotalAPagar));
 
                         if (dto.EsSoloInformativo)

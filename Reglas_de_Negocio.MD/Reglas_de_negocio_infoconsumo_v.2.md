@@ -62,6 +62,341 @@ Se suman ambos componentes para obtener el valor global de la liquidación del i
 \\(\\text{ICL\\ Total}=\\text{Comp.\\ Específico}+\\text{Comp.\\ Ad\\ Valorem}\\)
 
 
+**REGLAS PARA LA APLICACIÓN DEL IMPUESTO AL CONSUMO POR CATEGORÍAS**
+
+**Tabla Maestra de Reglas**
+
+| Categoría           | Subtipo                      | Unidad           |                 Específico 2026 |             	 Ad valorem | Base principal                  |
+| ------------------- | ---------------------------- | ---------------- | ------------------------------: | ------------------------------: | ------------------------------- |
+| Licores             | Destilados                   | Grado / 750 cc   |                            $360 |                            25 % | PVP DANE                        |
+| Licores             | Importados                   | Grado / 750 cc   |                            $360 |                            25 % | Base aplicable                  |
+| Vinos               | Nacional/importado           | Grado / 750 cc   |                            $243 |                            20 % | PVP DANE                        |
+| Aperitivos          | Similares                    | Grado / 750 cc   |                            $360 |                            25 % | PVP DANE                        |
+| Aperitivos vínicos  | —                            | Grado / 750 cc   |                            $243 |                            20 % | PVP DANE                        |
+| Cervezas            | Nacionales                   | Precio           |                               — |                            48 % | Venta detallista                |
+| Cervezas            | Importadas                   | Precio           |                               — |                            48 % | Base de importación             |
+| Sifones             | Nacional/importado           | Precio           |                               — |                            48 % | Venta detallista/base aplicable |
+| Refajos             | Nacional/importado           | Precio           |                               — |                            20 % | Venta detallista/base aplicable |
+| Mezclas             | Fermentadas + no alcohólicas | Precio           |                               — |                            20 % | Venta detallista/base aplicable |
+| Cerveza artesanal   | —                            | Precio           |                               — |                            48 % | Según régimen de cerveza        |
+| Cigarrillos         | Nacional/importado           | Cajetilla/20     |                  Parámetro 2026 |                            10 % | PVP/base certificada            |
+| Puros/cigarros      | Tabaco elaborado             | Unidad/contenido |                  Parámetro 2026 |                            10 % | Base aplicable                  |
+| Picadura/sucedáneos | Por peso                     | Gramo            |                          $354/g |                            10 % | Base aplicable                  |
+| Vapeo               | SEAN/SSSN                    | ml/unidad        | **No parametrizar actualmente** | **No parametrizar actualmente** | Verificación normativa          |
+
+
+
+
+2. Clasificación General
+
+
+| Categoría                                  | Subcategorías                                                                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Licores, vinos, aperitivos y similares** | Licores destilados nacionales, licores destilados importados, vinos nacionales/importados, aperitivos y similares, aperitivos vínicos |
+| **Cervezas, sifones, refajos y mezclas**   | Cervezas nacionales, cervezas importadas, sifones, refajos, mezclas de bebidas fermentadas y cervezas artesanales                     |
+| **Cigarrillos y tabaco elaborado**         | Cigarrillos nacionales/importados, tabaco elaborado —puros/cigarros—, tabaco de picadura y sucedáneos, sistemas electrónicos de vapeo |
+
+
+3. Flujo General de Liquidación 
+
+Producto
+   ↓
+Categoría
+   ↓
+Subtipo
+   ↓
+Origen
+   ↓
+Presentación / unidad de medida
+   ↓
+¿La categoría utiliza componente específico?
+   ├── Sí → calcular componente específico
+   └── No → continuar
+   ↓
+¿La categoría utiliza componente ad valorem?
+   ├── Sí → calcular componente ad valorem
+   └── No → continuar
+   ↓
+Aplicar reglas de base gravable
+   ↓
+Aplicar tarifa vigente
+   ↓
+Calcular impuesto por unidad
+   ↓
+Multiplicar por cantidad
+   ↓
+Guardar liquidación y trazabilidad
+
+
+
+
+4. Licores, vinos, aperitivos y similares
+La base normativa principal es el artículo 50 de la Ley 788 de 2002, modificado por el artículo 20 de la Ley 1816 de 2016.
+La Ley 1816 establece el esquema por grado alcoholimétrico y unidad equivalente de 750 cc.
+
+4.1 Tarifas 2026
+
+Para 2026, la Certificación 003 del Ministerio de Hacienda, de 9 de diciembre de 2025, estableció:
+
+| Producto                                       |                  Componente específico 2026 |
+| ---------------------------------------------- | ------------------------------------------: |
+| Licores, aperitivos y similares                | **$360 por grado alcoholimétrico / 750 cc** |
+| Vinos y aperitivos vínicos                     | **$243 por grado alcoholimétrico / 750 cc** |
+| Productos nacionales que ingresen a San Andrés |                  **$57 por grado / 750 cc** |
+
+Estas tarifas rigen desde el 1 de enero de 2026.
+
+El componente ad valorem establecido por la Ley 1816 es:
+
+| Producto                        | Ad valorem |
+| ------------------------------- | ---------: |
+| Licores, aperitivos y similares |   **25 %** |
+| Vinos y aperitivos vínicos      |   **20 %** |
+
+La tarifa se aplica sobre el precio de venta al público antes de impuestos y/o participación, certificado por el DANE.
+
+4.2 Licores destilados nacionales
+
+Datos necesarios:
+
+Grado alcoholimétrico
+Contenido en cc
+Precio de venta al público certificado
+Cantidad
+
+Componente específico
+ComponenteEspecifico =
+    GradosAlcohol × 360 × (ContenidoCC / 750)
+
+Componente ad valorem
+ComponenteAdValorem =
+    BaseAdValorem × 25%
+
+Impuesto por unidad
+ImpuestoUnidad =
+    ComponenteEspecifico +
+    ComponenteAdValorem
+
+Impuesto total
+ImpuestoTotal =
+    ImpuestoUnidad × Cantidad
+
+4.3 Licores destilados importados
+
+La estructura tributaria mantiene el componente específico y el ad valorem, pero el sistema debe registrar correctamente el origen importado y la información correspondiente a la base utilizada para la liquidación.
+
+Por tanto:
+
+Origen = Importado
+Categoría = Licores
+TarifaEspecífica = 360
+TarifaAdValorem = 25%
+UnidadEspecífica = Grado / 750 cc
+
+El motor de cálculo no debe asumir que "importado" significa automáticamente una tarifa diferente. La diferencia puede estar en la determinación de la base, información del producto y reglas de liquidación, no necesariamente en el porcentaje nominal.
+
+
+4.4 Vinos nacionales e importados
+
+Los vinos utilizan una tarifa específica diferente a la de los licores.
+
+2026
+$243 × grado alcoholimétrico × equivalente de 750 cc
+
+Por ejemplo, conceptualmente:
+ComponenteEspecifico =
+    GradosAlcohol × 243 × (ContenidoCC / 750)
+
+El componente ad valorem corresponde al 20% sobre la base DANE aplicable. Por tanto:
+ImpuestoUnidad =
+    ComponenteEspecifico +
+    ComponenteAdValorem
+
+4.5 Aperitivos y similares
+
+Los aperitivos y similares se manejan dentro del mismo régimen de licores, salvo aquellos que correspondan específicamente a aperitivos vínicos.
+
+Aperitivo / similar
+TarifaEspecifica = $360
+AdValorem = 25%
+Aperitivo vínico
+TarifaEspecifica = $243
+AdValorem = 20%
+
+Por eso no basta con seleccionar "Aperitivo". El sistema debe distinguir:
+
+Aperitivo
+Aperitivo vínico
+
+Porque la tarifa específica y el porcentaje ad valorem son diferentes.
+
+
+5. Cervezas, sifones, refajos y mezclas
+
+Este grupo utiliza una lógica diferente a la de los licores.
+La norma principal es la Ley 223 de 1995, especialmente sus artículos 189 y 190. La base gravable está relacionada con el precio de venta al detallista.
+
+5.1 Tarifas
+
+| Producto                                                  |   Tarifa |
+| --------------------------------------------------------- | -------: |
+| Cervezas                                                  | **48 %** |
+| Sifones                                                   | **48 %** |
+| Refajos                                                   | **20 %** |
+| Mezclas de bebidas fermentadas con bebidas no alcohólicas | **20 %** |
+
+**NOTA: Aquí no se utiliza la fórmula por grados de alcohol × $360/$243.**
+
+5.2 Cervezas nacionales
+
+Para producto nacional, el precio de venta al detallista constituye el elemento fundamental para determinar la base.
+El Decreto 2141 de 1996 precisa que el precio de venta al detallista, sin incluir el impuesto al consumo, es el precio fijado por el productor y debe considerar el precio de fábrica y el margen de comercialización.
+
+Para el sistema:
+BaseGravable = PrecioVentaDetallista
+y:
+ImpuestoUnidad =
+    BaseGravable × 48%
+
+5.3 Cervezas importadas
+
+Para productos extranjeros, la base se determina a partir de:
+
+ValorAduana + GravámenesArancelarios + 30% margen de comercialización
+
+La Ley 223 contempla además un impuesto mínimo para productos extranjeros frente al promedio correspondiente de productos nacionales.
+Por tanto, conceptualmente:
+BaseImportado =
+    ValorAduana +
+    GravámenesArancelarios +
+    (BaseComercial × 30%)
+
+y:
+
+ImpuestoCalculado =
+    BaseImportado × 48%
+
+Posteriormente debe verificarse la regla de impuesto mínimo aplicable. Esto es importante para SGDS: no conviene implementar simplemente:
+impuesto = valorAduana * 0.48; porque se perdería la estructura de determinación de la base.
+
+
+5.4 Sifones
+
+Los sifones pertenecen al mismo bloque tarifario de las cervezas:
+Tarifa = 48%
+Por tanto:
+ImpuestoUnidad =
+    BaseGravable × 48%
+
+La información de presentación, contenido, origen y precio debe quedar registrada para soportar la liquidación.
+
+
+5.5 Refajos
+
+Los refajos tienen una tarifa de 20% sobre la base gravable correspondiente.
+ImpuestoUnidad =
+    BaseGravable × 20%
+
+
+5.6 Mezclas de bebidas fermentadas
+
+Las mezclas de bebidas fermentadas con bebidas no alcohólicas también utilizan:
+Tarifa = 20%
+Por tanto:
+ImpuestoUnidad =
+    BaseGravable × 20%
+
+La Ley 223 distingue expresamente este grupo de las cervezas y sifones.
+
+5.7 Cervezas artesanales
+
+El que se denomine "Artesanal" no debe convertirse en una tarifa independiente dentro del motor tributario.
+Si el producto jurídicamente corresponde a una cerveza, el sistema debe clasificarlo como:
+
+Categoría = Cervezas
+Subtipo = Cerveza artesanal
+Tarifa = 48%
+
+La característica "artesanal" puede conservarse como atributo comercial o de clasificación, pero no debe generar automáticamente una nueva fórmula tributaria.
+
+
+6. Cigarrillos y Tabaco Elaborado
+
+Este grupo utiliza también una combinación de:
+
+Componente específico.
+Componente ad valorem.
+
+La estructura está soportada por la Ley 223 de 1995, modificada, entre otras, por la Ley 1393 de 2010 y la Ley 1819 de 2016. El componente ad valorem corresponde al 10 % sobre la base gravable definida legalmente.
+
+
+
+6.1 Cigarrillos Nacionales e Importados
+
+Para 2026 debe utilizarse la tarifa ordinaria vigente y no los valores temporales introducidos por el Decreto Legislativo 1474 de 2025.
+El punto es importante porque ese decreto posteriormente fue declarado inexequible por consecuencia por la Corte Constitucional mediante la Sentencia C-079 de 2026.
+Por tanto, no deben implementarse en SGDS los valores de $11.200 y $891 que aparecían en el Decreto 1474 como si fueran la tarifa ordinaria vigente.
+El componente ad valorem continúa siendo: 10% sobre la base correspondiente.
+
+
+6.2 Tabaco elaborado — puros y cigarros
+
+Los puros y cigarros se encuentran dentro del grupo de productos de tabaco elaborado.
+El sistema debe identificar:
+
+Categoría = Cigarrillos y tabaco elaborado
+Subtipo = Tabaco elaborado
+Presentación
+Cantidad
+Base gravable
+Tarifa específica vigente
+Ad valorem = 10%
+
+La tarifa específica debe almacenarse como parámetro vigente y no como una constante dentro del Controller.
+
+6.3 Tabaco de picadura y sucedáneos
+
+Para productos medidos por peso, la unidad de liquidación es diferente.
+La estructura debe ser:
+
+Gramos × TarifaPorGramo + el componente ad valorem cuando corresponda.
+
+Para 2026, la tarifa específica ordinaria certificada corresponde a: $354 por gramo, y el componente ad valorem es del 10%.
+La estructura legal distingue expresamente la picadura, rapé y chimú de los productos vendidos por cajetilla.
+
+
+6.4 Sistemas Electrónicos de Vapeo
+
+Este punto debe quedar separado del cálculo ordinario de cigarrillos y tabaco elaborado.
+El Decreto 1474 de 2025 introdujo reglas específicas para derivados y sistemas electrónicos, pero ese decreto fue posteriormente declarado inexequible por consecuencia mediante la Sentencia C-079 de 2026.
+Por ello:
+Subtipo = Sistema electrónico de vapeo
+Estado = Sujeto a verificación normativa
+
+No debe asignarse automáticamente una tarifa de $2.000/ml + 30 % en el motor actual de InfoConsumo.
+La implementación debe permitir incorporar posteriormente una tarifa válida mediante parametrización cuando exista fundamento normativo vigente.
+
+
+MARCO NORMATIVO DE REFERENCIA: 
+
+Para la implementación 2026, las referencias principales son:
+
+Ley 1816 de 2016 — régimen del impuesto al consumo de licores, vinos, aperitivos y similares.
+Ley 788 de 2002, artículo 50, en la forma modificada por la Ley 1816 de 2016.
+Ley 223 de 1995 — impuesto al consumo de cervezas, sifones, refajos, mezclas y tabaco.
+Ley 1393 de 2010 — modificaciones y componente ad valorem para cigarrillos y tabaco.
+Ley 1819 de 2016 — modificación del componente ad valorem del impuesto al consumo de cigarrillos y tabaco.
+Certificación 003 de 2025 del Ministerio de Hacienda — tarifas específicas 2026 para licores, vinos, aperitivos y similares.
+Resolución DANE 1900 de 2025 — certificación de precios de venta al público para cigarrillos y tabaco durante 2026.
+Decreto 2141 de 1996 — reglas reglamentarias sobre bases gravables y declaración.
+Sentencia C-079 de 2026 — inexequibilidad por consecuencia del Decreto Legislativo 1474 de 2025.
+
+
+
+
+
+
+
 
 
 *Reglas de Excepción en la Lógica para el Backend:*

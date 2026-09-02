@@ -16,7 +16,7 @@ import {
   type DatosContratoEstampillas,
 } from '../config/estampillasConfig';
 import FormularioDatosContrato from '../components/estampillas/FormularioDatosContrato';
-import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, type DatosTornaguia } from '../config/infoconsumoConfig';
+import { DATOS_TORNAGUIA_VACIOS, validarCoherenciaOrigenDestino, categoriaReconocida, type DatosTornaguia } from '../config/infoconsumoConfig';
 import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
@@ -71,9 +71,15 @@ export default function EditarSolicitudPage() {
             setDatosTornaguia({
               tipoTransporte: t.tipoTransporte,
               categoriaProducto: t.categoriaProducto,
+              subcategoriaProducto: t.subcategoriaProducto,
+              origenProducto: t.origenProducto ?? '',
+              numeroLote: t.numeroLote ?? '',
               gradosAlcoholimetricos: t.gradosAlcoholimetricos != null ? String(t.gradosAlcoholimetricos) : '',
               unidadesFisicas: String(t.unidadesFisicas),
               pvpCertificado: String(t.pvpCertificado),
+              pesoGramos: t.pesoGramos != null ? String(t.pesoGramos) : '',
+              valorAduana: t.valorAduana != null ? String(t.valorAduana) : '',
+              gravamenesArancelarios: t.gravamenesArancelarios != null ? String(t.gravamenesArancelarios) : '',
               departamentoOrigen: t.departamentoOrigen,
               municipioOrigen: t.municipioOrigen,
               departamentoDestino: t.departamentoDestino,
@@ -97,6 +103,8 @@ export default function EditarSolicitudPage() {
               loteGoTraceEmpresaNit: '',
               loteGoTraceProducto: t.loteGoTraceProducto ?? '',
               loteGoTraceNumeroLote: '',
+              datosDesdeGoTrace: t.datosDesdeGoTrace,
+              clasificacionSinReconocer: t.datosDesdeGoTrace && !categoriaReconocida(t.categoriaProducto),
             });
           });
         } else if (s.proyectoNombre === 'SYCTrace') {
@@ -209,9 +217,15 @@ export default function EditarSolicitudPage() {
           tipoSolicitudId: tipoSolicitudId ?? undefined,
           tipoTransporte: datosTornaguia.tipoTransporte,
           categoriaProducto: datosTornaguia.categoriaProducto,
+          subcategoriaProducto: datosTornaguia.subcategoriaProducto,
+          origenProducto: datosTornaguia.origenProducto || undefined,
+          numeroLote: datosTornaguia.numeroLote || undefined,
           gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
           unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
           pvpCertificado: Number(datosTornaguia.pvpCertificado) || 0,
+          pesoGramos: datosTornaguia.pesoGramos ? Number(datosTornaguia.pesoGramos) : undefined,
+          valorAduana: datosTornaguia.valorAduana ? Number(datosTornaguia.valorAduana) : undefined,
+          gravamenesArancelarios: datosTornaguia.gravamenesArancelarios ? Number(datosTornaguia.gravamenesArancelarios) : undefined,
           departamentoOrigen: datosTornaguia.departamentoOrigen,
           municipioOrigen: datosTornaguia.municipioOrigen,
           departamentoDestino: datosTornaguia.departamentoDestino,

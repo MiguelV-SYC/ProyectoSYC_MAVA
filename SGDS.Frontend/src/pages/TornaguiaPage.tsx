@@ -206,8 +206,13 @@ export default function TornaguiaPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                     {[
                       ['Categoría', tornaguia.categoriaProducto],
-                      ['Unidades', `${tornaguia.unidadesFisicas.toLocaleString('es-CO')} (${tornaguia.volumenTotalCc.toLocaleString('es-CO')} cc)`],
-                      ['Grados alcoholimétricos', tornaguia.gradosAlcoholimetricos ? `${tornaguia.gradosAlcoholimetricos}°` : '—'],
+                      ['Subcategoría', tornaguia.subcategoriaProducto],
+                      tornaguia.pesoGramos
+                        ? ['Peso total', `${tornaguia.pesoGramos.toLocaleString('es-CO')} g`]
+                        : ['Unidades', `${tornaguia.unidadesFisicas.toLocaleString('es-CO')} (${tornaguia.volumenTotalCc.toLocaleString('es-CO')} cc)`],
+                      ...(tornaguia.gradosAlcoholimetricos ? [['Grados alcoholimétricos', `${tornaguia.gradosAlcoholimetricos}°`]] : []),
+                      ...(tornaguia.origenProducto ? [['Origen', tornaguia.origenProducto]] : []),
+                      ...(tornaguia.numeroLote ? [['Número de lote', tornaguia.numeroLote]] : []),
                     ].map(([lbl, val]) => (
                       <div key={lbl}>
                         <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">{lbl}</div>

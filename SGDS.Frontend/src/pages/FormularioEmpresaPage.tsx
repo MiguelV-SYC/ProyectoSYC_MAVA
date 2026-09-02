@@ -82,7 +82,15 @@ export default function FormularioEmpresaPage() {
         setCorreo(e.correo ?? '');
         setCiudad(e.ciudad ?? '');
         setDireccion(e.direccion ?? '');
-        setTipoEmpresa(e.tipoEmpresa ?? '');
+        // tipoEmpresa reutiliza una columna que antes guardaba la "relación" (Productora /
+        // Comercializadora / Productora y comercializadora) — empresas creadas antes del toggle
+        // Alcohol/Cigarrillo todavía tienen ese valor viejo guardado. Si no es uno de los 2
+        // válidos, se trata como sin elegir (el usuario lo reselecciona abajo) en vez de pasarlo
+        // tal cual a TablaProductosEmpresa, que rompía con una categoría que no reconoce.
+        const tipoEmpresaCargado = e.tipoEmpresa ?? '';
+        setTipoEmpresa(
+          CATEGORIAS_NEGOCIO_GOTRACE.includes(tipoEmpresaCargado as CategoriaNegocioGoTrace) ? tipoEmpresaCargado : ''
+        );
         setEstado(e.estado ?? '');
         setDepartamento(e.departamento ?? '');
         setTieneActividadGoTrace(e.proyectosConActividad.some((p) => p.proyectoNombre === 'Gotrace'));

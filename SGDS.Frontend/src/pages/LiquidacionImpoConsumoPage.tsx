@@ -142,8 +142,12 @@ export default function LiquidacionImpoConsumoPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                 {[
                   ['Categoría', liquidacion.categoriaProducto],
-                  ['Unidades', `${liquidacion.unidadesFisicas.toLocaleString('es-CO')} (${liquidacion.volumenTotalCc.toLocaleString('es-CO')} cc)`],
-                  ['Grados alcoholimétricos', liquidacion.gradosAlcoholimetricos ? `${liquidacion.gradosAlcoholimetricos}°` : '—'],
+                  ['Subcategoría', liquidacion.subcategoriaProducto],
+                  liquidacion.pesoGramos
+                    ? ['Peso total', `${liquidacion.pesoGramos.toLocaleString('es-CO')} g`]
+                    : ['Unidades', `${liquidacion.unidadesFisicas.toLocaleString('es-CO')} (${liquidacion.volumenTotalCc.toLocaleString('es-CO')} cc)`],
+                  ...(liquidacion.gradosAlcoholimetricos ? [['Grados alcoholimétricos', `${liquidacion.gradosAlcoholimetricos}°`]] : []),
+                  ...(liquidacion.origenProducto ? [['Origen', liquidacion.origenProducto]] : []),
                   ['PVP certificado', formatearMoneda(liquidacion.pvpCertificado)],
                 ].map(([lbl, val]) => (
                   <div key={lbl}>
@@ -162,7 +166,7 @@ export default function LiquidacionImpoConsumoPage() {
               <div className="bg-white border border-line rounded-[14px] overflow-hidden">
                 <div className="px-5 py-[14px] border-b border-line">
                   <h3 className="font-display text-[13.5px] font-semibold text-ink-900">
-                    Liquidación — Impuesto al Consumo de Licores (ICL)
+                    Liquidación — Impuesto al Consumo
                     {liquidacion.aplicaExcepcionSanAndres && ' · tarifa San Andrés'}
                   </h3>
                 </div>
@@ -178,21 +182,25 @@ export default function LiquidacionImpoConsumoPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td className="px-5 py-3 text-[13px] font-semibold text-ink-900 border-b border-line">Componente específico</td>
-                      <td className="px-5 py-3 text-[13px] text-ink-600 border-b border-line">${liquidacion.tarifaEspecifica.toLocaleString('es-CO')} × grado</td>
-                      <td className="px-5 py-3 text-[13px] font-semibold text-right border-b border-line">{formatearMoneda(liquidacion.componenteEspecifico)}</td>
-                    </tr>
+                    {liquidacion.tarifaEspecifica > 0 && (
+                      <tr>
+                        <td className="px-5 py-3 text-[13px] font-semibold text-ink-900 border-b border-line">Componente específico</td>
+                        <td className="px-5 py-3 text-[13px] text-ink-600 border-b border-line">
+                          ${liquidacion.tarifaEspecifica.toLocaleString('es-CO')} × {liquidacion.pesoGramos ? 'gramo' : liquidacion.gradosAlcoholimetricos ? 'grado / 750cc' : 'cajetilla/contenido'}
+                        </td>
+                        <td className="px-5 py-3 text-[13px] font-semibold text-right border-b border-line">{formatearMoneda(liquidacion.componenteEspecifico)}</td>
+                      </tr>
+                    )}
                     <tr>
                       <td className="px-5 py-3 text-[13px] font-semibold text-ink-900 border-b border-line">Componente ad valorem</td>
-                      <td className="px-5 py-3 text-[13px] text-ink-600 border-b border-line">{(liquidacion.tarifaAdValorem * 100).toFixed(0)}% sobre PVP</td>
+                      <td className="px-5 py-3 text-[13px] text-ink-600 border-b border-line">{(liquidacion.tarifaAdValorem * 100).toFixed(0)}% sobre base gravable</td>
                       <td className="px-5 py-3 text-[13px] font-semibold text-right border-b border-line">{formatearMoneda(liquidacion.componenteAdValorem)}</td>
                     </tr>
                   </tbody>
                 </table>
                 </div>
                 <div className="flex flex-col gap-1 items-end px-5 py-4 border-t border-line bg-paper">
-                  <span className="text-[12px] text-ink-600">ICL informativo: {formatearMoneda(liquidacion.iclInformativo)}</span>
+                  <span className="text-[12px] text-ink-600">Impuesto informativo: {formatearMoneda(liquidacion.impuestoInformativo)}</span>
                   <span className="text-[13px] font-semibold text-ink-900">
                     Total a pagar: <span className="font-display text-[17px] font-bold text-[var(--color-accento)]">{formatearMoneda(liquidacion.totalAPagar)}</span>
                   </span>
@@ -219,9 +227,11 @@ export default function LiquidacionImpoConsumoPage() {
             </div>
 
             <p className="text-[11px] text-ink-400 leading-relaxed">
-              Tarifas vigentes según Certificación 003 de MinHacienda (dic. 2025): $360/grado (licores) o $243/grado (vinos) en
-              envase de 750 cc, más 30%/20% ad valorem respectivamente — $57/grado para destino Archipiélago de San Andrés,
-              Providencia y Santa Catalina. Tarifas configurables sin cambios de código.
+              Licores/aperitivos: $360/grado, 25% ad valorem. Vinos/aperitivos vínicos: $243/grado, 20% ad valorem — ambos en
+              envase de 750cc (Certificación 003 de MinHacienda, dic. 2025) y $57/grado para destino Archipiélago de San
+              Andrés, Providencia y Santa Catalina. Cervezas/sifones: 48%; refajos/mezclas: 20% sobre precio de venta al
+              detallista (Ley 223 de 1995). Cigarrillos/tabaco/puros: 10% ad valorem + tarifa específica configurable;
+              picadura: $354/g + 10%. Tarifas ajustables sin cambios de código.
             </p>
 
             <button

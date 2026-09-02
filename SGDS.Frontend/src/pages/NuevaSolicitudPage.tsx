@@ -363,8 +363,13 @@ export default function NuevaSolicitudPage() {
       return;
     }
     if (esInfoconsumo) {
-      if (!datosTornaguia.unidadesFisicas || !datosTornaguia.placaVehiculo) {
-        setError('Ingresa las unidades físicas y la placa del vehículo para continuar.');
+      if (!datosTornaguia.categoriaProducto || !datosTornaguia.subcategoriaProducto) {
+        setError('Selecciona la categoría y la subcategoría del producto para continuar.');
+        return;
+      }
+      const cantidadRequerida = datosTornaguia.pesoGramos || datosTornaguia.unidadesFisicas;
+      if (!cantidadRequerida || !datosTornaguia.placaVehiculo) {
+        setError('Ingresa las unidades físicas (o el peso, según la subcategoría) y la placa del vehículo para continuar.');
         return;
       }
       const errorCoherencia = validarCoherenciaOrigenDestino(tipoSeleccionado.nombre, datosTornaguia.departamentoOrigen, datosTornaguia.departamentoDestino);
@@ -484,9 +489,15 @@ export default function NuevaSolicitudPage() {
           empresaId: empresaSeleccionada!.id,
           tipoTransporte: datosTornaguia.tipoTransporte,
           categoriaProducto: datosTornaguia.categoriaProducto,
+          subcategoriaProducto: datosTornaguia.subcategoriaProducto,
+          origenProducto: datosTornaguia.origenProducto || undefined,
+          numeroLote: datosTornaguia.numeroLote || undefined,
           gradosAlcoholimetricos: datosTornaguia.gradosAlcoholimetricos ? Number(datosTornaguia.gradosAlcoholimetricos) : undefined,
           unidadesFisicas: Number(datosTornaguia.unidadesFisicas) || 0,
           pvpCertificado: Number(datosTornaguia.pvpCertificado) || 0,
+          pesoGramos: datosTornaguia.pesoGramos ? Number(datosTornaguia.pesoGramos) : undefined,
+          valorAduana: datosTornaguia.valorAduana ? Number(datosTornaguia.valorAduana) : undefined,
+          gravamenesArancelarios: datosTornaguia.gravamenesArancelarios ? Number(datosTornaguia.gravamenesArancelarios) : undefined,
           departamentoOrigen: datosTornaguia.departamentoOrigen,
           municipioOrigen: datosTornaguia.municipioOrigen,
           departamentoDestino: datosTornaguia.departamentoDestino,

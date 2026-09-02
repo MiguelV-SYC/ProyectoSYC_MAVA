@@ -14,9 +14,15 @@ export interface CrearSolicitudInfoconsumoDto {
   empresaId: number;
   tipoTransporte: string;
   categoriaProducto: string;
+  subcategoriaProducto: string;
+  origenProducto?: string;
+  numeroLote?: string;
   gradosAlcoholimetricos?: number;
   unidadesFisicas: number;
   pvpCertificado: number;
+  pesoGramos?: number;
+  valorAduana?: number;
+  gravamenesArancelarios?: number;
   departamentoOrigen: string;
   municipioOrigen: string;
   departamentoDestino: string;
@@ -72,10 +78,19 @@ export interface TornaguiaResponseDto {
   empresaNit: string;
   tipoTransporte: string;
   categoriaProducto: string;
+  subcategoriaProducto: string;
+  origenProducto?: string;
+  numeroLote?: string;
   gradosAlcoholimetricos?: number;
   unidadesFisicas: number;
   volumenTotalCc: number;
   pvpCertificado: number;
+  pesoGramos?: number;
+  valorAduana?: number;
+  gravamenesArancelarios?: number;
+  // true cuando la solicitud está vinculada a un lote de GoTrace — el formulario bloquea la
+  // edición manual de estos campos, salvo PVP.
+  datosDesdeGoTrace: boolean;
   departamentoOrigen: string;
   municipioOrigen: string;
   departamentoDestino: string;
@@ -115,6 +130,12 @@ export interface LoteGoTraceDisponibleDto {
   empresaNombre: string;
   empresaNit: string;
   producto: string;
+  // Solo vienen cuando el lote está vinculado a una fila del catálogo Producto de GoTrace —
+  // si es un lote antiguo con producto en texto libre, quedan undefined.
+  categoriaProducto?: string;
+  subcategoriaProducto?: string;
+  gradosAlcoholimetricos?: number;
+  origenProducto?: string;
   numeroLote: string;
   unidadesLote: number;
   rangoUidCompleto?: string;
@@ -165,10 +186,13 @@ export interface LiquidacionImpoConsumoResponseDto {
   contribuyenteNombre: string;
   contribuyenteNit: string;
   categoriaProducto: string;
+  subcategoriaProducto: string;
+  origenProducto?: string;
   unidadesFisicas: number;
   gradosAlcoholimetricos?: number;
   volumenTotalCc: number;
   pvpCertificado: number;
+  pesoGramos?: number;
   departamentoDestino: string;
   soportado: boolean;
   motivoNoSoportado?: string;
@@ -176,7 +200,7 @@ export interface LiquidacionImpoConsumoResponseDto {
   tarifaAdValorem: number;
   componenteEspecifico: number;
   componenteAdValorem: number;
-  iclInformativo: number;
+  impuestoInformativo: number;
   totalAPagar: number;
   aplicaExcepcionSanAndres: boolean;
   esSoloInformativo: boolean;
