@@ -6,28 +6,25 @@ public class CrearSolicitudGoTraceDto
     public int TipoSolicitudId { get; set; }
     public int EmpresaId { get; set; }
 
-    public string Producto { get; set; } = string.Empty;
-    public string NumeroLote { get; set; } = string.Empty;
+    // El producto se elige del catálogo de la empresa (Empresa.Productos) — ya no es texto
+    // libre. NumeroLote no viaja en el DTO: se compone server-side (GT+Producto+fecha+
+    // consecutivo, ver GoTraceController.GenerarNumeroLote).
+    public int ProductoId { get; set; }
     public DateTime FechaProduccion { get; set; }
     public int UnidadesLote { get; set; }
 
-    public string? PrefijoUid { get; set; }
-    public int? CantidadUids { get; set; }
-    public int? UidInicial { get; set; }
+    // Automatico | Archivo — ver LoteGoTrace.ModoGeneracionUid.
+    public string ModoGeneracionUid { get; set; } = "Automatico";
 
     public List<string> PuntosControlHabilitados { get; set; } = new();
 }
 
 public class ActualizarSolicitudGoTraceDto
 {
-    public string Producto { get; set; } = string.Empty;
-    public string NumeroLote { get; set; } = string.Empty;
+    public int ProductoId { get; set; }
     public DateTime FechaProduccion { get; set; }
     public int UnidadesLote { get; set; }
-
-    public string? PrefijoUid { get; set; }
-    public int? CantidadUids { get; set; }
-    public int? UidInicial { get; set; }
+    public string ModoGeneracionUid { get; set; } = "Automatico";
 
     public List<string> PuntosControlHabilitados { get; set; } = new();
 }
@@ -53,10 +50,12 @@ public class CertificadoTrazabilidadResponseDto
     public string EmpresaNit { get; set; } = string.Empty;
 
     public string Producto { get; set; } = string.Empty;
+    public int? ProductoCatalogoId { get; set; }
     public string NumeroLote { get; set; } = string.Empty;
     public DateTime FechaProduccion { get; set; }
     public int UnidadesLote { get; set; }
 
+    public string ModoGeneracionUid { get; set; } = "Automatico";
     public string? PrefijoUid { get; set; }
     public int? CantidadUids { get; set; }
     public int? UidInicial { get; set; }
@@ -69,4 +68,11 @@ public class CertificadoTrazabilidadResponseDto
     public DateTime? UltimaActualizacion { get; set; }
 
     public DateTime FechaCreacion { get; set; }
+}
+
+// Vista previa del consecutivo antes de radicar (Reglas_de_negocio_GoTrace.md, "Nueva
+// Solicitud" -> "Número de Lote": GT + Producto + fecha + consecutivo).
+public class SiguienteNumeroLoteResponseDto
+{
+    public string NumeroLote { get; set; } = string.Empty;
 }

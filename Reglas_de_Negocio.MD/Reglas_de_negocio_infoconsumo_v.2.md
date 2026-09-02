@@ -160,10 +160,19 @@ export default function SeccionLiquidacion({ producto }: { producto: Producto | 
   );
 }
 
-*Tipos de Vehículos según su Carrocería (Logística de Bebidas y Tabaco)*
-Para estos productos se utilizan principalmente tres configuraciones de carrocería:Furgón Cerrado (Caja Seca): Es el más común para el tabaco y licores de alta gama. Protege la mercancía de la humedad, la luz solar directa y ofrece mayor seguridad contra robos.Camión Botellero / Sider (Cortinas Laterales): Es el diseño estándar utilizado por las grandes cervecerías y distribuidoras de bebidas. Las lonas laterales permiten una carga y descarga rápida con montacargas en estibas (palés).Estacas con Carpa: Utilizado por distribuidores minoristas o en zonas rurales. Exige que la carpa esté completamente sellada y cumpla con los requisitos de seguridad exigidos por las autoridades viales
+**Tipos de Vehículos según su Carrocería (Logística de Bebidas y Tabaco)**
+Para estos productos se utilizan principalmente tres configuraciones de carrocería:
+* Furgón Cerrado (Caja Seca): Es el más común para el tabaco y licores de alta gama. Protege la mercancía de la humedad, la luz solar directa y ofrece mayor seguridad contra robos.
+* Camión Botellero / Sider (Cortinas Laterales): Es el diseño estándar utilizado por las grandes cervecerías y distribuidoras de bebidas. Las lonas laterales permiten una carga y descarga rápida con montacargas en estibas (palés).
+* Estacas con Carpa: Utilizado por distribuidores minoristas o en zonas rurales. Exige que la carpa esté completamente sellada y cumpla con los requisitos de seguridad exigidos por las autoridades viales
 
-2. Clasificación por Capacidad y Configuración de Ejes (Norma NTC 4788)De acuerdo con el Ministerio de Transporte de Colombia y la norma NTC 4788, los vehículos de carga se dividen según su peso y número de ejes:Tipo de VehículoDesignación RNDCCapacidad de Carga AproximadaUso Común en Bebidas y TabacoTurboC2 (Liviano)Hasta 4.5 toneladasDistribución urbana de cigarrillos y licores en almacenes de cadena o tiendas.Camión SencilloC2 (Mediano)Hasta 8.5 toneladasDespachos regionales o entregas masivas en centros urbanos.Doble TroqueC3Hasta 17 toneladasTransporte intermunicipal de producto terminado desde plantas de producción.Cuatro ManosC4Hasta 22 toneladasAbastecimiento mayorista y movimiento de carga pesada a nivel nacional.Tractocamión (Mula)C3S2 / C3S3Hasta 32 - 35 toneladasTransporte masivo de materias primas o distribución de cerveza y licores a grandes centros de acopio.
+2. Clasificación por Capacidad y Configuración de Ejes (Norma NTC 4788)De acuerdo con el Ministerio de Transporte de Colombia y la norma NTC 4788, los vehículos de carga se dividen según su peso y número de ejes:
+Tipo de Vehículo||Designación RNDC|Capacidad de Carga |Aproximada|Uso Común en Bebidas y Tabaco
+* TurboC2 (Liviano)Hasta 4.5 toneladasDistribución urbana de cigarrillos y licores en almacenes de cadena o tiendas.
+* Camión SencilloC2 (Mediano)Hasta 8.5 toneladasDespachos regionales o entregas masivas en centros urbanos.
+* Doble TroqueC3Hasta 17 toneladasTransporte intermunicipal de producto terminado desde plantas de producción.
+* Cuatro ManosC4Hasta 22 toneladasAbastecimiento mayorista y movimiento de carga pesada a nivel nacional.
+* Tractocamión (Mula)C3S2 / C3S3Hasta 32 - 35 toneladasTransporte masivo de materias primas o distribución de cerveza y licores a grandes centros de acopio.
 
 
 

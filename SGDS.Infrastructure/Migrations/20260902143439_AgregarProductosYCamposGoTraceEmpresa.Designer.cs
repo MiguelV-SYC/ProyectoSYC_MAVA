@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SGDS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SGDS.Infrastructure.Data;
 namespace SGDS.Infrastructure.Migrations
 {
     [DbContext(typeof(SgdsDbContext))]
-    partial class SgdsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902143439_AgregarProductosYCamposGoTraceEmpresa")]
+    partial class AgregarProductosYCamposGoTraceEmpresa
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -590,18 +593,10 @@ namespace SGDS.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("empresa_id");
 
-                    b.Property<decimal?>("GradoAlcoholimetrico")
-                        .HasColumnType("numeric")
-                        .HasColumnName("grado_alcoholimetrico");
-
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("nombre");
-
-                    b.Property<string>("Origen")
-                        .HasColumnType("text")
-                        .HasColumnName("origen");
 
                     b.Property<string>("Presentacion")
                         .IsRequired()
@@ -612,11 +607,6 @@ namespace SGDS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("relacion");
-
-                    b.Property<string>("Subtipo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("subtipo");
 
                     b.Property<string>("Tipo")
                         .IsRequired()

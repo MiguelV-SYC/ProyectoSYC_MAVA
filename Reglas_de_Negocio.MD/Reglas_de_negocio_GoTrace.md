@@ -164,6 +164,7 @@ Identificación de la empresa
 * nit
 * razón social
 * tipo de empresa
+[][Alcohol] - [][Cigarrillo]
 * estado
 * logo (campo opcional) (se debe colocar el acceso para cargar archivo)
 
@@ -177,11 +178,47 @@ Información de contacto y ubicación
 
 Productos que comercializa y/o produce              
 
-Nombre | tipo | presentación | contenido | und de medida | relación|
+1. Si es alcohol, se habilita esta sección
+Nombre | [tipo ↓] | [subtipo ↓]| presentación | contenido | und de medida | grado de alcohol |relación|
 
-producto 1 | (especificar el tipo de bebida) | (lata, botella, tetrapack)  | 1, 100,170,300 etc.. | (correspondiente a mL, L, etc)  | selección de produce o comercializa| [editar(símbolo de lapiz)] [eliminar(símbolo de papelera)]
+producto 1 | (especificar el tipo de bebida) | (lata, botella, tetrapack)  | 1, 100,170,300 etc.. | (correspondiente a ml, l, etc)  | 35° |selección de produce o comercializa| [editar(símbolo de lapiz)] [eliminar(símbolo de papelera)]
 
 [+ Agregar Producto]
+
+
+2. Si es Cigarillo, se habilita esta sección
+
+Nombre|[tipo ↓]|[subtipo ↓]|presentación|contenido|und de medida |origen↓(nacional o importado)|relación(productora-comercializadora-productora y comercializadora)|
+
+
+
+
+
+**NOTA**
+* tipos de bebida: 
+1. Licores, Vinos, Aperitivos y Similares
+- subtipos: 
+	* Licores Destilados Nacionales
+	* Licores Destilados Importados
+	* Vinos (Nacionales e Importados)
+	* Aperitivos y Similares
+	* Aperitivos Vínicos
+
+2. Cervezas, Sifones, Refajos y Mezclas
+- subtipos: 
+	* Cervezas Nacionales
+	* Cervezas Importadas
+	* Sifones
+	* Refajos
+	* Mezclas de Bebidas Fermentadas
+	* Cervezas Artesanales
+
+3. Cigarrillos y Tabaco Elaborado
+- subtipos: 
+	* Cigarrillos Nacionales
+	* Cigarrillos Importados
+	* Cigarrillos y Tabacos (puros)
+	* Picadura y Tabaco para Pipa
 
 
 _________________________________________________________________________________________________________________

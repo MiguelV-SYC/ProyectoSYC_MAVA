@@ -27,6 +27,7 @@ import { getEstampilla, actualizarSolicitudSycTrace } from '../services/syctrace
 import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
 import FormularioLoteGoTrace from '../components/gotrace/FormularioLoteGoTrace';
 import { getCertificado, actualizarSolicitudGoTrace } from '../services/gotraceService';
+import { getProductosEmpresa, type ProductoDto } from '../services/empresaService';
 import { DATOS_INSTRUMENTO_PASIVO_VACIOS, TIPO_CONSULTA_EXPEDIENTE, totalMeses, aniosYMeses, type DatosInstrumentoPasivo } from '../config/pasivosLaboralesConfig';
 import FormularioInstrumentoPasivo from '../components/pasivosLaborales/FormularioInstrumentoPasivo';
 import { getInstrumento, actualizarSolicitudPasivosLaborales } from '../services/pasivosLaboralesService';
@@ -44,7 +45,8 @@ export default function EditarSolicitudPage() {
   const [datosEstampilla, setDatosEstampilla] = useState<DatosEstampilla>(DATOS_ESTAMPILLA_VACIOS);
   const [estadoEstampilla, setEstadoEstampilla] = useState<string | null>(null);
   const [datosLoteGoTrace, setDatosLoteGoTrace] = useState<DatosLoteGoTrace>(DATOS_LOTE_GOTRACE_VACIOS);
-  const [empresaGoTrace, setEmpresaGoTrace] = useState<{ nombre: string; nit: string } | null>(null);
+  const [empresaGoTrace, setEmpresaGoTrace] = useState<{ id: number; nombre: string; nit: string } | null>(null);
+  const [productosEmpresaGoTrace, setProductosEmpresaGoTrace] = useState<ProductoDto[]>([]);
   const [datosInstrumentoPasivo, setDatosInstrumentoPasivo] = useState<DatosInstrumentoPasivo>(DATOS_INSTRUMENTO_PASIVO_VACIOS);
   const [empresaPasivosLaborales, setEmpresaPasivosLaborales] = useState<{ nombre: string; nit: string } | null>(null);
 
@@ -124,16 +126,25 @@ export default function EditarSolicitudPage() {
           });
         } else if (s.proyectoNombre === 'Gotrace') {
           getCertificado(s.id).then((c) => {
-            setEmpresaGoTrace({ nombre: c.empresaRazonSocial, nit: c.empresaNit });
-            setDatosLoteGoTrace({
-              producto: c.producto,
-              numeroLote: c.numeroLote,
-              fechaProduccion: c.fechaProduccion.slice(0, 10),
-              unidadesLote: String(c.unidadesLote),
-              prefijoUid: c.prefijoUid ?? '',
-              cantidadUids: c.cantidadUids != null ? String(c.cantidadUids) : '',
-              uidInicial: c.uidInicial != null ? String(c.uidInicial) : '',
-              puntosControlHabilitados: c.puntosControl.filter((p) => p.habilitado).map((p) => p.nombre),
+            setEmpresaGoTrace({ id: c.empresaId, nombre: c.empresaRazonSocial, nit: c.empresaNit });
+            getProductosEmpresa(c.empresaId).then((productos) => {
+              setProductosEmpresaGoTrace(productos);
+              const productoActual = productos.find((p) => p.id === c.productoCatalogoId);
+              setDatosLoteGoTrace({
+                productoId: c.productoCatalogoId ?? null,
+                productoNombre: productoActual?.nombre ?? c.producto,
+                productoTipo: productoActual?.tipo ?? '',
+                productoPresentacion: productoActual?.presentacion ?? '',
+                productoContenido: productoActual ? String(productoActual.contenido) : '',
+                productoUnidadMedida: productoActual?.unidadMedida ?? '',
+                productoRelacion: productoActual?.relacion ?? '',
+                numeroLote: c.numeroLote,
+                fechaProduccion: c.fechaProduccion.slice(0, 10),
+                unidadesLote: String(c.unidadesLote),
+                modoGeneracionUid: (c.modoGeneracionUid as 'Automatico' | 'Archivo') || 'Automatico',
+                archivoUidsNombre: '',
+                puntosControlHabilitados: c.puntosControl.filter((p) => p.habilitado).map((p) => p.nombre),
+              });
             });
           });
         } else if (s.proyectoNombre === 'Pasivos Laborales') {
@@ -242,14 +253,15 @@ export default function EditarSolicitudPage() {
           codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
         });
       } else if (esGoTrace) {
+        if (!datosLoteGoTrace.productoId) {
+          setError('Selecciona un producto del catálogo de la empresa para continuar.');
+          return;
+        }
         await actualizarSolicitudGoTrace(solicitud.id, {
-          producto: datosLoteGoTrace.producto,
-          numeroLote: datosLoteGoTrace.numeroLote,
+          productoId: datosLoteGoTrace.productoId,
           fechaProduccion: datosLoteGoTrace.fechaProduccion,
           unidadesLote: Number(datosLoteGoTrace.unidadesLote) || 0,
-          prefijoUid: datosLoteGoTrace.prefijoUid || undefined,
-          cantidadUids: datosLoteGoTrace.cantidadUids ? Number(datosLoteGoTrace.cantidadUids) : undefined,
-          uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
+          modoGeneracionUid: datosLoteGoTrace.modoGeneracionUid,
           puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
         });
       } else if (esPasivosLaborales) {
@@ -412,7 +424,7 @@ export default function EditarSolicitudPage() {
             ) : esSycTrace ? (
               <FormularioEstampilla value={datosEstampilla} onChange={setDatosEstampilla} />
             ) : esGoTrace ? (
-              <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
+              <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} productos={productosEmpresaGoTrace} esNuevo={false} />
             ) : esPasivosLaborales ? (
               <FormularioInstrumentoPasivo
                 value={datosInstrumentoPasivo}

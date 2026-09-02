@@ -102,6 +102,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<EstampillaFisica> EstampillasFisicas => Set<EstampillaFisica>();
     public DbSet<LoteGoTrace> LotesGoTrace => Set<LoteGoTrace>();
     public DbSet<PuntoControlGoTrace> PuntosControlGoTrace => Set<PuntoControlGoTrace>();
+    public DbSet<Producto> Productos => Set<Producto>();
     public DbSet<InstrumentoPasivoLaboral> InstrumentosPasivoLaboral => Set<InstrumentoPasivoLaboral>();
     public DbSet<Sede> Sedes => Set<Sede>();
     public DbSet<TurnoLibroTotal> TurnosLibroTotal => Set<TurnoLibroTotal>();
@@ -194,6 +195,21 @@ private static int? ObtenerProyectoId(object entidad)
             .WithMany(l => l.PuntosControl)
             .HasForeignKey(p => p.LoteGoTraceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Catálogo de productos por empresa (RN GoTrace "Nueva Empresa") — un lote referencia
+        // opcionalmente la fila del catálogo que lo originó; si esa fila se borra, el lote
+        // conserva su copia de texto en LoteGoTrace.Producto (SetNull, no cascada).
+        modelBuilder.Entity<Producto>().ToTable("productos");
+        modelBuilder.Entity<Producto>()
+            .HasOne(p => p.Empresa)
+            .WithMany(e => e.Productos)
+            .HasForeignKey(p => p.EmpresaId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<LoteGoTrace>()
+            .HasOne(l => l.ProductoCatalogo)
+            .WithMany()
+            .HasForeignKey(l => l.ProductoCatalogoId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Catálogo de tipos de trámite del proyecto Pasivos Laborales (id 6 en la BD real).
         modelBuilder.Entity<TipoSolicitud>().HasData(

@@ -178,10 +178,15 @@ export default function CertificadoTrazabilidadPage() {
                       <div className="text-[13.5px] font-semibold text-ink-900">{formatearFecha(certificado.fechaProduccion)}</div>
                     </div>
                   </div>
-                  {certificado.rangoUidCompleto && (
+                  {certificado.rangoUidCompleto ? (
                     <div className="mt-3">
                       <div className="text-[10.5px] uppercase tracking-wide text-ink-400 mb-1">Rango de UIDs</div>
                       <div className="text-[13px] font-semibold text-ink-900 font-mono">{certificado.rangoUidCompleto}</div>
+                    </div>
+                  ) : certificado.modoGeneracionUid === 'Archivo' && (
+                    <div className="mt-3">
+                      <div className="text-[10.5px] uppercase tracking-wide text-ink-400 mb-1">Identificadores</div>
+                      <div className="text-[13px] font-semibold text-ink-900">Cargados por archivo desde fábrica</div>
                     </div>
                   )}
                 </div>

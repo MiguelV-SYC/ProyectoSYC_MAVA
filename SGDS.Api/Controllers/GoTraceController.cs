@@ -50,11 +50,16 @@ public class GoTraceController : ControllerBase
         if (tipo == null)
             return BadRequest(new { mensaje = "El tipo de solicitud no es válido." });
 
-        var errorLote = ValidarDatosLote(dto.Producto, dto.NumeroLote, dto.UnidadesLote);
+        var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == dto.ProductoId && p.EmpresaId == dto.EmpresaId);
+        if (producto == null)
+            return BadRequest(new { mensaje = "El producto no existe en el catálogo de la empresa." });
+
+        var errorLote = ValidarDatosLote(dto.UnidadesLote);
         if (errorLote != null) return BadRequest(new { mensaje = errorLote });
 
-        var errorUid = ValidarRangoUid(dto.PrefijoUid, dto.CantidadUids, dto.UidInicial);
-        if (errorUid != null) return BadRequest(new { mensaje = errorUid });
+        var fechaUtc = DateTime.SpecifyKind(dto.FechaProduccion, DateTimeKind.Utc);
+        var numeroLote = await GenerarNumeroLoteAsync(producto, fechaUtc);
+        var (prefijoUid, cantidadUids, uidInicial, uidFinal) = ComponerUidsAutomaticos(dto.ModoGeneracionUid, producto, fechaUtc, dto.UnidadesLote);
 
         var nuevaSolicitud = new Solicitud
         {
@@ -65,14 +70,16 @@ public class GoTraceController : ControllerBase
             FechaCreacion = DateTime.UtcNow,
             LoteGoTrace = new LoteGoTrace
             {
-                Producto = dto.Producto,
-                NumeroLote = dto.NumeroLote,
-                FechaProduccion = DateTime.SpecifyKind(dto.FechaProduccion, DateTimeKind.Utc),
+                Producto = producto.Nombre,
+                ProductoCatalogoId = producto.Id,
+                NumeroLote = numeroLote,
+                FechaProduccion = fechaUtc,
                 UnidadesLote = dto.UnidadesLote,
-                PrefijoUid = dto.PrefijoUid,
-                CantidadUids = dto.CantidadUids,
-                UidInicial = dto.UidInicial,
-                UidFinal = CalcularUidFinal(dto.CantidadUids, dto.UidInicial),
+                ModoGeneracionUid = dto.ModoGeneracionUid,
+                PrefijoUid = prefijoUid,
+                CantidadUids = cantidadUids,
+                UidInicial = uidInicial,
+                UidFinal = uidFinal,
                 PuntosControl = ConstruirPuntosControl(dto.PuntosControlHabilitados),
             },
         };
@@ -99,27 +106,54 @@ public class GoTraceController : ControllerBase
         var (error, solicitud) = await ObtenerSolicitudGoTraceAsync(id);
         if (error != null) return error;
 
-        var errorLote = ValidarDatosLote(dto.Producto, dto.NumeroLote, dto.UnidadesLote);
+        var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == dto.ProductoId && p.EmpresaId == solicitud!.EmpresaId);
+        if (producto == null)
+            return BadRequest(new { mensaje = "El producto no existe en el catálogo de la empresa." });
+
+        var errorLote = ValidarDatosLote(dto.UnidadesLote);
         if (errorLote != null) return BadRequest(new { mensaje = errorLote });
 
-        var errorUid = ValidarRangoUid(dto.PrefijoUid, dto.CantidadUids, dto.UidInicial);
-        if (errorUid != null) return BadRequest(new { mensaje = errorUid });
-
         var lote = solicitud!.LoteGoTrace!;
-        lote.Producto = dto.Producto;
-        lote.NumeroLote = dto.NumeroLote;
-        lote.FechaProduccion = DateTime.SpecifyKind(dto.FechaProduccion, DateTimeKind.Utc);
+        var fechaUtc = DateTime.SpecifyKind(dto.FechaProduccion, DateTimeKind.Utc);
+        // El número de lote se asigna una sola vez al radicar y no se recalcula al editar —
+        // ya pudo haberse impreso en etiquetas/documentos físicos.
+        lote.Producto = producto.Nombre;
+        lote.ProductoCatalogoId = producto.Id;
+        lote.FechaProduccion = fechaUtc;
         lote.UnidadesLote = dto.UnidadesLote;
-        lote.PrefijoUid = dto.PrefijoUid;
-        lote.CantidadUids = dto.CantidadUids;
-        lote.UidInicial = dto.UidInicial;
-        lote.UidFinal = CalcularUidFinal(dto.CantidadUids, dto.UidInicial);
+
+        if (lote.ModoGeneracionUid != dto.ModoGeneracionUid)
+        {
+            var (prefijoUid, cantidadUids, uidInicial, uidFinal) = ComponerUidsAutomaticos(dto.ModoGeneracionUid, producto, fechaUtc, dto.UnidadesLote);
+            lote.ModoGeneracionUid = dto.ModoGeneracionUid;
+            lote.PrefijoUid = prefijoUid;
+            lote.CantidadUids = cantidadUids;
+            lote.UidInicial = uidInicial;
+            lote.UidFinal = uidFinal;
+        }
+        else if (dto.ModoGeneracionUid == "Automatico")
+        {
+            // Las unidades del lote pudieron cambiar — recomponer solo la cantidad/rango.
+            lote.CantidadUids = dto.UnidadesLote;
+            lote.UidFinal = CalcularUidFinal(lote.CantidadUids, lote.UidInicial);
+        }
 
         foreach (var punto in lote.PuntosControl)
             punto.Habilitado = dto.PuntosControlHabilitados.Contains(punto.Nombre);
 
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    // GET: api/GoTrace/siguiente-numero-lote?productoId=5&fecha=2026-09-02
+    [HttpGet("siguiente-numero-lote")]
+    public async Task<IActionResult> GetSiguienteNumeroLote([FromQuery] int productoId, [FromQuery] DateTime fecha)
+    {
+        var producto = await _context.Productos.FindAsync(productoId);
+        if (producto == null) return NotFound(new { mensaje = "El producto no existe." });
+
+        var numeroLote = await GenerarNumeroLoteAsync(producto, DateTime.SpecifyKind(fecha, DateTimeKind.Utc));
+        return Ok(new SiguienteNumeroLoteResponseDto { NumeroLote = numeroLote });
     }
 
     // ===== Cadena de custodia =====
@@ -185,30 +219,44 @@ public class GoTraceController : ControllerBase
 
     // ===== Helpers =====
 
-    private static string? ValidarDatosLote(string producto, string numeroLote, int unidades)
+    private static string? ValidarDatosLote(int unidades)
     {
-        if (string.IsNullOrWhiteSpace(producto)) return "Indica el producto del lote.";
-        if (string.IsNullOrWhiteSpace(numeroLote)) return "Indica el número de lote.";
         if (unidades <= 0) return "Las unidades del lote deben ser mayores que cero.";
-        return null;
-    }
-
-    private static string? ValidarRangoUid(string? prefijo, int? cantidad, int? inicial)
-    {
-        // El rango de UIDs es opcional al radicar (el mockup no lo exige) — si se diligencia
-        // alguno de los tres campos, deben venir completos.
-        var algunoLleno = !string.IsNullOrWhiteSpace(prefijo) || cantidad.HasValue || inicial.HasValue;
-        if (!algunoLleno) return null;
-
-        if (string.IsNullOrWhiteSpace(prefijo) || !cantidad.HasValue || !inicial.HasValue)
-            return "Para registrar el rango de UIDs, completa prefijo, cantidad y código inicial.";
-        if (cantidad <= 0) return "La cantidad de UIDs debe ser mayor que cero.";
-        if (inicial < 0) return "El UID inicial no puede ser negativo.";
         return null;
     }
 
     private static int? CalcularUidFinal(int? cantidad, int? inicial) =>
         cantidad.HasValue && inicial.HasValue ? inicial.Value + cantidad.Value - 1 : null;
+
+    // GT + Producto (abreviado) + fecha + consecutivo (Reglas_de_negocio_GoTrace.md, "Nueva
+    // Solicitud" -> "Número de Lote"). El consecutivo cuenta los lotes ya radicados del mismo
+    // producto en la misma fecha de producción — riesgo de colisión mínimo en el volumen de
+    // un piloto, mismo tipo de compromiso que la numeración de Solicitud ({Codigo}-{Id:0000}).
+    private async Task<string> GenerarNumeroLoteAsync(Producto producto, DateTime fechaProduccionUtc)
+    {
+        var consecutivo = await _context.LotesGoTrace
+            .CountAsync(l => l.ProductoCatalogoId == producto.Id && l.FechaProduccion.Date == fechaProduccionUtc.Date);
+        return $"GT-{AbreviarProducto(producto.Nombre)}-{fechaProduccionUtc:yyyyMMdd}-{consecutivo + 1:000}";
+    }
+
+    private static string AbreviarProducto(string nombre)
+    {
+        var soloLetrasYNumeros = new string(nombre.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        return soloLetrasYNumeros.Length > 6 ? soloLetrasYNumeros[..6] : soloLetrasYNumeros;
+    }
+
+    // Automatico: compone el rango de UIDs con el mismo esquema GT+Producto+fecha del número
+    // de lote (RN-GT01) — un identificador por unidad producida. Archivo: los UIDs reales los
+    // asigna el hardware de fábrica fuera de este piloto (ver comentario en LoteGoTrace), así
+    // que solo se deja constancia de la cantidad esperada, sin modelar un rango.
+    private static (string? Prefijo, int? Cantidad, int? Inicial, int? Final) ComponerUidsAutomaticos(
+        string modo, Producto producto, DateTime fechaProduccionUtc, int unidadesLote)
+    {
+        if (modo != "Automatico") return (null, unidadesLote, null, null);
+
+        var prefijo = $"GT-{AbreviarProducto(producto.Nombre)}-{fechaProduccionUtc:yyyyMMdd}";
+        return (prefijo, unidadesLote, 1, CalcularUidFinal(unidadesLote, 1));
+    }
 
     private static List<PuntoControlGoTrace> ConstruirPuntosControl(List<string> habilitados) =>
         PuntosControlDisponibles.Select((nombre, i) => new PuntoControlGoTrace
@@ -271,9 +319,14 @@ public class GoTraceController : ControllerBase
             EmpresaRazonSocial = s.Empresa?.RazonSocial ?? string.Empty,
             EmpresaNit = s.Empresa?.Nit ?? string.Empty,
             Producto = l.Producto,
+            ProductoCatalogoId = l.ProductoCatalogoId,
             NumeroLote = l.NumeroLote,
             FechaProduccion = l.FechaProduccion,
             UnidadesLote = l.UnidadesLote,
+            // Lotes radicados antes de este campo existir quedaron con el valor vacío por
+            // defecto de la migración — se muestran como "Automatico" (comportamiento real que
+            // tenían: rango numérico simple, sin modo explícito).
+            ModoGeneracionUid = string.IsNullOrEmpty(l.ModoGeneracionUid) ? "Automatico" : l.ModoGeneracionUid,
             PrefijoUid = l.PrefijoUid,
             CantidadUids = l.CantidadUids,
             UidInicial = l.UidInicial,
@@ -311,6 +364,8 @@ public class GoTraceController : ControllerBase
                     };
                     if (dto.RangoUidCompleto != null)
                         filasProducto.Add(("Rango de UIDs", dto.RangoUidCompleto));
+                    else if (dto.ModoGeneracionUid == "Archivo")
+                        filasProducto.Add(("Identificadores", "Cargados por archivo desde fábrica"));
                     DisenoPdfSgds.SeccionTabla(col, "Producto", filasProducto.ToArray());
 
                     DisenoPdfSgds.SeccionTabla(col, "Empresa productora",

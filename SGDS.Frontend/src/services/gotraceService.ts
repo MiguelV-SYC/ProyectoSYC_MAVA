@@ -13,14 +13,11 @@ export interface CrearSolicitudGoTraceDto {
   tipoSolicitudId: number;
   empresaId: number;
 
-  producto: string;
-  numeroLote: string;
+  productoId: number;
   fechaProduccion: string;
   unidadesLote: number;
 
-  prefijoUid?: string;
-  cantidadUids?: number;
-  uidInicial?: number;
+  modoGeneracionUid: string;
 
   puntosControlHabilitados: string[];
 }
@@ -34,6 +31,14 @@ export async function crearSolicitudGoTrace(dto: CrearSolicitudGoTraceDto): Prom
 
 export async function actualizarSolicitudGoTrace(id: number, dto: ActualizarSolicitudGoTraceDto): Promise<void> {
   await axios.put(`${API_URL}/GoTrace/solicitudes/${id}`, dto, { headers: authHeader() });
+}
+
+export async function getSiguienteNumeroLote(productoId: number, fecha: string): Promise<string> {
+  const { data } = await axios.get<{ numeroLote: string }>(`${API_URL}/GoTrace/siguiente-numero-lote`, {
+    params: { productoId, fecha },
+    headers: authHeader(),
+  });
+  return data.numeroLote;
 }
 
 export async function confirmarPuntoControl(solicitudId: number, puntoId: number): Promise<void> {
@@ -59,10 +64,12 @@ export interface CertificadoTrazabilidadResponseDto {
   empresaNit: string;
 
   producto: string;
+  productoCatalogoId?: number;
   numeroLote: string;
   fechaProduccion: string;
   unidadesLote: number;
 
+  modoGeneracionUid: string;
   prefijoUid?: string;
   cantidadUids?: number;
   uidInicial?: number;

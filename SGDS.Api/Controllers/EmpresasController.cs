@@ -110,6 +110,8 @@ public class EmpresasController : ControllerBase
             })
             .ToList();
 
+        var totalProductos = await _context.Productos.CountAsync(p => p.EmpresaId == id);
+
         var dto = new EmpresaDetalleResponseDto
         {
             Id = empresa.Id,
@@ -121,9 +123,13 @@ public class EmpresasController : ControllerBase
             Correo = empresa.Correo,
             Ciudad = empresa.Ciudad,
             Direccion = empresa.Direccion,
+            TipoEmpresa = empresa.TipoEmpresa,
+            Estado = empresa.Estado,
+            Departamento = empresa.Departamento,
             FechaRegistro = empresa.FechaRegistro,
             ProyectosConActividad = proyectosConActividad,
-            TieneLogo = empresa.RutaLogo != null
+            TieneLogo = empresa.RutaLogo != null,
+            TotalProductos = totalProductos,
         };
 
         return Ok(dto);
@@ -237,7 +243,10 @@ public class EmpresasController : ControllerBase
             Telefono = dto.Telefono,
             Correo = dto.Correo,
             Ciudad = dto.Ciudad,
-            Direccion = dto.Direccion
+            Direccion = dto.Direccion,
+            TipoEmpresa = dto.TipoEmpresa,
+            Estado = dto.Estado,
+            Departamento = dto.Departamento,
         };
 
         _context.Empresas.Add(nuevaEmpresa);
@@ -269,10 +278,176 @@ public class EmpresasController : ControllerBase
         empresa.Correo = dto.Correo;
         empresa.Ciudad = dto.Ciudad;
         empresa.Direccion = dto.Direccion;
+        empresa.TipoEmpresa = dto.TipoEmpresa;
+        empresa.Estado = dto.Estado;
+        empresa.Departamento = dto.Departamento;
 
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // ===== Catálogo de productos (GoTrace) =====
+
+    // GET: api/Empresas/5/productos
+    [HttpGet("{id}/productos")]
+    public async Task<IActionResult> GetProductos(int id)
+    {
+        var empresaExiste = await _context.Empresas.AnyAsync(e => e.Id == id);
+        if (!empresaExiste) return NotFound();
+
+        var productos = await _context.Productos
+            .Where(p => p.EmpresaId == id)
+            .OrderBy(p => p.Nombre)
+            .Select(p => new ProductoResponseDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Tipo = p.Tipo,
+                Subtipo = p.Subtipo,
+                Presentacion = p.Presentacion,
+                Contenido = p.Contenido,
+                UnidadMedida = p.UnidadMedida,
+                GradoAlcoholimetrico = p.GradoAlcoholimetrico,
+                Origen = p.Origen,
+                Relacion = p.Relacion,
+            })
+            .ToListAsync();
+
+        return Ok(productos);
+    }
+
+    // POST: api/Empresas/5/productos
+    [HttpPost("{id}/productos")]
+    public async Task<IActionResult> CrearProducto(int id, GuardarProductoDto dto)
+    {
+        var empresaExiste = await _context.Empresas.AnyAsync(e => e.Id == id);
+        if (!empresaExiste) return NotFound();
+
+        var errorValidacion = ValidarProducto(dto);
+        if (errorValidacion != null) return BadRequest(new { mensaje = errorValidacion });
+
+        var nuevoProducto = new Producto
+        {
+            EmpresaId = id,
+            Nombre = dto.Nombre,
+            Tipo = dto.Tipo,
+            Subtipo = dto.Subtipo,
+            Presentacion = dto.Presentacion,
+            Contenido = dto.Contenido,
+            UnidadMedida = dto.UnidadMedida,
+            GradoAlcoholimetrico = dto.GradoAlcoholimetrico,
+            Origen = dto.Origen,
+            Relacion = dto.Relacion,
+        };
+
+        _context.Productos.Add(nuevoProducto);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ProductoResponseDto
+        {
+            Id = nuevoProducto.Id,
+            Nombre = nuevoProducto.Nombre,
+            Tipo = nuevoProducto.Tipo,
+            Subtipo = nuevoProducto.Subtipo,
+            Presentacion = nuevoProducto.Presentacion,
+            Contenido = nuevoProducto.Contenido,
+            UnidadMedida = nuevoProducto.UnidadMedida,
+            GradoAlcoholimetrico = nuevoProducto.GradoAlcoholimetrico,
+            Origen = nuevoProducto.Origen,
+            Relacion = nuevoProducto.Relacion,
+        });
+    }
+
+    // PUT: api/Empresas/5/productos/8
+    [HttpPut("{id}/productos/{productoId}")]
+    public async Task<IActionResult> ActualizarProducto(int id, int productoId, GuardarProductoDto dto)
+    {
+        var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == productoId && p.EmpresaId == id);
+        if (producto == null) return NotFound();
+
+        var errorValidacion = ValidarProducto(dto);
+        if (errorValidacion != null) return BadRequest(new { mensaje = errorValidacion });
+
+        producto.Nombre = dto.Nombre;
+        producto.Tipo = dto.Tipo;
+        producto.Subtipo = dto.Subtipo;
+        producto.Presentacion = dto.Presentacion;
+        producto.Contenido = dto.Contenido;
+        producto.UnidadMedida = dto.UnidadMedida;
+        producto.GradoAlcoholimetrico = dto.GradoAlcoholimetrico;
+        producto.Origen = dto.Origen;
+        producto.Relacion = dto.Relacion;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // DELETE: api/Empresas/5/productos/8
+    [HttpDelete("{id}/productos/{productoId}")]
+    public async Task<IActionResult> EliminarProducto(int id, int productoId)
+    {
+        var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == productoId && p.EmpresaId == id);
+        if (producto == null) return NotFound();
+
+        _context.Productos.Remove(producto);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // Catálogo legal de bebidas y tabaco gravados (Reglas_de_negocio_GoTrace.md, nota al final
+    // del formulario de "Nueva Empresa") — Subtipo depende del Tipo elegido. Los 2 primeros
+    // tipos son de la categoría "Alcohol" (Empresa.TipoEmpresa), el tercero de "Cigarrillo".
+    private static readonly Dictionary<string, string[]> SubtiposPorTipo = new()
+    {
+        ["Licores, Vinos, Aperitivos y Similares"] = new[]
+        {
+            "Licores Destilados Nacionales", "Licores Destilados Importados", "Vinos (Nacionales e Importados)",
+            "Aperitivos y Similares", "Aperitivos Vínicos",
+        },
+        ["Cervezas, Sifones, Refajos y Mezclas"] = new[]
+        {
+            "Cervezas Nacionales", "Cervezas Importadas", "Sifones", "Refajos",
+            "Mezclas de Bebidas Fermentadas", "Cervezas Artesanales",
+        },
+        ["Cigarrillos y Tabaco Elaborado"] = new[]
+        {
+            "Cigarrillos Nacionales", "Cigarrillos Importados", "Cigarrillos y Tabacos (puros)",
+            "Picadura y Tabaco para Pipa",
+        },
+    };
+
+    private static readonly HashSet<string> TiposDeTabaco = new() { "Cigarrillos y Tabaco Elaborado" };
+    private static readonly string[] RelacionesAlcohol = { "Produce", "Comercializa" };
+    private static readonly string[] RelacionesTabaco = { "Productora", "Comercializadora", "Productora y comercializadora" };
+
+    private static string? ValidarProducto(GuardarProductoDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Nombre)) return "Indica el nombre del producto.";
+        if (string.IsNullOrWhiteSpace(dto.Presentacion)) return "Indica la presentación del producto.";
+        if (string.IsNullOrWhiteSpace(dto.UnidadMedida)) return "Indica la unidad de medida.";
+        if (dto.Contenido <= 0) return "El contenido debe ser mayor que cero.";
+        if (!SubtiposPorTipo.TryGetValue(dto.Tipo, out var subtiposValidos)) return "El tipo de producto no es válido.";
+        if (!subtiposValidos.Contains(dto.Subtipo)) return "El subtipo no corresponde al tipo elegido.";
+
+        // Alcohol y tabaco usan vocabularios de "relación" distintos (así los definió el
+        // negocio) y campos exclusivos entre sí: grado de alcohol solo aplica a alcohol,
+        // origen nacional/importado solo aplica a tabaco.
+        if (TiposDeTabaco.Contains(dto.Tipo))
+        {
+            if (!RelacionesTabaco.Contains(dto.Relacion))
+                return $"La relación debe ser una de: {string.Join(", ", RelacionesTabaco)}.";
+            if (dto.Origen != "Nacional" && dto.Origen != "Importado")
+                return "El origen debe ser \"Nacional\" o \"Importado\".";
+        }
+        else
+        {
+            if (!RelacionesAlcohol.Contains(dto.Relacion))
+                return $"La relación debe ser una de: {string.Join(", ", RelacionesAlcohol)}.";
+            if (dto.GradoAlcoholimetrico is < 0) return "El grado de alcohol no puede ser negativo.";
+        }
+
+        return null;
     }
 
     // DELETE: api/Empresas/5

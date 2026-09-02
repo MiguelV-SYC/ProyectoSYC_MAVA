@@ -8,9 +8,15 @@ import {
   actualizarEmpresa,
   subirLogoEmpresa,
   obtenerLogoEmpresaBlobUrl,
+  crearProducto,
   type BusquedaNitResponse,
+  type GuardarProductoDto,
 } from '../services/empresaService';
-import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
+import { useColorProyectoActivo, useNombreProyectoActivo } from '../hooks/useColorProyectoActivo';
+import { DEPARTAMENTOS_COLOMBIA } from '../config/geografiaColombia';
+import { CATEGORIAS_NEGOCIO_GOTRACE, ESTADOS_EMPRESA_GOTRACE, type CategoriaNegocioGoTrace } from '../config/gotraceConfig';
+import BuscadorMunicipio from '../components/infoconsumo/BuscadorMunicipio';
+import TablaProductosEmpresa from '../components/gotrace/TablaProductosEmpresa';
 
 export default function FormularioEmpresaPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +24,11 @@ export default function FormularioEmpresaPage() {
   const [searchParams] = useSearchParams();
   const volverA = searchParams.get('volverA');
   const esEdicion = Boolean(id);
+  const contextoGoTrace = searchParams.get('contexto') === 'gotrace';
+  // El proyecto que el operador tiene activo en el sidebar en este momento — cubre entrar a
+  // "+ Nueva empresa" desde el menú de Empresas mientras Gotrace está seleccionado, no solo
+  // desde el enlace "crear nueva empresa" dentro de una solicitud de Gotrace.
+  const nombreProyectoActivo = useNombreProyectoActivo();
 
   const [nit, setNit] = useState('');
   const [razonSocial, setRazonSocial] = useState('');
@@ -26,6 +37,26 @@ export default function FormularioEmpresaPage() {
   const [correo, setCorreo] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [direccion, setDireccion] = useState('');
+  const [tipoEmpresa, setTipoEmpresa] = useState('');
+  const [estado, setEstado] = useState('');
+  const [departamento, setDepartamento] = useState('');
+
+  // La empresa ya tiene actividad en GoTrace, o ya tiene productos en su catálogo, aunque se
+  // haya creado antes de este formulario extendido (o a medio llenar) — sin esto, editarla
+  // seguía mostrando el formulario simple porque tipoEmpresa nunca se llegó a guardar.
+  const [tieneActividadGoTrace, setTieneActividadGoTrace] = useState(false);
+  const [tieneProductos, setTieneProductos] = useState(false);
+
+  // Se muestra la sección extendida de GoTrace (identificación ampliada + catálogo de
+  // productos) cuando: se crea desde ese flujo (?contexto=gotrace); el proyecto activo en el
+  // sidebar en este momento es Gotrace; la empresa que se edita ya tiene datos de ese
+  // formulario, actividad en el proyecto, o productos en su catálogo.
+  const mostrarSeccionGoTrace =
+    contextoGoTrace || nombreProyectoActivo === 'Gotrace' || Boolean(tipoEmpresa) || tieneActividadGoTrace || tieneProductos;
+
+  // Al crear, la empresa todavía no tiene id — los productos se guardan en memoria y se suben
+  // uno por uno justo después de crearla (ver handleSubmit).
+  const [productosNuevos, setProductosNuevos] = useState<GuardarProductoDto[]>([]);
 
   const [duplicado, setDuplicado] = useState<BusquedaNitResponse | null>(null);
   const [verificando, setVerificando] = useState(false);
@@ -51,6 +82,11 @@ export default function FormularioEmpresaPage() {
         setCorreo(e.correo ?? '');
         setCiudad(e.ciudad ?? '');
         setDireccion(e.direccion ?? '');
+        setTipoEmpresa(e.tipoEmpresa ?? '');
+        setEstado(e.estado ?? '');
+        setDepartamento(e.departamento ?? '');
+        setTieneActividadGoTrace(e.proyectosConActividad.some((p) => p.proyectoNombre === 'Gotrace'));
+        setTieneProductos(e.totalProductos > 0);
         if (e.tieneLogo) {
           obtenerLogoEmpresaBlobUrl(Number(id)).then(setLogoUrl).catch(() => {});
         }
@@ -114,6 +150,9 @@ export default function FormularioEmpresaPage() {
           correo,
           ciudad,
           direccion,
+          tipoEmpresa: mostrarSeccionGoTrace ? tipoEmpresa : undefined,
+          estado: mostrarSeccionGoTrace ? estado : undefined,
+          departamento: mostrarSeccionGoTrace ? departamento : undefined,
         });
         navigate(`/empresas/${id}`);
       } else {
@@ -125,8 +164,24 @@ export default function FormularioEmpresaPage() {
           correo,
           ciudad,
           direccion,
+          tipoEmpresa: mostrarSeccionGoTrace ? tipoEmpresa : undefined,
+          estado: mostrarSeccionGoTrace ? estado : undefined,
+          departamento: mostrarSeccionGoTrace ? departamento : undefined,
         });
         const nuevoId = (creada as any).id;
+
+        if (mostrarSeccionGoTrace && productosNuevos.length > 0) {
+          for (const dto of productosNuevos) {
+            await crearProducto(nuevoId, dto);
+          }
+        }
+
+        if (mostrarSeccionGoTrace && archivoLogo) {
+          await subirLogoEmpresa(nuevoId, archivoLogo).catch(() => {
+            setError('La empresa se creó, pero el logo no se pudo subir — puedes intentarlo de nuevo desde Editar.');
+          });
+        }
+
         if (volverA) {
           const separador = volverA.includes('?') ? '&' : '?';
           navigate(`${volverA}${separador}empresaId=${nuevoId}`);
@@ -218,21 +273,90 @@ export default function FormularioEmpresaPage() {
                 </p>
               )}
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-ink-900 mb-1.5 mt-3.5">Razón social</label>
+              <input
+                value={razonSocial}
+                onChange={(e) => setRazonSocial(e.target.value)}
+                required
+                placeholder="Nombre de la empresa"
+                className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {mostrarSeccionGoTrace && (
+              <div className="mt-3.5">
+                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipo de empresa</label>
+                <div className="flex gap-2 mb-3.5">
+                  {CATEGORIAS_NEGOCIO_GOTRACE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setTipoEmpresa(c)}
+                      className={`flex-1 py-2.5 px-3 rounded-[9px] border-[1.5px] text-[13px] font-semibold ${
+                        tipoEmpresa === c ? 'border-[var(--color-accento)] bg-[var(--color-accento-claro)] text-[var(--color-accento)]' : 'border-line text-ink-600'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Estado</label>
+                <select value={estado} onChange={(e) => setEstado(e.target.value)} className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500">
+                  <option value="">Selecciona un estado</option>
+                  {ESTADOS_EMPRESA_GOTRACE.map((es) => <option key={es} value={es}>{es}</option>)}
+                </select>
+              </div>
+            )}
+
+            {mostrarSeccionGoTrace && (
+              <div className="mt-3.5">
+                <label className="block text-xs font-semibold text-ink-900 mb-1.5">
+                  Logo <span className="font-normal text-ink-400">(opcional)</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-[10px] border border-line bg-paper flex items-center justify-center overflow-hidden shrink-0">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo de la empresa" className="w-full h-full object-contain" />
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" className="w-6 h-6 stroke-ink-400">
+                        <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="M21 15l-5-5L5 21" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      onChange={(e) => handleSeleccionarLogo(e.target.files?.[0] ?? null)}
+                      className="text-[12.5px] text-ink-600"
+                    />
+                    {esEdicion && id && archivoLogo && (
+                      <button
+                        type="button"
+                        onClick={handleSubirLogo}
+                        disabled={subiendoLogo}
+                        className="self-start py-1.5 px-3.5 rounded-[8px] bg-[var(--color-accento)] text-white text-[12px] font-semibold disabled:opacity-60"
+                      >
+                        {subiendoLogo ? 'Subiendo...' : 'Guardar logo'}
+                      </button>
+                    )}
+                    {!esEdicion && archivoLogo && (
+                      <p className="text-[11px] text-ink-400">Se sube automáticamente al guardar la empresa.</p>
+                    )}
+                    {errorLogo && <p className="text-[11px] text-red-600">{errorLogo}</p>}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white border border-line rounded-[14px] p-5">
-            <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Datos de la empresa</h3>
+            <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">
+              {mostrarSeccionGoTrace ? 'Información de contacto y ubicación' : 'Datos de la empresa'}
+            </h3>
             <div className="flex flex-col gap-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Razón social</label>
-                <input
-                  value={razonSocial}
-                  onChange={(e) => setRazonSocial(e.target.value)}
-                  required
-                  placeholder="Nombre de la empresa"
-                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                />
-              </div>
               <div>
                 <label className="block text-xs font-semibold text-ink-900 mb-1.5">Representante legal</label>
                 <input
@@ -263,16 +387,37 @@ export default function FormularioEmpresaPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">Ciudad</label>
-                  <input
-                    value={ciudad}
-                    onChange={(e) => setCiudad(e.target.value)}
-                    placeholder="Bucaramanga"
-                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                  />
+              {mostrarSeccionGoTrace && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-900 mb-1.5">Departamento</label>
+                    <select
+                      value={departamento}
+                      onChange={(e) => { setDepartamento(e.target.value); setCiudad(''); }}
+                      className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+                    >
+                      <option value="">Selecciona un departamento</option>
+                      {DEPARTAMENTOS_COLOMBIA.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-900 mb-1.5">Ciudad / municipio</label>
+                    <BuscadorMunicipio departamento={departamento} value={ciudad} onChange={setCiudad} placeholder="Ej: Bucaramanga" />
+                  </div>
                 </div>
+              )}
+              <div className={mostrarSeccionGoTrace ? '' : 'grid grid-cols-1 sm:grid-cols-2 gap-3.5'}>
+                {!mostrarSeccionGoTrace && (
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-900 mb-1.5">Ciudad</label>
+                    <input
+                      value={ciudad}
+                      onChange={(e) => setCiudad(e.target.value)}
+                      placeholder="Bucaramanga"
+                      className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Dirección</label>
                   <input
@@ -286,7 +431,22 @@ export default function FormularioEmpresaPage() {
             </div>
           </div>
 
-          {esEdicion && id && (
+          {mostrarSeccionGoTrace && (
+            tipoEmpresa ? (
+              esEdicion && id
+                ? <TablaProductosEmpresa empresaId={Number(id)} categoria={tipoEmpresa as CategoriaNegocioGoTrace} />
+                : <TablaProductosEmpresa value={productosNuevos} onChange={setProductosNuevos} categoria={tipoEmpresa as CategoriaNegocioGoTrace} />
+            ) : (
+              <div className="bg-white border border-line rounded-[14px] p-5">
+                <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-1">Productos que comercializa y/o produce</h3>
+                <p className="text-[12.5px] text-ink-400">
+                  Selecciona el tipo de empresa (Alcohol o Cigarrillo) arriba para habilitar el catálogo de productos.
+                </p>
+              </div>
+            )
+          )}
+
+          {!mostrarSeccionGoTrace && esEdicion && id && (
             <div className="bg-white border border-line rounded-[14px] p-5">
               <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-1">Logo</h3>
               <p className="text-[11.5px] text-ink-400 mb-4">

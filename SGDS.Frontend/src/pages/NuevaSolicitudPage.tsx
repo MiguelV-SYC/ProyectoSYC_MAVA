@@ -8,7 +8,7 @@ import {
 } from '../services/solicitudService';
 import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
 import { getCiudadanos, getCiudadanoDetalle, type CiudadanoResponseDto } from '../services/ciudadanoService';
-import { getEmpresas, getEmpresaDetalle, type EmpresaResponseDto } from '../services/empresaService';
+import { getEmpresas, getEmpresaDetalle, getProductosEmpresa, type EmpresaResponseDto, type ProductoDto } from '../services/empresaService';
 import { getVehiculos, getVehiculoDetalle, type VehiculoResponseDto } from '../services/vehiculoService';
 import { CAMPOS_POR_TIPO, CAMPO_FALLBACK } from '../config/camposPorTipoSolicitud';
 import { getColorProyecto } from '../config/colorPorProyecto';
@@ -79,6 +79,7 @@ export default function NuevaSolicitudPage() {
 
   const [ciudadanoSeleccionado, setCiudadanoSeleccionado] = useState<CiudadanoResponseDto | null>(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState<EmpresaResponseDto | null>(null);
+  const [productosEmpresaGoTrace, setProductosEmpresaGoTrace] = useState<ProductoDto[]>([]);
   const [vehiculoVinculado, setVehiculoVinculado] = useState<VehiculoResponseDto | null>(null);
   const [vehiculosProyecto, setVehiculosProyecto] = useState<VehiculoResponseDto[]>([]);
   const [busquedaVehiculo, setBusquedaVehiculo] = useState('');
@@ -150,6 +151,15 @@ export default function NuevaSolicitudPage() {
   useEffect(() => {
     if (esInfoconsumo || esGoTrace || esPasivosLaborales) setTipoAfiliado('empresa');
   }, [esInfoconsumo, esGoTrace, esPasivosLaborales]);
+
+  // GoTrace: el catálogo de productos de la empresa alimenta tanto el resumen ("Productos
+  // agregados: #") como el selector de producto del lote (paso 3).
+  useEffect(() => {
+    if (!esGoTrace || !empresaSeleccionada) { setProductosEmpresaGoTrace([]); return; }
+    let cancelado = false;
+    getProductosEmpresa(empresaSeleccionada.id).then((lista) => { if (!cancelado) setProductosEmpresaGoTrace(lista); });
+    return () => { cancelado = true; };
+  }, [esGoTrace, empresaSeleccionada]);
 
   // Afiliado que llega ya resuelto por la URL — ya sea del gancho de ficha,
   // o de volver de "crear nuevo ciudadano/empresa" a mitad del formulario
@@ -319,8 +329,8 @@ export default function NuevaSolicitudPage() {
       }
     }
     if (esGoTrace) {
-      if (!datosLoteGoTrace.producto || !datosLoteGoTrace.numeroLote || !datosLoteGoTrace.fechaProduccion || !datosLoteGoTrace.unidadesLote) {
-        setError('Completa producto, número de lote, fecha de producción y unidades del lote para continuar.');
+      if (!datosLoteGoTrace.productoId || !datosLoteGoTrace.fechaProduccion || !datosLoteGoTrace.unidadesLote) {
+        setError('Selecciona el producto e ingresa la fecha de producción y las unidades del lote para continuar.');
         return;
       }
     }
@@ -371,13 +381,10 @@ export default function NuevaSolicitudPage() {
           proyectoId,
           tipoSolicitudId: tipoSeleccionado.id,
           empresaId: empresaSeleccionada!.id,
-          producto: datosLoteGoTrace.producto,
-          numeroLote: datosLoteGoTrace.numeroLote,
+          productoId: datosLoteGoTrace.productoId!,
           fechaProduccion: datosLoteGoTrace.fechaProduccion,
           unidadesLote: Number(datosLoteGoTrace.unidadesLote) || 0,
-          prefijoUid: datosLoteGoTrace.prefijoUid || undefined,
-          cantidadUids: datosLoteGoTrace.cantidadUids ? Number(datosLoteGoTrace.cantidadUids) : undefined,
-          uidInicial: datosLoteGoTrace.uidInicial ? Number(datosLoteGoTrace.uidInicial) : undefined,
+          modoGeneracionUid: datosLoteGoTrace.modoGeneracionUid,
           puntosControlHabilitados: datosLoteGoTrace.puntosControlHabilitados,
         });
         navigate(`/solicitudes/${creada.id}`);
@@ -636,7 +643,7 @@ export default function NuevaSolicitudPage() {
             navigate(
               tipoAfiliado === 'ciudadano'
                 ? `/ciudadanos/nuevo?volverA=${encodeURIComponent(volverAActual)}`
-                : `/empresas/nueva?volverA=${encodeURIComponent(volverAActual)}`
+                : `/empresas/nueva?volverA=${encodeURIComponent(volverAActual)}${esGoTrace ? '&contexto=gotrace' : ''}`
             )
           }
           className="text-[12.5px] text-blue-600 font-medium mt-1"
@@ -839,6 +846,25 @@ export default function NuevaSolicitudPage() {
                 />
                 {!datosTornaguia.loteGoTraceSolicitudId && renderBuscadorAfiliado()}
               </>
+            ) : esGoTrace && empresaSeleccionada ? (
+              <div className="flex items-center gap-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-xl px-3.5 py-3">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-accento)] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {empresaSeleccionada.razonSocial.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] font-semibold text-ink-900">{empresaSeleccionada.razonSocial}</div>
+                  <div className="text-[11px] text-ink-600">
+                    NIT {empresaSeleccionada.nit}-{empresaSeleccionada.digitoVerificacion} · Productos agregados: {productosEmpresaGoTrace.length}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmpresaSeleccionada(null)}
+                  className="text-[11.5px] text-blue-600 font-medium shrink-0"
+                >
+                  Cambiar
+                </button>
+              </div>
             ) : afiliadoResueltoPorUrl ? (
               <div className="flex items-center gap-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-xl px-3.5 py-3">
                 <div className="w-8 h-8 rounded-lg bg-[var(--color-accento)] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -1004,7 +1030,7 @@ export default function NuevaSolicitudPage() {
         )}
 
         {esGoTrace && (
-          <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} />
+          <FormularioLoteGoTrace value={datosLoteGoTrace} onChange={setDatosLoteGoTrace} productos={productosEmpresaGoTrace} esNuevo />
         )}
 
         {esPasivosLaborales && (

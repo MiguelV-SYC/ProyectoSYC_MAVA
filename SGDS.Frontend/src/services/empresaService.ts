@@ -55,9 +55,13 @@ export interface EmpresaDetalleResponseDto {
   correo?: string;
   ciudad?: string;
   direccion?: string;
+  tipoEmpresa?: string;
+  estado?: string;
+  departamento?: string;
   fechaRegistro: string;
   proyectosConActividad: ProyectoActividadDto[];
   tieneLogo: boolean;
+  totalProductos: number;
 }
 
 export async function getEmpresaDetalle(id: number): Promise<EmpresaDetalleResponseDto> {
@@ -92,6 +96,9 @@ export interface CrearEmpresaDto {
   correo?: string;
   ciudad?: string;
   direccion?: string;
+  tipoEmpresa?: string;
+  estado?: string;
+  departamento?: string;
 }
 
 export async function crearEmpresa(dto: CrearEmpresaDto) {
@@ -106,6 +113,9 @@ export interface ActualizarEmpresaDto {
   correo?: string;
   ciudad?: string;
   direccion?: string;
+  tipoEmpresa?: string;
+  estado?: string;
+  departamento?: string;
 }
 
 export async function actualizarEmpresa(id: number, dto: ActualizarEmpresaDto): Promise<void> {
@@ -126,4 +136,53 @@ export async function obtenerLogoEmpresaBlobUrl(id: number): Promise<string> {
     responseType: 'blob',
   });
   return window.URL.createObjectURL(new Blob([response.data]));
+}
+
+// ===== Catálogo de productos (GoTrace) =====
+
+export interface ProductoDto {
+  id: number;
+  nombre: string;
+  tipo: string;
+  subtipo: string;
+  presentacion: string;
+  contenido: number;
+  unidadMedida: string;
+  gradoAlcoholimetrico?: number;
+  origen?: string;
+  relacion: string;
+}
+
+export interface GuardarProductoDto {
+  nombre: string;
+  tipo: string;
+  subtipo: string;
+  presentacion: string;
+  contenido: number;
+  unidadMedida: string;
+  gradoAlcoholimetrico?: number;
+  origen?: string;
+  relacion: string;
+}
+
+export async function getProductosEmpresa(empresaId: number): Promise<ProductoDto[]> {
+  const { data } = await axios.get<ProductoDto[]>(`${API_URL}/Empresas/${empresaId}/productos`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function crearProducto(empresaId: number, dto: GuardarProductoDto): Promise<ProductoDto> {
+  const { data } = await axios.post<ProductoDto>(`${API_URL}/Empresas/${empresaId}/productos`, dto, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function actualizarProducto(empresaId: number, productoId: number, dto: GuardarProductoDto): Promise<void> {
+  await axios.put(`${API_URL}/Empresas/${empresaId}/productos/${productoId}`, dto, { headers: authHeader() });
+}
+
+export async function eliminarProducto(empresaId: number, productoId: number): Promise<void> {
+  await axios.delete(`${API_URL}/Empresas/${empresaId}/productos/${productoId}`, { headers: authHeader() });
 }

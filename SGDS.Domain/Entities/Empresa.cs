@@ -17,4 +17,13 @@ public class Empresa
     // Ruta relativa devuelta por IAlmacenamientoService (mismo mecanismo que Documento.RutaArchivo)
     // — el logo se sirve vía GET /api/Empresas/{id}/logo, nunca como URL estática directa.
     public string? RutaLogo { get; set; }
+
+    // Campos exclusivos del formulario extendido de GoTrace (Reglas_de_negocio_GoTrace.md,
+    // sección "Nueva Empresa") — quedan null para empresas creadas desde cualquier otro
+    // proyecto. Departamento es nuevo; Ciudad ya existía y se reutiliza como "ciudad/municipio".
+    public string? TipoEmpresa { get; set; }
+    public string? Estado { get; set; }
+    public string? Departamento { get; set; }
+
+    public ICollection<Producto> Productos { get; set; } = new List<Producto>();
 }
