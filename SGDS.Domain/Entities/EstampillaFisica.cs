@@ -13,13 +13,17 @@ public class EstampillaFisica
     public int SolicitudInfoconsumoId { get; set; }
     public Solicitud SolicitudInfoconsumo { get; set; } = null!;
 
-    // Producto (RN-01, sección 3 — datos obligatorios para el QR/código de barras)
+    // Producto (RN-01, sección 3 — datos obligatorios para el QR/código de barras). Categoría y
+    // subcategoría usan el mismo catálogo de 3 categorías de ley que GoTrace/Infoconsumo (ver
+    // syctraceConfig.ts) — puente de herencia sin traducción desde la tornaguía de Infoconsumo.
     public string CategoriaProducto { get; set; } = string.Empty;
+    public string SubcategoriaProducto { get; set; } = string.Empty;
     public string NombreProducto { get; set; } = string.Empty;
     public string? Marca { get; set; }
     public decimal? GradoAlcoholimetrico { get; set; }
     public int? ContenidoNetoCc { get; set; }
     public int? UnidadesPorCajetilla { get; set; }
+    public decimal? PesoGramos { get; set; }
     public string RegistroInvima { get; set; } = string.Empty;
     public string LoteProduccion { get; set; } = string.Empty;
 

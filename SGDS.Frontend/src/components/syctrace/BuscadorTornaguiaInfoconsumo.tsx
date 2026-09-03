@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getTornaguiasDisponibles, type TornaguiaInfoconsumoDisponibleDto } from '../../services/syctraceService';
-import type { DatosEstampilla } from '../../config/syctraceConfig';
+import { categoriaReconocida, subcategoriasDe, type DatosEstampilla } from '../../config/syctraceConfig';
 
 interface Props {
   value: DatosEstampilla;
@@ -24,24 +24,61 @@ export default function BuscadorTornaguiaInfoconsumo({ value, onChange }: Props)
   }, [busqueda, value.solicitudInfoconsumoId]);
 
   function elegir(t: TornaguiaInfoconsumoDisponibleDto) {
-    // Infoconsumo ya capturó categoría/grado/contenido — se heredan para no volver a
-    // digitarlos (RN-03, puente Infoconsumo -> SYCTrace). El operador puede seguir
-    // ajustándolos en el paso siguiente si algo cambió.
+    // Infoconsumo ya capturó categoría/subcategoría/grado/contenido/origen/lote — se heredan
+    // para no volver a digitarlos (RN-03, puente Infoconsumo -> SYCTrace). Si la tornaguía es de
+    // antes de esta unificación de catálogo (categoría en texto libre que ya no existe), no se
+    // hereda un valor inválido — queda en blanco para elegir a mano (ver FormularioEstampilla).
+    const categoriaValida = t.categoriaProducto != null && categoriaReconocida(t.categoriaProducto);
+    const categoriaFinal = categoriaValida ? t.categoriaProducto! : '';
+    const subcategoriaFinal =
+      categoriaFinal && t.subcategoriaProducto && subcategoriasDe(categoriaFinal).includes(t.subcategoriaProducto)
+        ? t.subcategoriaProducto
+        : '';
+
     onChange({
       ...value,
       solicitudInfoconsumoId: t.id,
       solicitudInfoconsumoNumero: t.numero,
       empresaNombre: t.empresaNombre,
       empresaNit: t.empresaNit,
-      categoriaProducto: t.categoriaProducto || value.categoriaProducto,
+      datosDesdeInfoconsumo: true,
+      clasificacionSinReconocer: !categoriaValida,
+      codigosFijados: false,
+      categoriaProducto: categoriaFinal,
+      subcategoriaProducto: subcategoriaFinal,
       gradoAlcoholimetrico: t.gradoAlcoholimetrico != null ? String(t.gradoAlcoholimetrico) : value.gradoAlcoholimetrico,
       contenidoNetoCc: t.contenidoNetoCc != null ? String(t.contenidoNetoCc) : value.contenidoNetoCc,
+      pesoGramos: t.pesoGramos != null ? String(t.pesoGramos) : value.pesoGramos,
+      // Sobrescribe siempre (no con fallback al valor anterior) — si no, al cambiar de
+      // tornaguía sin recargar la página, un dato heredado de la selección previa queda
+      // bloqueado mostrando información que ya no corresponde a la tornaguía actual.
+      loteProduccion: t.numeroLote ?? '',
+      loteHeredado: Boolean(t.numeroLote),
+      nombreProducto: t.nombreProducto ?? '',
+      nombreHeredado: Boolean(t.nombreProducto),
+      // Cantidad a expedir = unidades físicas de la tornaguía (una estampilla por unidad del
+      // lote) — siempre disponible, nunca se digita a mano.
+      cantidadEstampillas: String(t.unidadesFisicas),
+      origenProducto: t.origenProducto || value.origenProducto,
+      origenHeredado: Boolean(t.origenProducto),
       numeroTornaguia: t.numero,
     });
   }
 
   function limpiar() {
-    onChange({ ...value, solicitudInfoconsumoId: null, solicitudInfoconsumoNumero: '', empresaNombre: '', empresaNit: '' });
+    onChange({
+      ...value,
+      solicitudInfoconsumoId: null,
+      solicitudInfoconsumoNumero: '',
+      empresaNombre: '',
+      empresaNit: '',
+      datosDesdeInfoconsumo: false,
+      clasificacionSinReconocer: false,
+      origenHeredado: false,
+      loteHeredado: false,
+      nombreHeredado: false,
+      codigosFijados: false,
+    });
     setBusqueda('');
   }
 

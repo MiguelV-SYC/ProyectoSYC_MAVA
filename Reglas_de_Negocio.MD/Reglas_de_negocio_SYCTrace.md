@@ -103,17 +103,21 @@ Para que el diseño del software sea compatible con el sistema anticontrabando d
 
 
 
+**LOGICA PARA CREACIÓN DE CODIGO AUTOMÁTICO DEL REGISTRO SANITARIO INVIMA**
+1. Lógica: 
 
 
+RSI + [Año de expedición] + [letra inicial del mes de expedición] + - [letra de categoría del prodcuto] - [número consecutivo de 6 dígitos]
+RSI 2026S-L-012345
 
 
+**LOGICA PARA CREACIÓN DE CODIGO AUTOMÁTICO DE ESTAMPILLA**
 
 
+[Prefijo Departamento] + [Año actual] + [Tipo Licor(N-nacional o I-importado)] + [Número Secuencial Correlativo (8 digitos rellenos con 0 a la izquierda 00000001)]
+* revisar en la asignación de departamentos, los prefijos asignados por el dane a cada uno. 
 
-
-
-
-
+ejemplo: 0526N00000001
 
 
 

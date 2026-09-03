@@ -22,11 +22,18 @@ public class SycTraceController : ControllerBase
 {
     private readonly SgdsDbContext _context;
 
-    // Categorías cuya clasificación en el menú (RN de SYCTrace) exige grado alcoholimétrico
-    // y contenido neto, y las que exigen unidades por cajetilla en vez de eso.
-    private static readonly string[] CategoriasLicorVino = { "Licores_Destilados", "Vinos_Fermentados" };
-    private const string CategoriaCigarrillos = "Tabaco_Cigarrillos";
-    private const string CategoriaCervezas = "Cervezas_Sifones_Refajos";
+    // Mismo catálogo de 3 categorías de ley que GoTrace/Infoconsumo (ver syctraceConfig.ts) — a
+    // propósito, para que la tornaguía de Infoconsumo autocomplete sin tabla de traducción.
+    private const string CategoriaLicoresVinos = "Licores, Vinos, Aperitivos y Similares";
+    private const string CategoriaCigarrillos = "Cigarrillos y Tabaco Elaborado";
+    private const string CategoriaCervezas = "Cervezas, Sifones, Refajos y Mezclas";
+    private const string SubcategoriaPicadura = "Picadura y Tabaco para Pipa";
+
+    // Código DANE del departamento — SYCTrace es exclusivo de Santander (RN-05: "Para
+    // distribuir en el Departamento de Santander"), no del "05" genérico del ejemplo del
+    // documento (que es el código de Antioquia, solo ilustrativo).
+    private const string DaneSantander = "68";
+    private static readonly string[] LetrasMes = { "E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D" };
 
     public SycTraceController(SgdsDbContext context)
     {
@@ -59,14 +66,25 @@ public class SycTraceController : ControllerBase
         if (tornaguiaSolicitud!.EmpresaId == null)
             return BadRequest(new { mensaje = "La tornaguía de Infoconsumo referenciada no tiene una empresa asociada." });
 
-        var errorProducto = ValidarCamposProducto(dto.CategoriaProducto, dto.GradoAlcoholimetrico, dto.ContenidoNetoCc, dto.UnidadesPorCajetilla);
+        var errorProducto = ValidarCamposProducto(dto.CategoriaProducto, dto.SubcategoriaProducto, dto.GradoAlcoholimetrico, dto.ContenidoNetoCc, dto.UnidadesPorCajetilla, dto.PesoGramos);
         if (errorProducto != null) return BadRequest(new { mensaje = errorProducto });
 
         var errorOrigen = ValidarOrigen(dto.OrigenProducto, dto.NumeroTornaguia, dto.NumeroDeclaracionImportacion, dto.RegistroIntroduccion);
         if (errorOrigen != null) return BadRequest(new { mensaje = errorOrigen });
 
-        var errorRango = ValidarRango(dto.Prefijo, dto.CantidadEstampillas, dto.CodigoInicial, dto.RegistroInvima, dto.NombreProducto, dto.LoteProduccion);
-        if (errorRango != null) return BadRequest(new { mensaje = errorRango });
+        var errorDatosBasicos = ValidarDatosBasicos(dto.NombreProducto, dto.LoteProduccion);
+        if (errorDatosBasicos != null) return BadRequest(new { mensaje = errorDatosBasicos });
+
+        // Cantidad a expedir = unidades físicas de la tornaguía (una estampilla por unidad
+        // física del lote) — no se digita a mano ni se confía en lo que mande el cliente.
+        var cantidad = tornaguiaSolicitud.TornaguiaInfoconsumo!.UnidadesFisicas;
+        if (cantidad <= 0)
+            return BadRequest(new { mensaje = "La tornaguía de Infoconsumo vinculada no tiene unidades físicas válidas para expedir estampillas." });
+
+        var ahora = DateTime.UtcNow;
+        var registroInvima = await GenerarRegistroInvimaAsync(dto.CategoriaProducto, ahora);
+        var prefijo = GenerarPrefijoEstampilla(ahora, dto.OrigenProducto);
+        var codigoInicial = await SiguienteSecuencialAsync(prefijo);
 
         var nuevaSolicitud = new Solicitud
         {
@@ -79,21 +97,23 @@ public class SycTraceController : ControllerBase
             {
                 SolicitudInfoconsumoId = dto.SolicitudInfoconsumoId,
                 CategoriaProducto = dto.CategoriaProducto,
+                SubcategoriaProducto = dto.SubcategoriaProducto,
                 NombreProducto = dto.NombreProducto,
                 Marca = dto.Marca,
                 GradoAlcoholimetrico = dto.GradoAlcoholimetrico,
                 ContenidoNetoCc = dto.ContenidoNetoCc,
                 UnidadesPorCajetilla = dto.UnidadesPorCajetilla,
-                RegistroInvima = dto.RegistroInvima,
+                PesoGramos = dto.PesoGramos,
+                RegistroInvima = registroInvima,
                 LoteProduccion = dto.LoteProduccion,
                 OrigenProducto = dto.OrigenProducto,
                 NumeroTornaguia = dto.NumeroTornaguia,
                 NumeroDeclaracionImportacion = dto.NumeroDeclaracionImportacion,
                 RegistroIntroduccion = dto.RegistroIntroduccion,
-                Prefijo = dto.Prefijo,
-                CantidadEstampillas = dto.CantidadEstampillas,
-                CodigoInicial = dto.CodigoInicial,
-                CodigoFinal = dto.CodigoInicial + dto.CantidadEstampillas - 1,
+                Prefijo = prefijo,
+                CantidadEstampillas = cantidad,
+                CodigoInicial = codigoInicial,
+                CodigoFinal = codigoInicial + cantidad - 1,
             },
         };
 
@@ -113,32 +133,31 @@ public class SycTraceController : ControllerBase
         if (solicitud!.Estado != "Generada")
             return BadRequest(new { mensaje = "Solo se puede editar una expedición que esté en estado Generada." });
 
-        var errorProducto = ValidarCamposProducto(dto.CategoriaProducto, dto.GradoAlcoholimetrico, dto.ContenidoNetoCc, dto.UnidadesPorCajetilla);
+        var errorProducto = ValidarCamposProducto(dto.CategoriaProducto, dto.SubcategoriaProducto, dto.GradoAlcoholimetrico, dto.ContenidoNetoCc, dto.UnidadesPorCajetilla, dto.PesoGramos);
         if (errorProducto != null) return BadRequest(new { mensaje = errorProducto });
 
         var errorOrigen = ValidarOrigen(dto.OrigenProducto, dto.NumeroTornaguia, dto.NumeroDeclaracionImportacion, dto.RegistroIntroduccion);
         if (errorOrigen != null) return BadRequest(new { mensaje = errorOrigen });
 
-        var errorRango = ValidarRango(dto.Prefijo, dto.CantidadEstampillas, dto.CodigoInicial, dto.RegistroInvima, dto.NombreProducto, dto.LoteProduccion);
-        if (errorRango != null) return BadRequest(new { mensaje = errorRango });
+        var errorDatosBasicos = ValidarDatosBasicos(dto.NombreProducto, dto.LoteProduccion);
+        if (errorDatosBasicos != null) return BadRequest(new { mensaje = errorDatosBasicos });
 
+        // Prefijo/CantidadEstampillas/CodigoInicial/CodigoFinal/RegistroInvima NO se tocan aquí
+        // — son identificadores oficiales ya generados al crear, no se reasignan en edición.
         var e = solicitud.EstampillaFisica!;
         e.CategoriaProducto = dto.CategoriaProducto;
+        e.SubcategoriaProducto = dto.SubcategoriaProducto;
         e.NombreProducto = dto.NombreProducto;
         e.Marca = dto.Marca;
         e.GradoAlcoholimetrico = dto.GradoAlcoholimetrico;
         e.ContenidoNetoCc = dto.ContenidoNetoCc;
         e.UnidadesPorCajetilla = dto.UnidadesPorCajetilla;
-        e.RegistroInvima = dto.RegistroInvima;
+        e.PesoGramos = dto.PesoGramos;
         e.LoteProduccion = dto.LoteProduccion;
         e.OrigenProducto = dto.OrigenProducto;
         e.NumeroTornaguia = dto.NumeroTornaguia;
         e.NumeroDeclaracionImportacion = dto.NumeroDeclaracionImportacion;
         e.RegistroIntroduccion = dto.RegistroIntroduccion;
-        e.Prefijo = dto.Prefijo;
-        e.CantidadEstampillas = dto.CantidadEstampillas;
-        e.CodigoInicial = dto.CodigoInicial;
-        e.CodigoFinal = dto.CodigoInicial + dto.CantidadEstampillas - 1;
 
         await _context.SaveChangesAsync();
         return NoContent();
@@ -300,9 +319,15 @@ public class SycTraceController : ControllerBase
                 EmpresaNombre = s.Empresa?.RazonSocial ?? string.Empty,
                 EmpresaNit = s.Empresa?.Nit ?? string.Empty,
                 FechaCreacion = s.FechaCreacion,
-                CategoriaProducto = MapearCategoriaInfoconsumo(s.TornaguiaInfoconsumo!.CategoriaProducto),
+                CategoriaProducto = s.TornaguiaInfoconsumo!.CategoriaProducto,
+                SubcategoriaProducto = s.TornaguiaInfoconsumo.SubcategoriaProducto,
                 GradoAlcoholimetrico = s.TornaguiaInfoconsumo.GradosAlcoholimetricos,
                 ContenidoNetoCc = (int)CalculadoraImpuestoConsumo.PresentacionEstandarCc,
+                PesoGramos = s.TornaguiaInfoconsumo.PesoGramos,
+                OrigenProducto = s.TornaguiaInfoconsumo.OrigenProducto,
+                NumeroLote = s.TornaguiaInfoconsumo.NumeroLote,
+                UnidadesFisicas = s.TornaguiaInfoconsumo.UnidadesFisicas,
+                NombreProducto = s.TornaguiaInfoconsumo.LoteGoTraceSolicitud?.LoteGoTrace?.Producto,
                 LoteGoTraceNumero = s.TornaguiaInfoconsumo.LoteGoTraceSolicitud?.Proyecto != null
                     ? $"{s.TornaguiaInfoconsumo.LoteGoTraceSolicitud.Proyecto.Codigo}-{s.TornaguiaInfoconsumo.LoteGoTraceSolicitud.Id:0000}"
                     : null,
@@ -319,34 +344,95 @@ public class SycTraceController : ControllerBase
         return Ok(resultado);
     }
 
+    // ===== Vista previa de códigos automáticos (RSI y estampilla) =====
+    // Reglas_de_negocio_SYCTrace.md, "LOGICA PARA CREACIÓN DE CODIGO AUTOMÁTICO..." — se llama
+    // apenas se conoce la categoría (al vincular la tornaguía, o al completarla a mano si la
+    // tornaguía es de antes de la unificación de catálogo) para mostrar el campo "no editable"
+    // ya lleno en el paso 3, antes de radicar. No reserva ni persiste nada — el valor real y
+    // definitivo se recalcula de forma independiente en CrearSolicitud.
+
+    // GET: api/SycTrace/vista-previa-codigos?categoriaProducto=X&origenProducto=Nacional
+    [HttpGet("vista-previa-codigos")]
+    public async Task<IActionResult> GetVistaPreviaCodigos([FromQuery] string categoriaProducto, [FromQuery] string origenProducto = "Nacional")
+    {
+        if (string.IsNullOrWhiteSpace(categoriaProducto))
+            return BadRequest(new { mensaje = "Indica la categoría del producto para generar la vista previa." });
+
+        var ahora = DateTime.UtcNow;
+        var prefijo = GenerarPrefijoEstampilla(ahora, origenProducto);
+
+        return Ok(new VistaPreviaCodigosDto
+        {
+            RegistroInvima = await GenerarRegistroInvimaAsync(categoriaProducto, ahora),
+            Prefijo = prefijo,
+            CodigoInicial = await SiguienteSecuencialAsync(prefijo),
+        });
+    }
+
     // ===== Helpers =====
 
-    // Infoconsumo y SYCTrace clasifican el mismo tipo de producto con valores de categoría
-    // distintos (catálogos definidos por separado) — se traduce al autocompletar desde una
-    // tornaguía, si no el valor heredado no coincide con ninguna opción de SYCTrace.
-    private static string MapearCategoriaInfoconsumo(string categoriaInfoconsumo) => categoriaInfoconsumo switch
+    private static string LetraCategoriaProducto(string categoria) => categoria switch
     {
-        "Licores_Aperitivos" => "Licores_Destilados",
-        "Vinos_Aperitivos_Vinicos" => "Vinos_Fermentados",
-        "Cigarrillos_Tabaco" => "Tabaco_Cigarrillos",
-        "Cervezas_Sifones_Refajos" => "Cervezas_Sifones_Refajos",
-        _ => categoriaInfoconsumo,
+        CategoriaLicoresVinos => "L",
+        CategoriaCervezas => "C",
+        CategoriaCigarrillos => "T",
+        _ => "X",
     };
 
-    private static string? ValidarCamposProducto(string categoria, decimal? grado, int? contenidoCc, int? unidadesCajetilla)
+    // "[Prefijo Departamento] + [Año actual] + [Tipo Licor(N-nacional o I-importado)]" — el
+    // consecutivo de 8 dígitos se anexa aparte (ver SiguienteSecuencialAsync) porque depende de
+    // una consulta a la base de datos, no de la fecha/categoría.
+    private static string GenerarPrefijoEstampilla(DateTime fecha, string origenProducto)
+    {
+        var anioCorto = (fecha.Year % 100).ToString("00");
+        var tipo = origenProducto == "Importado" ? "I" : "N";
+        return $"{DaneSantander}{anioCorto}{tipo}";
+    }
+
+    // "RSI + [Año] + [letra inicial del mes] + - [letra de categoría] - [consecutivo 6 dígitos]"
+    private async Task<string> GenerarRegistroInvimaAsync(string categoriaProducto, DateTime fecha)
+    {
+        var letraMes = LetrasMes[fecha.Month - 1];
+        var letraCategoria = LetraCategoriaProducto(categoriaProducto);
+        var consecutivo = await _context.EstampillasFisicas.CountAsync() + 1;
+        return $"RSI {fecha.Year}{letraMes}-{letraCategoria}-{consecutivo:000000}";
+    }
+
+    // Continúa el secuencial correlativo de 8 dígitos dentro del mismo prefijo (departamento +
+    // año + tipo) en vez de reiniciar en 1 cada vez, para no repetir código de estampilla.
+    private async Task<int> SiguienteSecuencialAsync(string prefijo)
+    {
+        var maxFinal = await _context.EstampillasFisicas
+            .Where(e => e.Prefijo == prefijo)
+            .Select(e => (int?)e.CodigoFinal)
+            .MaxAsync();
+        return (maxFinal ?? 0) + 1;
+    }
+
+    private static string? ValidarCamposProducto(string categoria, string subcategoria, decimal? grado, int? contenidoCc, int? unidadesCajetilla, decimal? pesoGramos)
     {
         if (categoria == CategoriaCervezas)
-            return "Las cervezas, sifones y refajos no están sujetas a estampilla de señalización física en este flujo — solo a declaración remota de impuesto al consumo.";
+            return "Las cervezas, sifones, refajos y mezclas no están sujetas a estampilla de señalización física en este flujo — solo a declaración remota de impuesto al consumo.";
 
-        if (CategoriasLicorVino.Contains(categoria))
+        if (string.IsNullOrWhiteSpace(subcategoria))
+            return "Selecciona la subcategoría del producto.";
+
+        if (categoria == CategoriaLicoresVinos)
         {
             if (grado == null || contenidoCc == null)
-                return "Licores y vinos exigen el grado alcoholimétrico y el contenido neto (cc) del envase.";
+                return "Licores, vinos y aperitivos exigen el grado alcoholimétrico y el contenido neto (cc) del envase.";
         }
         else if (categoria == CategoriaCigarrillos)
         {
-            if (unidadesCajetilla == null)
-                return "Cigarrillos y tabaco exigen la cantidad de unidades por cajetilla (o el peso, para tabaco elaborado).";
+            if (subcategoria == SubcategoriaPicadura)
+            {
+                if (pesoGramos == null || pesoGramos <= 0)
+                    return "Picadura y tabaco para pipa exige el peso total en gramos.";
+            }
+            else if (unidadesCajetilla == null)
+            {
+                return "Cigarrillos y tabacos exigen la cantidad de unidades por cajetilla.";
+            }
         }
         else
         {
@@ -376,12 +462,8 @@ public class SycTraceController : ControllerBase
         return null;
     }
 
-    private static string? ValidarRango(string prefijo, int cantidad, int codigoInicial, string registroInvima, string nombreProducto, string lote)
+    private static string? ValidarDatosBasicos(string nombreProducto, string lote)
     {
-        if (string.IsNullOrWhiteSpace(prefijo)) return "Indica el prefijo del código de expedición.";
-        if (cantidad <= 0) return "La cantidad de estampillas a expedir debe ser mayor que cero.";
-        if (codigoInicial < 0) return "El código inicial no puede ser negativo.";
-        if (string.IsNullOrWhiteSpace(registroInvima)) return "El registro sanitario INVIMA es obligatorio para el QR de la estampilla.";
         if (string.IsNullOrWhiteSpace(nombreProducto)) return "El nombre comercial del producto es obligatorio.";
         if (string.IsNullOrWhiteSpace(lote)) return "El lote de producción es obligatorio.";
         return null;
@@ -487,11 +569,13 @@ public class SycTraceController : ControllerBase
             SolicitudInfoconsumoId = e.SolicitudInfoconsumoId,
             SolicitudInfoconsumoNumero = solicitudInfoconsumoNumero,
             CategoriaProducto = e.CategoriaProducto,
+            SubcategoriaProducto = e.SubcategoriaProducto,
             NombreProducto = e.NombreProducto,
             Marca = e.Marca,
             GradoAlcoholimetrico = e.GradoAlcoholimetrico,
             ContenidoNetoCc = e.ContenidoNetoCc,
             UnidadesPorCajetilla = e.UnidadesPorCajetilla,
+            PesoGramos = e.PesoGramos,
             RegistroInvima = e.RegistroInvima,
             LoteProduccion = e.LoteProduccion,
             OrigenProducto = e.OrigenProducto,
@@ -502,7 +586,9 @@ public class SycTraceController : ControllerBase
             CantidadEstampillas = e.CantidadEstampillas,
             CodigoInicial = e.CodigoInicial,
             CodigoFinal = e.CodigoFinal,
-            CodigoCompleto = $"{e.Prefijo}-{e.CodigoInicial:00000}",
+            // Sin separador y consecutivo de 8 dígitos, tal cual la lógica del documento
+            // (ejemplo "0526N00000001": prefijo de 5 caracteres + secuencial de 8 dígitos).
+            CodigoCompleto = $"{e.Prefijo}{e.CodigoInicial:00000000}",
             FechaCreacion = s.FechaCreacion,
             FechaPago = e.FechaPago,
             FechaEntrega = e.FechaEntrega,
@@ -536,10 +622,13 @@ public class SycTraceController : ControllerBase
                         ("Nombre comercial", dto.NombreProducto),
                         ("Marca", dto.Marca ?? "—"),
                         ("Categoría", dto.CategoriaProducto),
+                        ("Subcategoría", dto.SubcategoriaProducto),
                     };
                     if (dto.GradoAlcoholimetrico.HasValue || dto.ContenidoNetoCc.HasValue)
                         filasProducto.Add(("Grado / Contenido neto", $"{dto.GradoAlcoholimetrico?.ToString("0.#°") ?? "—"} · {dto.ContenidoNetoCc?.ToString() ?? "—"} cc"));
-                    if (dto.UnidadesPorCajetilla.HasValue)
+                    if (dto.PesoGramos.HasValue)
+                        filasProducto.Add(("Peso total", $"{dto.PesoGramos.Value:N0} g"));
+                    else if (dto.UnidadesPorCajetilla.HasValue)
                         filasProducto.Add(("Unidades por cajetilla", dto.UnidadesPorCajetilla.Value.ToString()));
                     filasProducto.Add(("Registro INVIMA", dto.RegistroInvima));
                     filasProducto.Add(("Lote de producción", dto.LoteProduccion));
@@ -631,7 +720,9 @@ public class SycTraceController : ControllerBase
                         {
                             if (dto.GradoAlcoholimetrico.HasValue || dto.ContenidoNetoCc.HasValue)
                                 text.Span($"{dto.GradoAlcoholimetrico?.ToString("0.#°") ?? ""} · {dto.ContenidoNetoCc?.ToString() ?? "—"} cc  —  ").FontColor(Colors.Grey.Darken1);
-                            if (dto.UnidadesPorCajetilla.HasValue)
+                            if (dto.PesoGramos.HasValue)
+                                text.Span($"{dto.PesoGramos.Value:N0} g  —  ").FontColor(Colors.Grey.Darken1);
+                            else if (dto.UnidadesPorCajetilla.HasValue)
                                 text.Span($"{dto.UnidadesPorCajetilla} un./cajetilla  —  ").FontColor(Colors.Grey.Darken1);
                             text.Span(dto.EmpresaRazonSocial).FontColor(Colors.Grey.Darken1);
                         });

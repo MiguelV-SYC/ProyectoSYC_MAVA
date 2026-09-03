@@ -14,22 +14,19 @@ export interface CrearSolicitudSycTraceDto {
   solicitudInfoconsumoId: number;
 
   categoriaProducto: string;
+  subcategoriaProducto: string;
   nombreProducto: string;
   marca?: string;
   gradoAlcoholimetrico?: number;
   contenidoNetoCc?: number;
   unidadesPorCajetilla?: number;
-  registroInvima: string;
+  pesoGramos?: number;
   loteProduccion: string;
 
   origenProducto: string;
   numeroTornaguia?: string;
   numeroDeclaracionImportacion?: string;
   registroIntroduccion?: string;
-
-  prefijo: string;
-  cantidadEstampillas: number;
-  codigoInicial: number;
 }
 
 export type ActualizarSolicitudSycTraceDto = Omit<CrearSolicitudSycTraceDto, 'proyectoId' | 'tipoSolicitudId' | 'solicitudInfoconsumoId'>;
@@ -68,11 +65,13 @@ export interface EstampillaResponseDto {
   solicitudInfoconsumoNumero: string;
 
   categoriaProducto: string;
+  subcategoriaProducto: string;
   nombreProducto: string;
   marca?: string;
   gradoAlcoholimetrico?: number;
   contenidoNetoCc?: number;
   unidadesPorCajetilla?: number;
+  pesoGramos?: number;
   registroInvima: string;
   loteProduccion: string;
 
@@ -159,8 +158,14 @@ export interface TornaguiaInfoconsumoDisponibleDto {
   empresaNit: string;
   fechaCreacion: string;
   categoriaProducto: string;
+  subcategoriaProducto: string;
   gradoAlcoholimetrico?: number;
   contenidoNetoCc?: number;
+  pesoGramos?: number;
+  origenProducto?: string;
+  numeroLote?: string;
+  unidadesFisicas: number;
+  nombreProducto?: string;
   loteGoTraceNumero?: string;
   rangoUidGoTrace?: string;
 }
@@ -168,6 +173,23 @@ export interface TornaguiaInfoconsumoDisponibleDto {
 export async function getTornaguiasDisponibles(buscar?: string): Promise<TornaguiaInfoconsumoDisponibleDto[]> {
   const { data } = await axios.get<TornaguiaInfoconsumoDisponibleDto[]>(`${API_URL}/SycTrace/tornaguias-disponibles`, {
     params: { buscar: buscar || undefined },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+// Vista previa (no reserva ni persiste nada) del RSI y del código de estampilla que generaría el
+// servidor ahora mismo — Reglas_de_negocio_SYCTrace.md, "LOGICA PARA CREACIÓN DE CODIGO
+// AUTOMÁTICO...". El valor real y definitivo se recalcula de forma independiente al radicar.
+export interface VistaPreviaCodigosDto {
+  registroInvima: string;
+  prefijo: string;
+  codigoInicial: number;
+}
+
+export async function getVistaPreviaCodigos(categoriaProducto: string, origenProducto: string): Promise<VistaPreviaCodigosDto> {
+  const { data } = await axios.get<VistaPreviaCodigosDto>(`${API_URL}/SycTrace/vista-previa-codigos`, {
+    params: { categoriaProducto, origenProducto },
     headers: authHeader(),
   });
   return data;

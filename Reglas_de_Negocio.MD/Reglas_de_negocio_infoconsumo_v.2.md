@@ -86,7 +86,6 @@ Se suman ambos componentes para obtener el valor global de la liquidación del i
 
 
 
-
 2. Clasificación General
 
 

@@ -131,7 +131,9 @@ export default function EstampillaArtePage() {
                   <div className="text-[10px] text-ink-600 mt-1 leading-relaxed">
                     {estampilla.gradoAlcoholimetrico != null && `${estampilla.gradoAlcoholimetrico}° · `}
                     {estampilla.contenidoNetoCc != null && `${estampilla.contenidoNetoCc} cc`}
-                    {estampilla.unidadesPorCajetilla != null && `${estampilla.unidadesPorCajetilla} un./cajetilla`}
+                    {estampilla.pesoGramos != null
+                      ? `${estampilla.pesoGramos} g`
+                      : estampilla.unidadesPorCajetilla != null && `${estampilla.unidadesPorCajetilla} un./cajetilla`}
                     <br />{estampilla.empresaRazonSocial}
                   </div>
                   {barcodeUrl ? (

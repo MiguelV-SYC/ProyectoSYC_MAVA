@@ -315,16 +315,20 @@ export default function NuevaSolicitudPage() {
         setError('Busca y selecciona una tornaguía de Infoconsumo con pago confirmado para continuar.');
         return;
       }
+      if (!datosEstampilla.categoriaProducto || !datosEstampilla.subcategoriaProducto) {
+        setError('Selecciona la categoría y subcategoría del producto para continuar.');
+        return;
+      }
       if (datosEstampilla.categoriaProducto === CATEGORIA_SIN_ESTAMPILLA_FISICA) {
-        setError('Cervezas, sifones y refajos no están sujetos a estampilla de señalización física en este flujo.');
+        setError('Cervezas, sifones, refajos y mezclas no están sujetos a estampilla de señalización física en este flujo.');
         return;
       }
-      if (!datosEstampilla.nombreProducto || !datosEstampilla.registroInvima || !datosEstampilla.loteProduccion) {
-        setError('Ingresa el nombre del producto, el registro INVIMA y el lote de producción para continuar.');
+      if (!datosEstampilla.nombreProducto || !datosEstampilla.loteProduccion) {
+        setError('Ingresa el nombre del producto y el lote de producción para continuar.');
         return;
       }
-      if (!datosEstampilla.prefijo || !datosEstampilla.cantidadEstampillas || !datosEstampilla.codigoInicial) {
-        setError('Completa el rango de expedición (prefijo, cantidad y código inicial) para continuar.');
+      if (!datosEstampilla.registroInvima || !datosEstampilla.prefijo || !datosEstampilla.codigoInicial) {
+        setError('Espera a que se generen el registro INVIMA y el código de estampilla antes de continuar.');
         return;
       }
     }
@@ -456,20 +460,18 @@ export default function NuevaSolicitudPage() {
           tipoSolicitudId: tipoSeleccionado.id,
           solicitudInfoconsumoId: datosEstampilla.solicitudInfoconsumoId!,
           categoriaProducto: datosEstampilla.categoriaProducto,
+          subcategoriaProducto: datosEstampilla.subcategoriaProducto,
           nombreProducto: datosEstampilla.nombreProducto,
           marca: datosEstampilla.marca || undefined,
           gradoAlcoholimetrico: datosEstampilla.gradoAlcoholimetrico ? Number(datosEstampilla.gradoAlcoholimetrico) : undefined,
           contenidoNetoCc: datosEstampilla.contenidoNetoCc ? Number(datosEstampilla.contenidoNetoCc) : undefined,
           unidadesPorCajetilla: datosEstampilla.unidadesPorCajetilla ? Number(datosEstampilla.unidadesPorCajetilla) : undefined,
-          registroInvima: datosEstampilla.registroInvima,
+          pesoGramos: datosEstampilla.pesoGramos ? Number(datosEstampilla.pesoGramos) : undefined,
           loteProduccion: datosEstampilla.loteProduccion,
           origenProducto: datosEstampilla.origenProducto,
           numeroTornaguia: datosEstampilla.numeroTornaguia || undefined,
           numeroDeclaracionImportacion: datosEstampilla.numeroDeclaracionImportacion || undefined,
           registroIntroduccion: datosEstampilla.registroIntroduccion || undefined,
-          prefijo: datosEstampilla.prefijo,
-          cantidadEstampillas: Number(datosEstampilla.cantidadEstampillas) || 0,
-          codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
         });
         navigate(`/solicitudes/${creada.id}`);
       } catch (err: any) {

@@ -21,7 +21,10 @@ import FormularioTornaguia from '../components/infoconsumo/FormularioTornaguia';
 import SelectorTipoTransporte from '../components/infoconsumo/SelectorTipoTransporte';
 import CamposOrigenDestino from '../components/infoconsumo/CamposOrigenDestino';
 import { getTornaguia, actualizarSolicitudInfoconsumo } from '../services/infoconsumoService';
-import { DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, type DatosEstampilla } from '../config/syctraceConfig';
+import {
+  DATOS_ESTAMPILLA_VACIOS, CATEGORIA_SIN_ESTAMPILLA_FISICA, categoriaReconocida as categoriaReconocidaSycTrace,
+  type DatosEstampilla,
+} from '../config/syctraceConfig';
 import FormularioEstampilla from '../components/syctrace/FormularioEstampilla';
 import { getEstampilla, actualizarSolicitudSycTrace } from '../services/syctraceService';
 import { DATOS_LOTE_GOTRACE_VACIOS, type DatosLoteGoTrace } from '../config/gotraceConfig';
@@ -116,11 +119,13 @@ export default function EditarSolicitudPage() {
               empresaNombre: e.empresaRazonSocial,
               empresaNit: e.empresaNit,
               categoriaProducto: e.categoriaProducto,
+              subcategoriaProducto: e.subcategoriaProducto,
               nombreProducto: e.nombreProducto,
               marca: e.marca ?? '',
               gradoAlcoholimetrico: e.gradoAlcoholimetrico != null ? String(e.gradoAlcoholimetrico) : '',
               contenidoNetoCc: e.contenidoNetoCc != null ? String(e.contenidoNetoCc) : '',
               unidadesPorCajetilla: e.unidadesPorCajetilla != null ? String(e.unidadesPorCajetilla) : '',
+              pesoGramos: e.pesoGramos != null ? String(e.pesoGramos) : '',
               registroInvima: e.registroInvima,
               loteProduccion: e.loteProduccion,
               origenProducto: e.origenProducto,
@@ -130,6 +135,14 @@ export default function EditarSolicitudPage() {
               prefijo: e.prefijo,
               cantidadEstampillas: String(e.cantidadEstampillas),
               codigoInicial: String(e.codigoInicial),
+              datosDesdeInfoconsumo: true,
+              clasificacionSinReconocer: !categoriaReconocidaSycTrace(e.categoriaProducto),
+              origenHeredado: false,
+              loteHeredado: false,
+              nombreHeredado: false,
+              // Los códigos ya fueron generados y guardados al crear esta solicitud — no se
+              // debe volver a pedir una vista previa que los sobrescriba con un valor distinto.
+              codigosFijados: true,
             });
           });
         } else if (s.proyectoNombre === 'Gotrace') {
@@ -245,26 +258,28 @@ export default function EditarSolicitudPage() {
           observaciones: datosTornaguia.observaciones || undefined,
         });
       } else if (esSycTrace) {
+        if (!datosEstampilla.categoriaProducto || !datosEstampilla.subcategoriaProducto) {
+          setError('Selecciona la categoría y subcategoría del producto para continuar.');
+          return;
+        }
         if (datosEstampilla.categoriaProducto === CATEGORIA_SIN_ESTAMPILLA_FISICA) {
-          setError('Cervezas, sifones y refajos no están sujetos a estampilla de señalización física en este flujo.');
+          setError('Cervezas, sifones, refajos y mezclas no están sujetos a estampilla de señalización física en este flujo.');
           return;
         }
         await actualizarSolicitudSycTrace(solicitud.id, {
           categoriaProducto: datosEstampilla.categoriaProducto,
+          subcategoriaProducto: datosEstampilla.subcategoriaProducto,
           nombreProducto: datosEstampilla.nombreProducto,
           marca: datosEstampilla.marca || undefined,
           gradoAlcoholimetrico: datosEstampilla.gradoAlcoholimetrico ? Number(datosEstampilla.gradoAlcoholimetrico) : undefined,
           contenidoNetoCc: datosEstampilla.contenidoNetoCc ? Number(datosEstampilla.contenidoNetoCc) : undefined,
           unidadesPorCajetilla: datosEstampilla.unidadesPorCajetilla ? Number(datosEstampilla.unidadesPorCajetilla) : undefined,
-          registroInvima: datosEstampilla.registroInvima,
+          pesoGramos: datosEstampilla.pesoGramos ? Number(datosEstampilla.pesoGramos) : undefined,
           loteProduccion: datosEstampilla.loteProduccion,
           origenProducto: datosEstampilla.origenProducto,
           numeroTornaguia: datosEstampilla.numeroTornaguia || undefined,
           numeroDeclaracionImportacion: datosEstampilla.numeroDeclaracionImportacion || undefined,
           registroIntroduccion: datosEstampilla.registroIntroduccion || undefined,
-          prefijo: datosEstampilla.prefijo,
-          cantidadEstampillas: Number(datosEstampilla.cantidadEstampillas) || 0,
-          codigoInicial: Number(datosEstampilla.codigoInicial) || 0,
         });
       } else if (esGoTrace) {
         if (!datosLoteGoTrace.productoId) {

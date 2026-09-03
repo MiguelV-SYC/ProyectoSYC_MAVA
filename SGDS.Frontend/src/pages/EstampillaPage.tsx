@@ -262,8 +262,11 @@ export default function EstampillaPage() {
                   ['Nombre comercial', estampilla.nombreProducto],
                   ['Marca', estampilla.marca || '—'],
                   ['Categoría', estampilla.categoriaProducto],
+                  ['Subcategoría', estampilla.subcategoriaProducto || '—'],
                   ['Grado / Contenido neto', `${estampilla.gradoAlcoholimetrico ? estampilla.gradoAlcoholimetrico + '°' : '—'} · ${estampilla.contenidoNetoCc ? estampilla.contenidoNetoCc + ' cc' : '—'}`],
-                  ['Unidades por cajetilla', estampilla.unidadesPorCajetilla?.toString() ?? '—'],
+                  estampilla.pesoGramos
+                    ? ['Peso total', `${estampilla.pesoGramos} g`]
+                    : ['Unidades por cajetilla', estampilla.unidadesPorCajetilla?.toString() ?? '—'],
                   ['Registro INVIMA', estampilla.registroInvima],
                   ['Lote de producción', estampilla.loteProduccion],
                 ].map(([lbl, val]) => (
