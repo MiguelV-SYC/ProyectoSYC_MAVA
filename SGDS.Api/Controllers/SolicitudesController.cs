@@ -656,11 +656,10 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
 
         var datos = LeerDatosAdicionales(solicitud.DatosAdicionales);
 
-        var avaluo = decimal.TryParse(datos.GetValueOrDefault("avaluoComercial"), out var av) ? av : 0m;
+        var avaluo = decimal.TryParse(datos.GetValueOrDefault("baseGravable"), out var av) ? av : 0m;
         var antiguoClasico = datos.GetValueOrDefault("antiguoClasico") == "Sí";
-        var blindado = datos.GetValueOrDefault("blindado") == "Sí";
 
-        var (baseGravable, tarifa, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico, blindado);
+        var (baseGravable, tarifa, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico);
 
         var fechaInicio = solicitud.FechaCreacion;
         var fechaLimiteOportuno = fechaInicio.AddDays(15);
@@ -707,10 +706,9 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
             return BadRequest(new { mensaje = "Esta solicitud no tiene un vehículo asociado" });
 
         var datos = LeerDatosAdicionales(solicitud.DatosAdicionales);
-        var avaluo = decimal.TryParse(datos.GetValueOrDefault("avaluoComercial"), out var av) ? av : 0m;
+        var avaluo = decimal.TryParse(datos.GetValueOrDefault("baseGravable"), out var av) ? av : 0m;
         var antiguoClasico = datos.GetValueOrDefault("antiguoClasico") == "Sí";
-        var blindado = datos.GetValueOrDefault("blindado") == "Sí";
-        var (_, _, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico, blindado);
+        var (_, _, impuesto) = CalcularImpuestoVehicular(avaluo, antiguoClasico);
 
         var numero = solicitud.Proyecto != null ? $"{solicitud.Proyecto.Codigo}-{solicitud.Id:0000}" : solicitud.Id.ToString();
         var fechaLimiteOportuno = solicitud.FechaCreacion.AddDays(15);
@@ -741,11 +739,14 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
     private static string ContenidoQrPreliquidacion(string numero, string placa, decimal valorAPagar, DateTime fechaLimite) =>
         $"SGDS-IUVA|{numero}|Placa:{placa}|Valor:{valorAPagar:0}|Vence:{fechaLimite:yyyy-MM-dd}";
 
-    private static (decimal baseGravable, decimal tarifa, decimal impuesto) CalcularImpuestoVehicular(decimal avaluo, bool antiguoClasico, bool blindado)
+    // El +10% de blindaje ya viene incluido en "baseGravable" cuando aplica (lo calcula
+    // CalculadoraBaseGravableVehiculo al radicar) — no se vuelve a aplicar aquí para no
+    // contarlo dos veces. El descuento de antiguo/clásico sí sigue aplicándose aquí porque el
+    // motor de base gravable no lo resuelve todavía (tarifa/base fija sin configurar).
+    private static (decimal baseGravable, decimal tarifa, decimal impuesto) CalcularImpuestoVehicular(decimal avaluo, bool antiguoClasico)
     {
         var baseGravable = avaluo;
         if (antiguoClasico) baseGravable *= 0.5m;
-        if (blindado) baseGravable *= 1.10m;
 
         decimal tarifa;
         if (baseGravable <= 57_349_000m) tarifa = 0.015m;
@@ -782,17 +783,19 @@ public async Task<IActionResult> SubirDocumento(int id, IFormFile archivo)
                         ("Modelo", vehiculo.Modelo?.ToString() ?? "—"),
                         ("Número de chasis", vehiculo.NumeroChasis ?? "—"),
                         ("Tipo de vehículo", datos.GetValueOrDefault("tipoVehiculo", "—")),
+                        ("Subtipo", datos.GetValueOrDefault("subtipo", "—")),
                         ("Cilindraje", datos.GetValueOrDefault("cilindraje", "—")),
-                        ("Departamento", datos.GetValueOrDefault("departamento", "—")));
+                        ("Municipio de matrícula", datos.GetValueOrDefault("municipioMatricula", "—")),
+                        ("Departamento de matrícula", datos.GetValueOrDefault("departamentoMatricula", "—")));
 
                     DisenoPdfSgds.SeccionTabla(col, "Propietario",
                         ("Nombre", propietarioNombre),
                         ("Documento", propietarioDocumento));
 
                     DisenoPdfSgds.SeccionTabla(col, "Base gravable",
-                        ("Avalúo comercial", Moneda(avaluo)),
+                        ("Base gravable (tabla Mintransporte o valor de compra)", Moneda(avaluo)),
                         ("¿Antiguo o clásico?", datos.GetValueOrDefault("antiguoClasico", "No")),
-                        ("¿Blindado?", datos.GetValueOrDefault("blindado", "No")),
+                        ("¿Blindado?", datos.GetValueOrDefault("blindado", "No") == "Sí" ? "Sí (ya incluido arriba)" : "No"),
                         ("Base gravable ajustada", Moneda(baseGravable)),
                         ("Tarifa aplicada", $"{tarifa * 100:0.0}%"),
                         ("Valor del impuesto", Moneda(impuesto)));

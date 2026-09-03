@@ -18,10 +18,13 @@ function formatearFecha(fecha: Date) {
   return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function calcularImpuesto(avaluo: number, antiguoClasico: boolean, blindado: boolean) {
+// El +10% de blindaje ya viene incluido en datos.baseGravable cuando aplica (lo calcula
+// CalculadoraBaseGravableVehiculo.cs al radicar) — no se vuelve a aplicar aquí para no
+// contarlo dos veces. El descuento de antiguo/clásico sí sigue aplicándose aquí porque el
+// motor de base gravable no lo resuelve (tarifa/base fija todavía sin configurar).
+function calcularImpuesto(avaluo: number, antiguoClasico: boolean) {
   let base = avaluo;
   if (antiguoClasico) base = base * 0.5;
-  if (blindado) base = base * 1.1;
   const tarifa = base <= 57_349_000 ? 0.015 : base <= 129_032_000 ? 0.025 : 0.035;
   const impuesto = Math.round(base * tarifa);
   return { base, tarifa, impuesto };
@@ -78,10 +81,10 @@ export default function PreliquidacionPage() {
     datos = {};
   }
 
-  const avaluo = Number(datos.avaluoComercial) || 0;
+  const avaluo = Number(datos.baseGravable) || 0;
   const antiguoClasico = datos.antiguoClasico === 'Sí';
   const blindado = datos.blindado === 'Sí';
-  const { base, tarifa, impuesto } = calcularImpuesto(avaluo, antiguoClasico, blindado);
+  const { base, tarifa, impuesto } = calcularImpuesto(avaluo, antiguoClasico);
 
   const fechaInicio = new Date(solicitud.fechaCreacion);
   const fechaLimiteOportuno = new Date(fechaInicio);
@@ -146,8 +149,10 @@ export default function PreliquidacionPage() {
                 ['Modelo', String(vehiculo?.modelo ?? solicitud.vehiculoModelo ?? '—')],
                 ['Número de chasis', vehiculo?.numeroChasis ?? '—'],
                 ['Tipo de vehículo', datos.tipoVehiculo ?? '—'],
+                ['Subtipo', datos.subtipo ?? '—'],
                 ['Cilindraje', datos.cilindraje ?? '—'],
-                ['Departamento', datos.departamento ?? '—'],
+                ['Municipio de matrícula', datos.municipioMatricula ?? '—'],
+                ['Departamento de matrícula', datos.departamentoMatricula ?? '—'],
               ].map(([lbl, val]) => (
                 <div key={lbl}>
                   <div className="text-[10.5px] uppercase tracking-wide text-ink-400 font-semibold mb-1">{lbl}</div>
@@ -175,9 +180,9 @@ export default function PreliquidacionPage() {
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">Base gravable</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               {[
-                ['Avalúo comercial', formatearMoneda(avaluo)],
+                ['Base gravable (tabla Mintransporte o valor de compra)', formatearMoneda(avaluo)],
                 ['¿Antiguo o clásico?', antiguoClasico ? 'Sí' : 'No'],
-                ['¿Blindado?', blindado ? 'Sí' : 'No'],
+                ['¿Blindado?', blindado ? 'Sí (ya incluido arriba)' : 'No'],
                 ['Base gravable ajustada', formatearMoneda(base)],
                 ['Tarifa aplicada', `${(tarifa * 100).toFixed(1)}%`],
               ].map(([lbl, val]) => (

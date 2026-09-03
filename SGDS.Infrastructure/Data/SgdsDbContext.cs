@@ -94,6 +94,7 @@ private static int? ObtenerProyectoId(object entidad)
     public DbSet<TipoSolicitud> TiposSolicitudes => Set<TipoSolicitud>();
     public DbSet<UsuarioProyecto> UsuarioProyectos => Set<UsuarioProyecto>();
     public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
+    public DbSet<BaseGravableVehiculo> BasesGravablesVehiculos => Set<BaseGravableVehiculo>();
     public DbSet<SolicitudAcceso> SolicitudesAcceso => Set<SolicitudAcceso>();
     public DbSet<SolicitudAccesoProyecto> SolicitudAccesoProyectos => Set<SolicitudAccesoProyecto>();
     public DbSet<Reporte> Reportes => Set<Reporte>();
@@ -123,6 +124,7 @@ private static int? ObtenerProyectoId(object entidad)
         modelBuilder.Entity<Rol>().HasIndex(r => r.Nombre).IsUnique();
         modelBuilder.Entity<Usuario>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<Vehiculo>().HasIndex(v => v.Placa).IsUnique();
+        modelBuilder.Entity<BaseGravableVehiculo>().HasIndex(b => new { b.Tipo, b.Marca, b.Linea, b.Cilindraje });
 
         // Catálogo de tipos de solicitud del proyecto Estampillas (id 10 en la BD real).
         modelBuilder.Entity<TipoSolicitud>().HasData(
@@ -294,6 +296,7 @@ private static int? ObtenerProyectoId(object entidad)
         modelBuilder.Entity<TipoSolicitud>().ToTable("tipos_solicitud");
         modelBuilder.Entity<UsuarioProyecto>().ToTable("usuario_proyecto");
         modelBuilder.Entity<Vehiculo>().ToTable("vehiculos");
+        modelBuilder.Entity<BaseGravableVehiculo>().ToTable("bases_gravables_vehiculos");
         modelBuilder.Entity<SolicitudAcceso>().ToTable("solicitud_acceso");
         modelBuilder.Entity<SolicitudAccesoProyecto>().ToTable("solicitud_acceso_proyecto");
         modelBuilder.Entity<Reporte>().ToTable("reportes");

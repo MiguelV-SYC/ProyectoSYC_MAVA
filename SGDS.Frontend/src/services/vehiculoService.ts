@@ -15,6 +15,14 @@ export interface VehiculoResponseDto {
   linea?: string;
   modelo?: number;
   numeroChasis?: string;
+
+  cilindraje?: string;
+  tipoVehiculo?: string;
+  subtipo?: string;
+  municipioMatricula?: string;
+  departamentoMatricula?: string;
+  blindado: boolean;
+  esClasicoAntiguo: boolean;
 }
 
 function authHeader() {
@@ -46,6 +54,14 @@ export interface CrearVehiculoDto {
   linea?: string;
   modelo?: number;
   numeroChasis?: string;
+
+  cilindraje?: string;
+  tipoVehiculo?: string;
+  subtipo?: string;
+  municipioMatricula?: string;
+  departamentoMatricula?: string;
+  blindado: boolean;
+  esClasicoAntiguo: boolean;
 }
 
 export async function crearVehiculo(dto: CrearVehiculoDto): Promise<VehiculoResponseDto> {
@@ -57,4 +73,67 @@ export async function crearVehiculo(dto: CrearVehiculoDto): Promise<VehiculoResp
 
 export async function actualizarVehiculo(id: number, dto: CrearVehiculoDto): Promise<void> {
   await axios.put(`${API_URL}/Vehiculos/${id}`, dto, { headers: authHeader() });
+}
+
+// Catálogo Tipo -> Subtipos de vehículo, alimentado en vivo desde la tabla de bases gravables
+// (Reglas_de_negocio_IUVA.md) — no se hardcodea en el frontend. subtipoInformativo=true significa
+// que la tabla oficial no distingue ese subtipo (es una categoría descriptiva del documento de
+// reglas de negocio) — en ese caso NO se envía como filtro a catálogo-marcas/catálogo-lineas.
+export interface TipoVehiculoCatalogoDto {
+  tipo: string;
+  subtipos: string[];
+  subtipoInformativo: boolean;
+}
+
+export async function getCatalogoTiposVehiculo(): Promise<TipoVehiculoCatalogoDto[]> {
+  const { data } = await axios.get<TipoVehiculoCatalogoDto[]>(`${API_URL}/Vehiculos/catalogo-tipos`, {
+    headers: authHeader(),
+  });
+  return data;
+}
+
+export async function getCatalogoMarcasVehiculo(tipo: string, subtipo?: string): Promise<string[]> {
+  const { data } = await axios.get<string[]>(`${API_URL}/Vehiculos/catalogo-marcas`, {
+    params: { tipo, subtipo: subtipo || undefined },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+// Línea con los cilindrajes reales que trae la tabla para ese nombre comercial — casi siempre
+// uno solo (se autocompleta), a veces varios (el formulario deja elegir entre esos, no a mano).
+export interface LineaVehiculoCatalogoDto {
+  linea: string;
+  cilindrajes: string[];
+}
+
+export async function getCatalogoLineasVehiculo(tipo: string, marca: string, subtipo?: string): Promise<LineaVehiculoCatalogoDto[]> {
+  const { data } = await axios.get<LineaVehiculoCatalogoDto[]>(`${API_URL}/Vehiculos/catalogo-lineas`, {
+    params: { tipo, marca, subtipo: subtipo || undefined },
+    headers: authHeader(),
+  });
+  return data;
+}
+
+// Base gravable IUVA (Ley 488/1998 Art. 143) — vista no editable en el paso "4. Base gravable"
+// de la solicitud; se recalcula si cambia vehiculoNuevo/valorCompra.
+export interface BaseGravableVehiculoDto {
+  soportado: boolean;
+  motivoNoSoportado?: string;
+  valorTabla?: number;
+  valorAjustado?: number;
+  aplicaBlindaje: boolean;
+  aplicaClasicoAntiguo: boolean;
+  esValorCompra: boolean;
+}
+
+export async function getBaseGravableVehiculo(
+  id: number,
+  params: { vehiculoNuevo: boolean; valorCompra?: number }
+): Promise<BaseGravableVehiculoDto> {
+  const { data } = await axios.get<BaseGravableVehiculoDto>(`${API_URL}/Vehiculos/${id}/base-gravable`, {
+    params,
+    headers: authHeader(),
+  });
+  return data;
 }

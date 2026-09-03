@@ -74,6 +74,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<ConfiguracionEstampillas>(builder.Configuration.GetSection("Estampillas"));
 builder.Services.Configure<ConfiguracionImpuestoConsumo>(builder.Configuration.GetSection("ImpuestoConsumo"));
+builder.Services.Configure<ConfiguracionBaseGravableVehiculo>(builder.Configuration.GetSection("BaseGravableVehiculo"));
 
 //adición de esta variable para enrutamiento para el almacenamiento de documentos.
 var rutaAlmacenamiento = Path.Combine(builder.Environment.ContentRootPath, "Almacenamiento");

@@ -9,7 +9,11 @@ import {
 import { getProyectosActivos, type ProyectoResponseDto } from '../services/proyectoService';
 import { getCiudadanos, getCiudadanoDetalle, type CiudadanoResponseDto } from '../services/ciudadanoService';
 import { getEmpresas, getEmpresaDetalle, getProductosEmpresa, type EmpresaResponseDto, type ProductoDto } from '../services/empresaService';
-import { getVehiculos, getVehiculoDetalle, type VehiculoResponseDto } from '../services/vehiculoService';
+import {
+  getVehiculos, getVehiculoDetalle, getBaseGravableVehiculo,
+  type VehiculoResponseDto, type BaseGravableVehiculoDto,
+} from '../services/vehiculoService';
+import { formatMilesDePesos } from '../config/iuvaConfig';
 import { CAMPOS_POR_TIPO, CAMPO_FALLBACK } from '../config/camposPorTipoSolicitud';
 import { getColorProyecto } from '../config/colorPorProyecto';
 import { DATOS_CONTRATO_VACIOS, construirDatosAdicionalesEstampillas, type DatosContratoEstampillas } from '../config/estampillasConfig';
@@ -47,16 +51,6 @@ const ICONOS_TIPO: Record<string, React.ReactNode> = {
 
 type TipoAfiliado = 'ciudadano' | 'empresa';
 
-const TIPOS_VEHICULO_IUVA = ['Automóvil particular', 'Camioneta / Campero', 'Camión', 'Motocicleta', 'Motocarro / Cuatrimoto'];
-
-const DEPARTAMENTOS = [
-  'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá D.C.', 'Bolívar', 'Boyacá', 'Caldas',
-  'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía',
-  'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander', 'Putumayo',
-  'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre', 'Tolima', 'Valle del Cauca',
-  'Vaupés', 'Vichada',
-];
-
 export default function NuevaSolicitudPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -87,15 +81,14 @@ export default function NuevaSolicitudPage() {
   const [datosTramite, setDatosTramite] = useState<Record<string, string>>({});
   const [observaciones, setObservaciones] = useState('');
 
-  // Datos específicos del trámite IUVA — Características del vehículo y Base gravable
-  const [tipoVehiculoIUVA, setTipoVehiculoIUVA] = useState(TIPOS_VEHICULO_IUVA[0]);
-  const [cilindraje, setCilindraje] = useState('');
-  const [departamento, setDepartamento] = useState('');
+  // Datos específicos del trámite IUVA — "3. Características" hereda todo del vehículo
+  // vinculado (solo lectura); el único campo libre es vehiculoNuevo. La base gravable ("4. Base
+  // gravable") se calcula en el servidor contra la tabla Mintransporte (o valorCompra si es
+  // vehículo nuevo, Art. 143) — ver GET /Vehiculos/{id}/base-gravable.
   const [vehiculoNuevo, setVehiculoNuevo] = useState(false);
   const [valorCompra, setValorCompra] = useState('');
-  const [avaluoComercial, setAvaluoComercial] = useState('');
-  const [blindado, setBlindado] = useState(false);
-  const [antiguoClasico, setAntiguoClasico] = useState(false);
+  const [baseGravable, setBaseGravable] = useState<BaseGravableVehiculoDto | null>(null);
+  const [avaluoManual, setAvaluoManual] = useState('');
 
   // Datos específicos del trámite Estampillas — Datos del contrato
   const [datosContrato, setDatosContrato] = useState<DatosContratoEstampillas>(DATOS_CONTRATO_VACIOS);
@@ -257,7 +250,28 @@ export default function NuevaSolicitudPage() {
     setCiudadanoSeleccionado(null);
     setEmpresaSeleccionada(null);
     setBusquedaVehiculo('');
+    setBaseGravable(null);
+    setAvaluoManual('');
   }
+
+  // Base gravable IUVA (Ley 488/1998 Art. 143) — se recalcula en el servidor cada vez que
+  // cambia el vehículo vinculado, "vehículo nuevo" o el valor de compra digitado.
+  useEffect(() => {
+    if (!esIUVA || !vehiculoVinculado) {
+      setBaseGravable(null);
+      return;
+    }
+    let cancelado = false;
+    const timeout = setTimeout(() => {
+      getBaseGravableVehiculo(vehiculoVinculado.id, {
+        vehiculoNuevo,
+        valorCompra: vehiculoNuevo && valorCompra ? Number(valorCompra) : undefined,
+      })
+        .then((r) => { if (!cancelado) setBaseGravable(r); })
+        .catch(() => { if (!cancelado) setBaseGravable(null); });
+    }, 300);
+    return () => { cancelado = true; clearTimeout(timeout); };
+  }, [esIUVA, vehiculoVinculado, vehiculoNuevo, valorCompra]);
 
   // Búsqueda con debounce — solo si no hay ya un afiliado resuelto por la URL
   // (o por el propietario del vehículo vinculado, una vez se resuelve)
@@ -358,9 +372,15 @@ export default function NuevaSolicitudPage() {
         return;
       }
     }
-    if (esIUVA && !avaluoComercial) {
-      setError('Ingresa el avalúo comercial del vehículo para continuar.');
-      return;
+    if (esIUVA) {
+      if (vehiculoNuevo && !valorCompra) {
+        setError('Ingresa el valor de compra del vehículo nuevo para continuar.');
+        return;
+      }
+      if (!vehiculoNuevo && !baseGravable?.soportado && !avaluoManual) {
+        setError('No se encontró la base gravable en la tabla Mintransporte — diligénciala manualmente para continuar.');
+        return;
+      }
     }
     if (esEstampillas && !datosContrato.valorContratoBruto) {
       setError('Ingresa el valor total del contrato para continuar.');
@@ -528,16 +548,29 @@ export default function NuevaSolicitudPage() {
       return;
     }
 
+    // baseGravable queda en PESOS COMPLETOS (no miles) para que PreliquidacionPage — que ya
+    // aplica las tarifas escalonadas del Art. 145 sobre este mismo campo con umbrales en pesos
+    // completos — no necesite conversión. El blindaje (+10%) ya viene incluido aquí cuando la
+    // tabla lo soporta (CalculadoraBaseGravableVehiculo), por eso PreliquidacionPage ya no debe
+    // volver a aplicarlo (se quitó ese factor de calcularImpuesto para no contarlo dos veces).
+    const baseGravableEnPesos = vehiculoNuevo
+      ? (valorCompra ? Number(valorCompra) : 0)
+      : baseGravable?.soportado
+        ? (baseGravable.valorAjustado ?? 0) * 1000
+        : (avaluoManual ? Number(avaluoManual) * 1000 : 0);
+
     const datosAdicionales = esIUVA
       ? JSON.stringify({
-          tipoVehiculo: tipoVehiculoIUVA,
-          cilindraje,
-          departamento,
+          tipoVehiculo: vehiculoVinculado?.tipoVehiculo ?? '',
+          subtipo: vehiculoVinculado?.subtipo ?? '',
+          cilindraje: vehiculoVinculado?.cilindraje ?? '',
+          departamentoMatricula: vehiculoVinculado?.departamentoMatricula ?? '',
+          municipioMatricula: vehiculoVinculado?.municipioMatricula ?? '',
           vehiculoNuevo: vehiculoNuevo ? 'Sí' : 'No',
           valorCompra: vehiculoNuevo ? valorCompra : '',
-          avaluoComercial,
-          blindado: blindado ? 'Sí' : 'No',
-          antiguoClasico: antiguoClasico ? 'Sí' : 'No',
+          baseGravable: String(baseGravableEnPesos),
+          blindado: vehiculoVinculado?.blindado ? 'Sí' : 'No',
+          antiguoClasico: vehiculoVinculado?.esClasicoAntiguo ? 'Sí' : 'No',
         })
       : esEstampillas
         ? JSON.stringify(construirDatosAdicionalesEstampillas(datosContrato, tipoSeleccionado.nombre))
@@ -905,53 +938,32 @@ export default function NuevaSolicitudPage() {
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">3. Características del vehículo</h3>
 
             {vehiculoVinculado && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 bg-paper rounded-[9px] px-4 py-3">
-                {[
-                  ['Marca', vehiculoVinculado.marca || '—'],
-                  ['Línea', vehiculoVinculado.linea || '—'],
-                  ['Modelo', vehiculoVinculado.modelo ? String(vehiculoVinculado.modelo) : '—'],
-                ].map(([lbl, val]) => (
-                  <div key={lbl}>
-                    <div className="text-[10px] uppercase tracking-wide text-ink-400 font-semibold mb-0.5">{lbl}</div>
-                    <div className="text-[12.5px] font-semibold text-ink-900">{val}</div>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="p-3 bg-[var(--color-accento-claro)] border border-[var(--color-accento)] rounded-lg text-[12.5px] font-medium mb-3.5" style={{ color: 'var(--color-accento)' }}>
+                  Datos heredados de la ficha del vehículo — para corregirlos, edita el vehículo directamente.
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4 bg-paper rounded-[9px] px-4 py-3">
+                  {[
+                    ['Marca', vehiculoVinculado.marca || '—'],
+                    ['Línea', vehiculoVinculado.linea || '—'],
+                    ['Modelo', vehiculoVinculado.modelo ? String(vehiculoVinculado.modelo) : '—'],
+                    ['Número de chasis', vehiculoVinculado.numeroChasis || '—'],
+                    ['Cilindraje', vehiculoVinculado.cilindraje || '—'],
+                    ['Tipo de vehículo', vehiculoVinculado.tipoVehiculo || '—'],
+                    ['Subtipo', vehiculoVinculado.subtipo || '—'],
+                    ['Municipio de matrícula', vehiculoVinculado.municipioMatricula || '—'],
+                    ['Departamento de matrícula', vehiculoVinculado.departamentoMatricula || '—'],
+                    ['Blindado', vehiculoVinculado.blindado ? 'Sí' : 'No'],
+                    ['Antiguo o clásico', vehiculoVinculado.esClasicoAntiguo ? 'Sí' : 'No'],
+                  ].map(([lbl, val]) => (
+                    <div key={lbl}>
+                      <div className="text-[10px] uppercase tracking-wide text-ink-400 font-semibold mb-0.5">{lbl}</div>
+                      <div className="text-[12.5px] font-semibold text-ink-900">{val}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipo de vehículo</label>
-                <select
-                  value={tipoVehiculoIUVA}
-                  onChange={(e) => setTipoVehiculoIUVA(e.target.value)}
-                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                >
-                  {TIPOS_VEHICULO_IUVA.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Cilindraje</label>
-                <input
-                  value={cilindraje}
-                  onChange={(e) => setCilindraje(e.target.value)}
-                  placeholder="1600 cc"
-                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-xs font-semibold text-ink-900 mb-1.5">Departamento</label>
-              <select
-                value={departamento}
-                onChange={(e) => setDepartamento(e.target.value)}
-                className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-              >
-                <option value="">Selecciona un departamento</option>
-                {DEPARTAMENTOS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
 
             <label className="flex items-center gap-2.5 border border-line rounded-[9px] px-3.5 py-2.5 mb-3.5 w-fit cursor-pointer">
               <input
@@ -978,52 +990,53 @@ export default function NuevaSolicitudPage() {
           <div className="bg-white border border-line rounded-[14px] p-5 mb-5">
             <h3 className="font-display text-[13.5px] font-semibold text-ink-900 mb-4">4. Base gravable</h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Avalúo comercial (tabla Mintransporte)</label>
-                <input
-                  type="number"
-                  value={avaluoComercial}
-                  onChange={(e) => setAvaluoComercial(e.target.value)}
-                  placeholder="$ 0"
-                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                />
-              </div>
+            {vehiculoNuevo ? (
               <div>
                 <label className="block text-xs font-semibold text-ink-900 mb-1.5">
-                  Valor de compra <span className="font-normal text-ink-400">(solo si es vehículo nuevo)</span>
+                  Valor de compra <span className="font-normal text-ink-400">(factura o declaración de importación — Art. 143)</span>
                 </label>
                 <input
                   type="number"
                   value={valorCompra}
                   onChange={(e) => setValorCompra(e.target.value)}
-                  disabled={!vehiculoNuevo}
                   placeholder="$ 0"
-                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 disabled:bg-paper disabled:text-ink-400"
+                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
                 />
               </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2.5">
-              <label className="flex items-center gap-2.5 border border-line rounded-[9px] px-3.5 py-2.5 cursor-pointer">
+            ) : baseGravable?.soportado ? (
+              <div>
+                <label className="block text-xs font-semibold text-ink-900 mb-1.5">
+                  Base gravable <span className="font-normal text-ink-400">(tabla Ministerio de Transporte, en miles de pesos)</span>
+                </label>
                 <input
-                  type="checkbox"
-                  checked={blindado}
-                  onChange={(e) => setBlindado(e.target.checked)}
-                  className="accent-[var(--color-accento)] w-4 h-4"
+                  value={formatMilesDePesos(baseGravable.valorAjustado)}
+                  disabled
+                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none bg-paper text-ink-600 font-semibold"
                 />
-                <span className="text-[13px] text-ink-900">¿Es blindado? (+10% sobre avalúo)</span>
-              </label>
-              <label className="flex items-center gap-2.5 border border-line rounded-[9px] px-3.5 py-2.5 cursor-pointer">
+                {baseGravable.aplicaBlindaje && (
+                  <p className="text-[11px] text-ink-400 mt-1.5">
+                    Incluye +10% por blindaje sobre el avalúo de tabla ({formatMilesDePesos(baseGravable.valorTabla)}).
+                  </p>
+                )}
+                {baseGravable.aplicaClasicoAntiguo && (
+                  <p className="text-[11px] text-ink-400 mt-1.5">Base fija por vehículo antiguo o clásico, no la tabla de avalúo comercial.</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[12.5px] font-medium mb-3.5">
+                  {baseGravable?.motivoNoSoportado ?? 'Vincula un vehículo con tipo y año modelo registrados para calcular la base gravable.'}
+                </div>
+                <label className="block text-xs font-semibold text-ink-900 mb-1.5">Base gravable (manual)</label>
                 <input
-                  type="checkbox"
-                  checked={antiguoClasico}
-                  onChange={(e) => setAntiguoClasico(e.target.checked)}
-                  className="accent-[var(--color-accento)] w-4 h-4"
+                  type="number"
+                  value={avaluoManual}
+                  onChange={(e) => setAvaluoManual(e.target.value)}
+                  placeholder="Miles de pesos"
+                  className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
                 />
-                <span className="text-[13px] text-ink-900">¿Antiguo o clásico? (placa azul/blanco)</span>
-              </label>
-            </div>
+              </div>
+            )}
           </div>
         )}
 

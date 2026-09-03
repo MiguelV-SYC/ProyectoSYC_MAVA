@@ -5,10 +5,17 @@ import {
   crearVehiculo,
   actualizarVehiculo,
   getVehiculoDetalle,
+  getCatalogoTiposVehiculo,
+  getCatalogoMarcasVehiculo,
+  getCatalogoLineasVehiculo,
+  type TipoVehiculoCatalogoDto,
+  type LineaVehiculoCatalogoDto,
 } from '../services/vehiculoService';
 import { getCiudadanos, type CiudadanoResponseDto } from '../services/ciudadanoService';
 import { getEmpresas, type EmpresaResponseDto } from '../services/empresaService';
 import { useColorProyectoActivo } from '../hooks/useColorProyectoActivo';
+import { DEPARTAMENTOS_COLOMBIA } from '../config/geografiaColombia';
+import BuscadorMunicipio from '../components/infoconsumo/BuscadorMunicipio';
 
 type TipoPropietario = 'ciudadano' | 'empresa';
 
@@ -25,6 +32,73 @@ export default function FormularioVehiculoPage() {
   const [linea, setLinea] = useState('');
   const [modelo, setModelo] = useState('');
   const [numeroChasis, setNumeroChasis] = useState('');
+
+  // Características IUVA (Reglas_de_negocio_IUVA.md) — atributos fijos del vehículo: se marcan
+  // una sola vez aquí y se heredan en cada solicitud de IUVA, no se repiten por radicación.
+  const [cilindraje, setCilindraje] = useState('');
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
+  const [subtipo, setSubtipo] = useState('');
+  const [municipioMatricula, setMunicipioMatricula] = useState('');
+  const [departamentoMatricula, setDepartamentoMatricula] = useState('');
+  const [blindado, setBlindado] = useState(false);
+  const [esClasicoAntiguo, setEsClasicoAntiguo] = useState(false);
+  const [catalogoTipos, setCatalogoTipos] = useState<TipoVehiculoCatalogoDto[]>([]);
+  const [catalogoMarcas, setCatalogoMarcas] = useState<string[]>([]);
+  const [catalogoLineas, setCatalogoLineas] = useState<LineaVehiculoCatalogoDto[]>([]);
+
+  useEffect(() => {
+    getCatalogoTiposVehiculo().then(setCatalogoTipos).catch(() => setCatalogoTipos([]));
+  }, []);
+
+  const tipoInfo = catalogoTipos.find((t) => t.tipo === tipoVehiculo);
+  const subtiposDisponibles = tipoInfo?.subtipos ?? [];
+  const subtipoEsInformativo = tipoInfo?.subtipoInformativo ?? false;
+
+  // Marca depende de Tipo (+Subtipo cuando la tabla oficial sí lo distingue) — Línea depende
+  // además de Marca. Estos efectos solo TRAEN las opciones; el reseteo de los campos
+  // dependientes ocurre en los onChange (elegirTipo/elegirSubtipo/elegirMarca), nunca aquí, para
+  // no borrar los valores ya guardados al cargar un vehículo existente en modo edición.
+  useEffect(() => {
+    if (!tipoVehiculo) { setCatalogoMarcas([]); return; }
+    getCatalogoMarcasVehiculo(tipoVehiculo, subtipo || undefined).then(setCatalogoMarcas).catch(() => setCatalogoMarcas([]));
+  }, [tipoVehiculo, subtipo]);
+
+  useEffect(() => {
+    if (!tipoVehiculo || !marca) { setCatalogoLineas([]); return; }
+    getCatalogoLineasVehiculo(tipoVehiculo, marca, subtipo || undefined).then(setCatalogoLineas).catch(() => setCatalogoLineas([]));
+  }, [tipoVehiculo, subtipo, marca]);
+
+  // Cilindrajes reales de la línea elegida: casi siempre uno solo (se autocompleta y se
+  // bloquea), a veces varios (ej. "CLIO (LINEA BASE ESTANDAR)" en 1200/1400/1600cc — ahí el
+  // campo se vuelve un select en vez de adivinar), o ninguno (queda libre para digitar).
+  const cilindrajesDeLinea = catalogoLineas.find((l) => l.linea === linea)?.cilindrajes ?? [];
+
+  function elegirTipo(nuevoTipo: string) {
+    setTipoVehiculo(nuevoTipo);
+    setSubtipo('');
+    setMarca('');
+    setLinea('');
+    setCilindraje('');
+  }
+
+  function elegirSubtipo(nuevoSubtipo: string) {
+    setSubtipo(nuevoSubtipo);
+    setMarca('');
+    setLinea('');
+    setCilindraje('');
+  }
+
+  function elegirMarca(nuevaMarca: string) {
+    setMarca(nuevaMarca);
+    setLinea('');
+    setCilindraje('');
+  }
+
+  function elegirLinea(nuevaLinea: string) {
+    setLinea(nuevaLinea);
+    const cilindrajes = catalogoLineas.find((l) => l.linea === nuevaLinea)?.cilindrajes ?? [];
+    setCilindraje(cilindrajes.length === 1 ? cilindrajes[0] : '');
+  }
 
   const [tipoPropietario, setTipoPropietario] = useState<TipoPropietario>('ciudadano');
   const [busquedaPropietario, setBusquedaPropietario] = useState('');
@@ -50,6 +124,13 @@ export default function FormularioVehiculoPage() {
         setLinea(v.linea ?? '');
         setModelo(v.modelo != null ? String(v.modelo) : '');
         setNumeroChasis(v.numeroChasis ?? '');
+        setCilindraje(v.cilindraje ?? '');
+        setTipoVehiculo(v.tipoVehiculo ?? '');
+        setSubtipo(v.subtipo ?? '');
+        setMunicipioMatricula(v.municipioMatricula ?? '');
+        setDepartamentoMatricula(v.departamentoMatricula ?? '');
+        setBlindado(v.blindado);
+        setEsClasicoAntiguo(v.esClasicoAntiguo);
         if (v.ciudadanoId) {
           setTipoPropietario('ciudadano');
           setCiudadanoSeleccionado({
@@ -114,6 +195,13 @@ export default function FormularioVehiculoPage() {
       numeroChasis: numeroChasis || undefined,
       ciudadanoId: ciudadanoSeleccionado?.id,
       empresaId: empresaSeleccionada?.id,
+      cilindraje: cilindraje || undefined,
+      tipoVehiculo: tipoVehiculo || undefined,
+      subtipo: subtipo || undefined,
+      municipioMatricula: municipioMatricula || undefined,
+      departamentoMatricula: departamentoMatricula || undefined,
+      blindado,
+      esClasicoAntiguo,
     };
 
     setGuardando(true);
@@ -193,24 +281,59 @@ export default function FormularioVehiculoPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">Tipo de vehículo</label>
+                  <select
+                    value={tipoVehiculo}
+                    onChange={(e) => elegirTipo(e.target.value)}
+                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+                  >
+                    <option value="">Selecciona un tipo</option>
+                    {catalogoTipos.map((t) => <option key={t.tipo} value={t.tipo}>{t.tipo}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">
+                    Subtipo {subtipoEsInformativo && <span className="font-normal text-ink-400">(informativo, no filtra la tabla oficial)</span>}
+                  </label>
+                  <select
+                    value={subtipo}
+                    onChange={(e) => elegirSubtipo(e.target.value)}
+                    disabled={!tipoVehiculo}
+                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 disabled:bg-paper disabled:text-ink-400"
+                  >
+                    <option value="">{tipoVehiculo ? 'Selecciona un subtipo' : 'Elige primero el tipo'}</option>
+                    {subtiposDisponibles.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Marca</label>
-                  <input
+                  <select
                     value={marca}
-                    onChange={(e) => setMarca(e.target.value)}
-                    placeholder="Renault"
-                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                  />
+                    onChange={(e) => elegirMarca(e.target.value)}
+                    disabled={!tipoVehiculo}
+                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 disabled:bg-paper disabled:text-ink-400"
+                  >
+                    <option value="">{tipoVehiculo ? 'Selecciona una marca' : 'Elige primero el tipo'}</option>
+                    {catalogoMarcas.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Línea</label>
-                  <input
+                  <select
                     value={linea}
-                    onChange={(e) => setLinea(e.target.value)}
-                    placeholder="Duster"
-                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
-                  />
+                    onChange={(e) => elegirLinea(e.target.value)}
+                    disabled={!marca}
+                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 disabled:bg-paper disabled:text-ink-400"
+                  >
+                    <option value="">{marca ? 'Selecciona una línea' : 'Elige primero la marca'}</option>
+                    {catalogoLineas.map((l) => <option key={l.linea} value={l.linea}>{l.linea}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-ink-900 mb-1.5">Modelo (año)</label>
@@ -222,6 +345,68 @@ export default function FormularioVehiculoPage() {
                     className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">
+                    Cilindraje {cilindrajesDeLinea.length === 1 && <span className="font-normal text-ink-400">(autocompletado)</span>}
+                  </label>
+                  {cilindrajesDeLinea.length > 1 ? (
+                    <select
+                      value={cilindraje}
+                      onChange={(e) => setCilindraje(e.target.value)}
+                      className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+                    >
+                      <option value="">Esta línea tiene varias motorizaciones — elige una</option>
+                      {cilindrajesDeLinea.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      value={cilindraje}
+                      onChange={(e) => setCilindraje(e.target.value)}
+                      disabled={cilindrajesDeLinea.length === 1}
+                      placeholder={linea ? '—' : 'Elige primero la línea'}
+                      className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500 disabled:bg-paper disabled:text-ink-600 disabled:font-semibold"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-line rounded-[14px] p-6 mb-5">
+              <h3 className="font-display text-[15px] font-semibold text-ink-900 mb-1">Características IUVA</h3>
+              <p className="text-[12px] text-ink-400 mb-4">
+                Ajustan la base gravable calculada — blindaje suma un recargo, matrícula determina jurisdicción.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">Departamento de matrícula</label>
+                  <select
+                    value={departamentoMatricula}
+                    onChange={(e) => { setDepartamentoMatricula(e.target.value); setMunicipioMatricula(''); }}
+                    className="w-full py-2.5 px-3 border-[1.5px] border-line rounded-[9px] text-[13px] outline-none focus:border-blue-500"
+                  >
+                    <option value="">Selecciona un departamento</option>
+                    {DEPARTAMENTOS_COLOMBIA.map((d) => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-ink-900 mb-1.5">Municipio de matrícula</label>
+                  <BuscadorMunicipio
+                    departamento={departamentoMatricula}
+                    value={municipioMatricula}
+                    onChange={setMunicipioMatricula}
+                    placeholder={departamentoMatricula ? 'Ej: Bucaramanga' : 'Elige primero el departamento'}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-5">
+                <label className="flex items-center gap-2 text-[13px] font-medium text-ink-900">
+                  <input type="checkbox" checked={blindado} onChange={(e) => setBlindado(e.target.checked)} className="w-4 h-4" />
+                  Es blindado
+                </label>
+                <label className="flex items-center gap-2 text-[13px] font-medium text-ink-900">
+                  <input type="checkbox" checked={esClasicoAntiguo} onChange={(e) => setEsClasicoAntiguo(e.target.checked)} className="w-4 h-4" />
+                  Es antiguo o clásico (placa azul/blanco)
+                </label>
               </div>
             </div>
 
