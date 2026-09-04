@@ -92,4 +92,16 @@ public class GeminiAIService : IIAService
 
         return string.Empty;
     }
+
+    // La Interactions API de Gemini sí puede devolver pasos de tipo "tool_call" (ver comentario
+    // de ExtraerTexto), pero mientras esta implementación no esté activa (ver Program.cs) no vale
+    // la pena portar el loop de tool-calling — se deja explícito en vez de fallar silenciosamente.
+    public Task<RespuestaIAHerramientasDto> GenerarConHerramientasAsync(
+        string systemPrompt,
+        IReadOnlyList<MensajeIADto> historial,
+        IReadOnlyList<HerramientaIADto> herramientas,
+        CancellationToken ct = default)
+    {
+        throw new IAServiceException("Este proveedor de IA no soporta herramientas todavía.");
+    }
 }

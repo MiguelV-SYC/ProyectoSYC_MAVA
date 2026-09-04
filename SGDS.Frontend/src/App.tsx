@@ -49,11 +49,13 @@ import GerencialComparativosPage from './pages/GerencialComparativosPage';
 import GerencialInsightsPage from './pages/GerencialInsightsPage';
 import GerencialAlertasPage from './pages/GerencialAlertasPage';
 import GerencialAsistenteIaPage from './pages/GerencialAsistenteIaPage';
+import AsistenteIaOperador from './components/asistente/AsistenteIaOperador';
 
 function App() {
   const { user } = useAuth();
 
   return (
+    <>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
@@ -325,7 +327,8 @@ function App() {
 
 
       </Routes>
-    
+    <AsistenteIaOperador />
+    </>
   );
 }
 

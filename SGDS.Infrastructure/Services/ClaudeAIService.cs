@@ -53,4 +53,16 @@ public class ClaudeAIService : IIAService
             throw new IAServiceException("No fue posible conectar con el servicio de IA.", ex);
         }
     }
+
+    // Claude sí soporta tool use nativamente, pero mientras esta implementación no esté activa
+    // (ver Program.cs) no vale la pena portar el loop de tool-calling — se deja explícito en vez
+    // de fallar silenciosamente con una respuesta vacía.
+    public Task<RespuestaIAHerramientasDto> GenerarConHerramientasAsync(
+        string systemPrompt,
+        IReadOnlyList<MensajeIADto> historial,
+        IReadOnlyList<HerramientaIADto> herramientas,
+        CancellationToken ct = default)
+    {
+        throw new IAServiceException("Este proveedor de IA no soporta herramientas todavía.");
+    }
 }
